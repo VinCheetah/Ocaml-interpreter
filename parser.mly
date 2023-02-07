@@ -25,6 +25,7 @@ open Expr   (* rappel: dans expr.ml:
 %left AND OR 
 %left L 
 %left LE
+%left G GE NE
 %left PLUS MINUS  /* associativité gauche: a+b+c, c'est (a+b)+c */
 %left TIMES  /* associativité gauche: a*b*c, c'est (a*b)*c */
 %nonassoc UMINUS  /* un "faux token", correspondant au "-" unaire */

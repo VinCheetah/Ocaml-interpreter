@@ -1,0 +1,1 @@
+let x = 3 in if (x < 4) then 1 else 0

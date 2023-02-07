@@ -24,6 +24,3 @@ lexer.mll : lexèmes, analyse lexicale
 parser.mly : règles de grammaire, analyse syntaxique
 tests/ : sous-répertoire de tests
 Makefile : pour la compilation, à ne pas modifier a priori
-
-
-test test

@@ -13,4 +13,4 @@ A perfectionner faute de manque de temps :
 ## Concernant les tests : 
 - il me semble si j'ai bien compris que ce qui est attendu en question 1 et 3 en terme d'affichage est incompatible, il y a donc deux lignes qui sont en commentaires dans le fichier main.ml (<font color = "red" > ligne 30 et 31 ) </font> qu'il faut décommenter afin de pouvoir voir en sorti le code caml qui est généré par le programme, il faut ensuite les recommenter pour le test3_1.ml qui vérifie que la fonction prInt n'affiche bien que ce qu'on lui demande. 
 
-test 
+test artichaud

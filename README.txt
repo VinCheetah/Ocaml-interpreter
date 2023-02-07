@@ -26,3 +26,4 @@ tests/ : sous-répertoire de tests
 Makefile : pour la compilation, à ne pas modifier a priori
 
 
+test test

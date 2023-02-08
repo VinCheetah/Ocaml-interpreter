@@ -9,28 +9,28 @@ open Expr   (* rappel: dans expr.ml:
 
 %token <int> INT       /* le lexème INT a un attribut entier */
 %token <string> VAR 
-%token PLUS TIMES MINUS
+%token PLUS TIMES MINUS DIV MOD
 %token LPAREN RPAREN
 %token EOL             /* retour à la ligne */
-%token L LE G GE NE 
+%token L LE G GE NE EQ
 %token IF THEN ELSE
-%token OP
 %token PRINT
-%token LET 
-%token IN 
-%token EQ 
-%token AND OR 
+%token LET IN
+%token TRUE FALSE
+%token AND OR NOT
 
-%right LET IN  
-%left AND OR 
-%left L 
-%left LE
+%nonassoc IF THEN ELSE 
+%right LET IN
+%right OR  
+%right AND
+%nonassoc L LE G GE NE EQ
+%nonassoc MOD
 %left PLUS MINUS  /* associativité gauche: a+b+c, c'est (a+b)+c */
-%left TIMES  /* associativité gauche: a*b*c, c'est (a*b)*c */
+%left TIMES DIV /* associativité gauche: a*b*c, c'est (a*b)*c */
 %nonassoc UMINUS  /* un "faux token", correspondant au "-" unaire */
                   /* cf. son usage plus bas : il sert à "marquer" une règle pour lui donner la précédence maximale */
-%nonassoc IF THEN ELSE 
-%right PRINT
+
+%nonassoc PRINT
 %start main             /* "start" signale le point d'entrée: */
                         /* c'est ici main, qui est défini plus bas */
 %type <Expr.expr> main     /* on _doit_ donner le type associé au point d'entrée */
@@ -46,27 +46,31 @@ expression EOL                { $1 }  /* on veut reconnaître une expression */
   
 
 expression:			    /* règles de grammaire pour les expressions */
-  | VAR                                 { Var $1 }
   | INT                                 { Const $1 }
-  | LPAREN expression RPAREN            { $2 } /* on récupère le deuxième élément */
-  | expression PLUS expression          { Add($1,$3) }
-  | expression TIMES expression         { Mul($1,$3) }
-  | expression MINUS expression         { Min($1,$3) }
-  /* | expression L expression            { L($1,$3 ) }*/
-  | MINUS expression %prec UMINUS       { Min(Const 0, $2) }
-  | expression L expression            { Op(L,$1,$3)} /* je voulais mettre expression operator expression pour ne pas écrire toutes les règles mais ça me provoquait des conflits sur un seul état que je ne comprenais pas */ 
-  | expression LE expression            { Op(Le,$1,$3)}
-  | expression G expression            { Op(G,$1,$3)}
-  | expression GE expression            { Op(Ge,$1,$3)}
-  | expression NE expression            { Op(Ne,$1,$3)}
-  
-  |condition                            { $1 }
-  | PRINT expression                    { PrInt $2}
+  | TRUE                                { BConst true}
+  | FALSE                               { BConst false }
+  | VAR                                 { Var $1 }
+  | LPAREN expression RPAREN            { $2 }
+  | expression PLUS expression          { ArithOp (Add,$1,$3) }
+  | expression TIMES expression         { ArithOp (Mul,$1,$3) }
+  | expression MINUS expression         { ArithOp (Min,$1,$3) }
+  | expression DIV expression           { ArithOp (Div,$1,$3) }
+  | expression MOD expression           { ArithOp (Mod,$1,$3) }
+  | MINUS expression %prec UMINUS       { ArithOp (Min,Const 0, $2) }
+  | expression L expression             { CompOp (L,$1,$3) } 
+  | expression LE expression            { CompOp (Le,$1,$3) }
+  | expression G expression             { CompOp (G,$1,$3) }
+  | expression GE expression            { CompOp (Ge,$1,$3) }
+  | expression EQ expression            { CompOp (Eq,$1,$3) }
+  | expression NE expression            { CompOp (Ne,$1,$3) }
+  | expression OR expression            { BoolOp (Or,$1,$3) }
+  | expression AND expression           { BoolOp (And,$1,$3) }
+  | NOT expression                      { BoolOp (Not,$2, BConst true) }    /* On ajoute un troisième élément pour qu'elle s'intègre dans le type BoolOp */
+  | condition                           { $1 }
+  | PRINT expression                    { PrInt $2 }
   | declaration                         { $1 }
 
-/*operator:  essai de 
-  | L                                     { L } 
-  | LE                                    {LE} */  
+
 condition:
   |IF expression THEN expression ELSE expression { If($2,$4,$6) }
 

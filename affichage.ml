@@ -76,12 +76,18 @@ let rec affiche_expr e =
   | PrInt (e1)    -> print_string "prInt "; (match e1 with
             | Const _ -> affiche_expr
             | _ -> print_parenthese) e1  
-  | Let(x,e1,e2)  -> print_string "let "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
-
+  | Let (x,e1,e2) -> print_string "let "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
+  | Fun (arg,e1)  -> print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
+  | App (e1,e2)   -> affiche_expr e1; print_string " "; (match e2 with
+            | Const _
+            | BConst _
+            | Var _ -> affiche_expr
+            | _ -> print_parenthese) e2
 
 
 (* let affiche_val v =  print_string "TODO" *)
 let affiche_val v = match v with
-  | VInt k  -> print_int k
-  | VBool b -> print_string (if b then "true" else "false")
+  | VInt k          -> print_int k
+  | VBool b         -> print_string (if b then "true" else "false")
+  | VFun (arg,e1,_) -> print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
                       

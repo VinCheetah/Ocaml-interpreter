@@ -16,7 +16,7 @@
 # Target: parser.mly, tags: { extension:mly, file:parser.mly, infer, ocaml, ocamlyacc, parser, quiet }
 /usr/bin/ocamlyacc -v parser.mly
 + /usr/bin/ocamlyacc -v parser.mly
-13 shift/reduce conflicts.
+136 shift/reduce conflicts, 20 reduce/reduce conflicts.
 # Target: parser.mli.depends, tags: { extension:mli, file:parser.mli, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep.opt -modules parser.mli > parser.mli.depends # cached
 # Target: parser.cmi, tags: { byte, compile, extension:mli, file:parser.mli, interf, ocaml, quiet }
@@ -27,12 +27,12 @@
 /usr/bin/ocamlc.opt -c -o main.cmo main.ml # cached
 # Target: expr.cmx, tags: { compile, extension:cmx, extension:ml, file:expr.cmx, file:expr.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt.opt -c -o expr.cmx expr.ml # cached
-# Target: affichage.cmx, tags: { compile, extension:cmx, extension:ml, file:affichage.cmx, file:affichage.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o affichage.cmx affichage.ml # cached
 # Target: parser.ml.depends, tags: { extension:ml, file:parser.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep.opt -modules parser.ml > parser.ml.depends
 # Target: parser.cmx, tags: { compile, extension:cmx, extension:ml, file:parser.cmx, file:parser.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt.opt -c -o parser.cmx parser.ml
+# Target: affichage.cmx, tags: { compile, extension:cmx, extension:ml, file:affichage.cmx, file:affichage.ml, implem, native, ocaml, quiet }
+/usr/bin/ocamlopt.opt -c -o affichage.cmx affichage.ml
 # Target: lexer.cmx, tags: { compile, extension:cmx, extension:ml, file:lexer.cmx, file:lexer.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt.opt -c -o lexer.cmx lexer.ml
 # Target: main.cmx, tags: { compile, extension:cmx, extension:ml, file:main.cmx, file:main.ml, implem, native, ocaml, quiet }

@@ -18,8 +18,11 @@ open Expr   (* rappel: dans expr.ml:
 %token TRUE FALSE
 %token AND OR NOT
 %token PRINT
+%token FUN FLECHE
 
 %nonassoc IF THEN ELSE 
+%nonassoc NOT
+%left FUN 
 %right LET IN
 %right OR  
 %right AND
@@ -70,6 +73,8 @@ expression:			    /* règles de grammaire pour les expressions */
   | PRINT INT                           { PrInt (Const $2) }
   | PRINT LPAREN expression RPAREN      { PrInt $3 }
   | declaration                         { $1 }
+  | FUN VAR FLECHE expression           { Fun ($2,$4) }
+  | expression expression               { App ($1,$2) }
 
 
 condition:

@@ -35,5 +35,8 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "prInt"                                  { PRINT }
   | "let"                                    { LET }
   | "in"                                     { IN }
+  | "fun"                                    { FUN }
+  | "->"                                     { FLECHE }
   | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9']* as s { VAR (s) }
   | eof                                      { raise Eof } (* fin du fichier *)
+

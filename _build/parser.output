@@ -26,12 +26,14 @@
   23             | PRINT INT
   24             | PRINT LPAREN expression RPAREN
   25             | declaration
+  26             | FUN VAR FLECHE expression
+  27             | expression expression
 
-  26  condition : IF expression THEN expression ELSE expression
+  28  condition : IF expression THEN expression ELSE expression
 
-  27  declaration : LET VAR EQ expression IN expression
+  29  declaration : LET VAR EQ expression IN expression
 
-  28  %entry% : '\001' main
+  30  %entry% : '\001' main
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -43,7 +45,7 @@ state 0
 
 
 state 1
-	%entry% : '\001' . main  (28)
+	%entry% : '\001' . main  (30)
 
 	INT  shift 3
 	VAR  shift 4
@@ -55,12 +57,13 @@ state 1
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	main  goto 13
-	expression  goto 14
-	condition  goto 15
-	declaration  goto 16
+	main  goto 14
+	expression  goto 15
+	condition  goto 16
+	declaration  goto 17
 
 
 state 2
@@ -94,11 +97,12 @@ state 5
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 17
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 18
+	condition  goto 16
+	declaration  goto 17
 
 
 state 6
@@ -114,15 +118,16 @@ state 6
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 18
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 19
+	condition  goto 16
+	declaration  goto 17
 
 
 state 7
-	condition : IF . expression THEN expression ELSE expression  (26)
+	condition : IF . expression THEN expression ELSE expression  (28)
 
 	INT  shift 3
 	VAR  shift 4
@@ -134,17 +139,18 @@ state 7
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 19
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 20
+	condition  goto 16
+	declaration  goto 17
 
 
 state 8
-	declaration : LET . VAR EQ expression IN expression  (27)
+	declaration : LET . VAR EQ expression IN expression  (29)
 
-	VAR  shift 20
+	VAR  shift 21
 	.  error
 
 
@@ -173,29 +179,37 @@ state 11
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 21
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 22
+	condition  goto 16
+	declaration  goto 17
 
 
 state 12
 	expression : PRINT . INT  (23)
 	expression : PRINT . LPAREN expression RPAREN  (24)
 
-	INT  shift 22
-	LPAREN  shift 23
+	INT  shift 23
+	LPAREN  shift 24
 	.  error
 
 
 state 13
-	%entry% : '\001' main .  (28)
+	expression : FUN . VAR FLECHE expression  (26)
 
-	.  reduce 28
+	VAR  shift 25
+	.  error
 
 
 state 14
+	%entry% : '\001' main .  (30)
+
+	.  reduce 30
+
+
+state 15
 	main : expression . EOL  (1)
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
@@ -210,37 +224,57 @@ state 14
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	EOL  shift 29
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	AND  shift 36
-	OR  shift 37
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	EOL  shift 31
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
-state 15
+
+state 16
 	expression : condition .  (22)
 
 	.  reduce 22
 
 
-state 16
+state 17
 	expression : declaration .  (25)
 
 	.  reduce 25
 
 
-state 17
+18: shift/reduce conflict (shift 3, reduce 12) on INT
+18: shift/reduce conflict (shift 4, reduce 12) on VAR
+18: shift/reduce conflict (shift 6, reduce 12) on LPAREN
+18: shift/reduce conflict (shift 9, reduce 12) on TRUE
+18: shift/reduce conflict (shift 10, reduce 12) on FALSE
+state 18
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -255,11 +289,43 @@ state 17
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	.  reduce 12
+	INT  shift 3
+	VAR  shift 4
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
+	PLUS  reduce 12
+	TIMES  reduce 12
+	MINUS  reduce 12
+	DIV  reduce 12
+	MOD  reduce 12
+	RPAREN  reduce 12
+	EOL  reduce 12
+	L  reduce 12
+	LE  reduce 12
+	G  reduce 12
+	GE  reduce 12
+	NE  reduce 12
+	EQ  reduce 12
+	IF  reduce 12
+	THEN  reduce 12
+	ELSE  reduce 12
+	LET  reduce 12
+	IN  reduce 12
+	AND  reduce 12
+	OR  reduce 12
+	NOT  reduce 12
+	FUN  reduce 12
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 18
+state 19
 	expression : LPAREN expression . RPAREN  (6)
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
@@ -274,25 +340,40 @@ state 18
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	RPAREN  shift 38
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	AND  shift 36
-	OR  shift 37
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	RPAREN  shift 41
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
-state 19
+
+state 20
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -306,46 +387,53 @@ state 19
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
-	condition : IF expression . THEN expression ELSE expression  (26)
+	expression : expression . expression  (27)
+	condition : IF expression . THEN expression ELSE expression  (28)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	THEN  shift 39
-	AND  shift 36
-	OR  shift 37
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	IF  shift 7
+	THEN  shift 42
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-
-state 20
-	declaration : LET VAR . EQ expression IN expression  (27)
-
-	EQ  shift 40
-	.  error
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-21: shift/reduce conflict (shift 24, reduce 21) on PLUS
-21: shift/reduce conflict (shift 25, reduce 21) on TIMES
-21: shift/reduce conflict (shift 26, reduce 21) on MINUS
-21: shift/reduce conflict (shift 27, reduce 21) on DIV
-21: shift/reduce conflict (shift 28, reduce 21) on MOD
-21: shift/reduce conflict (shift 30, reduce 21) on L
-21: shift/reduce conflict (shift 31, reduce 21) on LE
-21: shift/reduce conflict (shift 32, reduce 21) on G
-21: shift/reduce conflict (shift 33, reduce 21) on GE
-21: shift/reduce conflict (shift 34, reduce 21) on NE
-21: shift/reduce conflict (shift 35, reduce 21) on EQ
-21: shift/reduce conflict (shift 36, reduce 21) on AND
-21: shift/reduce conflict (shift 37, reduce 21) on OR
 state 21
+	declaration : LET VAR . EQ expression IN expression  (29)
+
+	EQ  shift 43
+	.  error
+
+
+22: shift/reduce conflict (shift 3, reduce 21) on INT
+22: shift/reduce conflict (shift 4, reduce 21) on VAR
+22: shift/reduce conflict (shift 6, reduce 21) on LPAREN
+22: shift/reduce conflict (shift 9, reduce 21) on TRUE
+22: shift/reduce conflict (shift 10, reduce 21) on FALSE
+state 22
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -360,34 +448,48 @@ state 21
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
 	expression : NOT expression .  (21)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	AND  shift 36
-	OR  shift 37
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	PRINT  shift 12
+	FUN  shift 13
 	RPAREN  reduce 21
 	EOL  reduce 21
+	IF  reduce 21
 	THEN  reduce 21
 	ELSE  reduce 21
 	IN  reduce 21
 
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
-state 22
+
+state 23
 	expression : PRINT INT .  (23)
 
 	.  reduce 23
 
 
-state 23
+state 24
 	expression : PRINT LPAREN . expression RPAREN  (24)
 
 	INT  shift 3
@@ -400,14 +502,22 @@ state 23
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 41
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 44
+	condition  goto 16
+	declaration  goto 17
 
 
-state 24
+state 25
+	expression : FUN VAR . FLECHE expression  (26)
+
+	FLECHE  shift 45
+	.  error
+
+
+state 26
 	expression : expression PLUS . expression  (7)
 
 	INT  shift 3
@@ -420,14 +530,15 @@ state 24
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 42
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 46
+	condition  goto 16
+	declaration  goto 17
 
 
-state 25
+state 27
 	expression : expression TIMES . expression  (8)
 
 	INT  shift 3
@@ -440,15 +551,17 @@ state 25
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 43
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 47
+	condition  goto 16
+	declaration  goto 17
 
 
-state 26
+state 28
 	expression : expression MINUS . expression  (9)
+	expression : MINUS . expression  (12)
 
 	INT  shift 3
 	VAR  shift 4
@@ -460,14 +573,15 @@ state 26
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 44
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 48
+	condition  goto 16
+	declaration  goto 17
 
 
-state 27
+state 29
 	expression : expression DIV . expression  (10)
 
 	INT  shift 3
@@ -480,14 +594,15 @@ state 27
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 45
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 49
+	condition  goto 16
+	declaration  goto 17
 
 
-state 28
+state 30
 	expression : expression MOD . expression  (11)
 
 	INT  shift 3
@@ -500,20 +615,21 @@ state 28
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 46
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 50
+	condition  goto 16
+	declaration  goto 17
 
 
-state 29
+state 31
 	main : expression EOL .  (1)
 
 	.  reduce 1
 
 
-state 30
+state 32
 	expression : expression L . expression  (13)
 
 	INT  shift 3
@@ -526,14 +642,15 @@ state 30
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 47
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 51
+	condition  goto 16
+	declaration  goto 17
 
 
-state 31
+state 33
 	expression : expression LE . expression  (14)
 
 	INT  shift 3
@@ -546,14 +663,15 @@ state 31
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 48
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 52
+	condition  goto 16
+	declaration  goto 17
 
 
-state 32
+state 34
 	expression : expression G . expression  (15)
 
 	INT  shift 3
@@ -566,14 +684,15 @@ state 32
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 49
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 53
+	condition  goto 16
+	declaration  goto 17
 
 
-state 33
+state 35
 	expression : expression GE . expression  (16)
 
 	INT  shift 3
@@ -586,14 +705,15 @@ state 33
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 50
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 54
+	condition  goto 16
+	declaration  goto 17
 
 
-state 34
+state 36
 	expression : expression NE . expression  (18)
 
 	INT  shift 3
@@ -606,14 +726,15 @@ state 34
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 51
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 55
+	condition  goto 16
+	declaration  goto 17
 
 
-state 35
+state 37
 	expression : expression EQ . expression  (17)
 
 	INT  shift 3
@@ -626,14 +747,15 @@ state 35
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 52
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 56
+	condition  goto 16
+	declaration  goto 17
 
 
-state 36
+state 38
 	expression : expression AND . expression  (20)
 
 	INT  shift 3
@@ -646,14 +768,15 @@ state 36
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 53
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 57
+	condition  goto 16
+	declaration  goto 17
 
 
-state 37
+state 39
 	expression : expression OR . expression  (19)
 
 	INT  shift 3
@@ -666,21 +789,96 @@ state 37
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 54
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 58
+	condition  goto 16
+	declaration  goto 17
 
 
-state 38
+40: shift/reduce conflict (shift 3, reduce 27) on INT
+40: shift/reduce conflict (shift 4, reduce 27) on VAR
+40: shift/reduce conflict (shift 26, reduce 27) on PLUS
+40: shift/reduce conflict (shift 27, reduce 27) on TIMES
+40: shift/reduce conflict (shift 28, reduce 27) on MINUS
+40: shift/reduce conflict (shift 29, reduce 27) on DIV
+40: shift/reduce conflict (shift 30, reduce 27) on MOD
+40: shift/reduce conflict (shift 6, reduce 27) on LPAREN
+40: shift/reduce conflict (shift 32, reduce 27) on L
+40: shift/reduce conflict (shift 33, reduce 27) on LE
+40: shift/reduce conflict (shift 34, reduce 27) on G
+40: shift/reduce conflict (shift 35, reduce 27) on GE
+40: shift/reduce conflict (shift 36, reduce 27) on NE
+40: shift/reduce conflict (shift 37, reduce 27) on EQ
+40: shift/reduce conflict (shift 7, reduce 27) on IF
+40: shift/reduce conflict (shift 8, reduce 27) on LET
+40: shift/reduce conflict (shift 9, reduce 27) on TRUE
+40: shift/reduce conflict (shift 10, reduce 27) on FALSE
+40: shift/reduce conflict (shift 38, reduce 27) on AND
+40: shift/reduce conflict (shift 39, reduce 27) on OR
+40: shift/reduce conflict (shift 11, reduce 27) on NOT
+40: shift/reduce conflict (shift 12, reduce 27) on PRINT
+40: shift/reduce conflict (shift 13, reduce 27) on FUN
+state 40
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
+	expression : expression expression .  (27)
+
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	RPAREN  reduce 27
+	EOL  reduce 27
+	THEN  reduce 27
+	ELSE  reduce 27
+	IN  reduce 27
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
+
+
+state 41
 	expression : LPAREN expression RPAREN .  (6)
 
 	.  reduce 6
 
 
-state 39
-	condition : IF expression THEN . expression ELSE expression  (26)
+state 42
+	condition : IF expression THEN . expression ELSE expression  (28)
 
 	INT  shift 3
 	VAR  shift 4
@@ -692,15 +890,16 @@ state 39
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 55
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 59
+	condition  goto 16
+	declaration  goto 17
 
 
-state 40
-	declaration : LET VAR EQ . expression IN expression  (27)
+state 43
+	declaration : LET VAR EQ . expression IN expression  (29)
 
 	INT  shift 3
 	VAR  shift 4
@@ -712,14 +911,15 @@ state 40
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 56
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 60
+	condition  goto 16
+	declaration  goto 17
 
 
-state 41
+state 44
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -734,25 +934,66 @@ state 41
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
 	expression : PRINT LPAREN expression . RPAREN  (24)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	RPAREN  shift 57
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	AND  shift 36
-	OR  shift 37
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	RPAREN  shift 61
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
-state 42
+
+state 45
+	expression : FUN VAR FLECHE . expression  (26)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	.  error
+
+	expression  goto 62
+	condition  goto 16
+	declaration  goto 17
+
+
+46: shift/reduce conflict (shift 3, reduce 7) on INT
+46: shift/reduce conflict (shift 4, reduce 7) on VAR
+46: shift/reduce conflict (shift 6, reduce 7) on LPAREN
+46: shift/reduce conflict (shift 9, reduce 7) on TRUE
+46: shift/reduce conflict (shift 10, reduce 7) on FALSE
+state 46
 	expression : expression . PLUS expression  (7)
 	expression : expression PLUS expression .  (7)
 	expression : expression . TIMES expression  (8)
@@ -767,9 +1008,16 @@ state 42
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	TIMES  shift 25
-	DIV  shift 27
+	INT  shift 3
+	VAR  shift 4
+	TIMES  shift 27
+	DIV  shift 29
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
 	PLUS  reduce 7
 	MINUS  reduce 7
 	MOD  reduce 7
@@ -781,14 +1029,27 @@ state 42
 	GE  reduce 7
 	NE  reduce 7
 	EQ  reduce 7
+	IF  reduce 7
 	THEN  reduce 7
 	ELSE  reduce 7
+	LET  reduce 7
 	IN  reduce 7
 	AND  reduce 7
 	OR  reduce 7
+	NOT  reduce 7
+	FUN  reduce 7
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 43
+47: shift/reduce conflict (shift 3, reduce 8) on INT
+47: shift/reduce conflict (shift 4, reduce 8) on VAR
+47: shift/reduce conflict (shift 6, reduce 8) on LPAREN
+47: shift/reduce conflict (shift 9, reduce 8) on TRUE
+47: shift/reduce conflict (shift 10, reduce 8) on FALSE
+state 47
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression TIMES expression .  (8)
@@ -803,17 +1064,80 @@ state 43
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	.  reduce 8
+	INT  shift 3
+	VAR  shift 4
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
+	PLUS  reduce 8
+	TIMES  reduce 8
+	MINUS  reduce 8
+	DIV  reduce 8
+	MOD  reduce 8
+	RPAREN  reduce 8
+	EOL  reduce 8
+	L  reduce 8
+	LE  reduce 8
+	G  reduce 8
+	GE  reduce 8
+	NE  reduce 8
+	EQ  reduce 8
+	IF  reduce 8
+	THEN  reduce 8
+	ELSE  reduce 8
+	LET  reduce 8
+	IN  reduce 8
+	AND  reduce 8
+	OR  reduce 8
+	NOT  reduce 8
+	FUN  reduce 8
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 44
+48: shift/reduce conflict (shift 3, reduce 9) on INT
+48: shift/reduce conflict (shift 3, reduce 12) on INT
+48: shift/reduce conflict (shift 4, reduce 9) on VAR
+48: shift/reduce conflict (shift 4, reduce 12) on VAR
+48: reduce/reduce conflict (reduce 9, reduce 12) on PLUS
+48: reduce/reduce conflict (reduce 9, reduce 12) on MINUS
+48: reduce/reduce conflict (reduce 9, reduce 12) on MOD
+48: shift/reduce conflict (shift 6, reduce 9) on LPAREN
+48: shift/reduce conflict (shift 6, reduce 12) on LPAREN
+48: reduce/reduce conflict (reduce 9, reduce 12) on RPAREN
+48: reduce/reduce conflict (reduce 9, reduce 12) on EOL
+48: reduce/reduce conflict (reduce 9, reduce 12) on L
+48: reduce/reduce conflict (reduce 9, reduce 12) on LE
+48: reduce/reduce conflict (reduce 9, reduce 12) on G
+48: reduce/reduce conflict (reduce 9, reduce 12) on GE
+48: reduce/reduce conflict (reduce 9, reduce 12) on NE
+48: reduce/reduce conflict (reduce 9, reduce 12) on EQ
+48: reduce/reduce conflict (reduce 9, reduce 12) on IF
+48: reduce/reduce conflict (reduce 9, reduce 12) on THEN
+48: reduce/reduce conflict (reduce 9, reduce 12) on ELSE
+48: reduce/reduce conflict (reduce 9, reduce 12) on LET
+48: reduce/reduce conflict (reduce 9, reduce 12) on IN
+48: shift/reduce conflict (shift 9, reduce 9) on TRUE
+48: shift/reduce conflict (shift 9, reduce 12) on TRUE
+48: shift/reduce conflict (shift 10, reduce 9) on FALSE
+48: shift/reduce conflict (shift 10, reduce 12) on FALSE
+48: reduce/reduce conflict (reduce 9, reduce 12) on AND
+48: reduce/reduce conflict (reduce 9, reduce 12) on OR
+48: reduce/reduce conflict (reduce 9, reduce 12) on NOT
+48: reduce/reduce conflict (reduce 9, reduce 12) on FUN
+state 48
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
 	expression : expression MINUS expression .  (9)
 	expression : expression . DIV expression  (10)
 	expression : expression . MOD expression  (11)
+	expression : MINUS expression .  (12)
 	expression : expression . L expression  (13)
 	expression : expression . LE expression  (14)
 	expression : expression . G expression  (15)
@@ -822,11 +1146,18 @@ state 44
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	TIMES  shift 25
-	DIV  shift 27
+	INT  shift 3
+	VAR  shift 4
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
 	PLUS  reduce 9
+	TIMES  reduce 12
 	MINUS  reduce 9
+	DIV  reduce 12
 	MOD  reduce 9
 	RPAREN  reduce 9
 	EOL  reduce 9
@@ -836,14 +1167,27 @@ state 44
 	GE  reduce 9
 	NE  reduce 9
 	EQ  reduce 9
+	IF  reduce 9
 	THEN  reduce 9
 	ELSE  reduce 9
+	LET  reduce 9
 	IN  reduce 9
 	AND  reduce 9
 	OR  reduce 9
+	NOT  reduce 9
+	FUN  reduce 9
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 45
+49: shift/reduce conflict (shift 3, reduce 10) on INT
+49: shift/reduce conflict (shift 4, reduce 10) on VAR
+49: shift/reduce conflict (shift 6, reduce 10) on LPAREN
+49: shift/reduce conflict (shift 9, reduce 10) on TRUE
+49: shift/reduce conflict (shift 10, reduce 10) on FALSE
+state 49
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -858,11 +1202,48 @@ state 45
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	.  reduce 10
+	INT  shift 3
+	VAR  shift 4
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
+	PLUS  reduce 10
+	TIMES  reduce 10
+	MINUS  reduce 10
+	DIV  reduce 10
+	MOD  reduce 10
+	RPAREN  reduce 10
+	EOL  reduce 10
+	L  reduce 10
+	LE  reduce 10
+	G  reduce 10
+	GE  reduce 10
+	NE  reduce 10
+	EQ  reduce 10
+	IF  reduce 10
+	THEN  reduce 10
+	ELSE  reduce 10
+	LET  reduce 10
+	IN  reduce 10
+	AND  reduce 10
+	OR  reduce 10
+	NOT  reduce 10
+	FUN  reduce 10
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 46
+50: shift/reduce conflict (shift 3, reduce 11) on INT
+50: shift/reduce conflict (shift 4, reduce 11) on VAR
+50: shift/reduce conflict (shift 6, reduce 11) on LPAREN
+50: shift/reduce conflict (shift 9, reduce 11) on TRUE
+50: shift/reduce conflict (shift 10, reduce 11) on FALSE
+state 50
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -877,11 +1258,18 @@ state 46
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
 	RPAREN  reduce 11
 	EOL  reduce 11
 	L  reduce 11
@@ -890,14 +1278,27 @@ state 46
 	GE  reduce 11
 	NE  reduce 11
 	EQ  reduce 11
+	IF  reduce 11
 	THEN  reduce 11
 	ELSE  reduce 11
+	LET  reduce 11
 	IN  reduce 11
 	AND  reduce 11
 	OR  reduce 11
+	NOT  reduce 11
+	FUN  reduce 11
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 47
+51: shift/reduce conflict (shift 3, reduce 13) on INT
+51: shift/reduce conflict (shift 4, reduce 13) on VAR
+51: shift/reduce conflict (shift 6, reduce 13) on LPAREN
+51: shift/reduce conflict (shift 9, reduce 13) on TRUE
+51: shift/reduce conflict (shift 10, reduce 13) on FALSE
+state 51
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -912,22 +1313,42 @@ state 47
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
 	RPAREN  reduce 13
 	EOL  reduce 13
+	IF  reduce 13
 	THEN  reduce 13
 	ELSE  reduce 13
+	LET  reduce 13
 	IN  reduce 13
 	AND  reduce 13
 	OR  reduce 13
+	NOT  reduce 13
+	FUN  reduce 13
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 48
+52: shift/reduce conflict (shift 3, reduce 14) on INT
+52: shift/reduce conflict (shift 4, reduce 14) on VAR
+52: shift/reduce conflict (shift 6, reduce 14) on LPAREN
+52: shift/reduce conflict (shift 9, reduce 14) on TRUE
+52: shift/reduce conflict (shift 10, reduce 14) on FALSE
+state 52
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -942,22 +1363,42 @@ state 48
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
 	RPAREN  reduce 14
 	EOL  reduce 14
+	IF  reduce 14
 	THEN  reduce 14
 	ELSE  reduce 14
+	LET  reduce 14
 	IN  reduce 14
 	AND  reduce 14
 	OR  reduce 14
+	NOT  reduce 14
+	FUN  reduce 14
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 49
+53: shift/reduce conflict (shift 3, reduce 15) on INT
+53: shift/reduce conflict (shift 4, reduce 15) on VAR
+53: shift/reduce conflict (shift 6, reduce 15) on LPAREN
+53: shift/reduce conflict (shift 9, reduce 15) on TRUE
+53: shift/reduce conflict (shift 10, reduce 15) on FALSE
+state 53
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -972,22 +1413,42 @@ state 49
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
 	RPAREN  reduce 15
 	EOL  reduce 15
+	IF  reduce 15
 	THEN  reduce 15
 	ELSE  reduce 15
+	LET  reduce 15
 	IN  reduce 15
 	AND  reduce 15
 	OR  reduce 15
+	NOT  reduce 15
+	FUN  reduce 15
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 50
+54: shift/reduce conflict (shift 3, reduce 16) on INT
+54: shift/reduce conflict (shift 4, reduce 16) on VAR
+54: shift/reduce conflict (shift 6, reduce 16) on LPAREN
+54: shift/reduce conflict (shift 9, reduce 16) on TRUE
+54: shift/reduce conflict (shift 10, reduce 16) on FALSE
+state 54
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -1002,22 +1463,42 @@ state 50
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
 	RPAREN  reduce 16
 	EOL  reduce 16
+	IF  reduce 16
 	THEN  reduce 16
 	ELSE  reduce 16
+	LET  reduce 16
 	IN  reduce 16
 	AND  reduce 16
 	OR  reduce 16
+	NOT  reduce 16
+	FUN  reduce 16
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 51
+55: shift/reduce conflict (shift 3, reduce 18) on INT
+55: shift/reduce conflict (shift 4, reduce 18) on VAR
+55: shift/reduce conflict (shift 6, reduce 18) on LPAREN
+55: shift/reduce conflict (shift 9, reduce 18) on TRUE
+55: shift/reduce conflict (shift 10, reduce 18) on FALSE
+state 55
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -1032,22 +1513,42 @@ state 51
 	expression : expression NE expression .  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
 	RPAREN  reduce 18
 	EOL  reduce 18
+	IF  reduce 18
 	THEN  reduce 18
 	ELSE  reduce 18
+	LET  reduce 18
 	IN  reduce 18
 	AND  reduce 18
 	OR  reduce 18
+	NOT  reduce 18
+	FUN  reduce 18
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 52
+56: shift/reduce conflict (shift 3, reduce 17) on INT
+56: shift/reduce conflict (shift 4, reduce 17) on VAR
+56: shift/reduce conflict (shift 6, reduce 17) on LPAREN
+56: shift/reduce conflict (shift 9, reduce 17) on TRUE
+56: shift/reduce conflict (shift 10, reduce 17) on FALSE
+state 56
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -1062,22 +1563,42 @@ state 52
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	TRUE  shift 9
+	FALSE  shift 10
+	PRINT  shift 12
 	RPAREN  reduce 17
 	EOL  reduce 17
+	IF  reduce 17
 	THEN  reduce 17
 	ELSE  reduce 17
+	LET  reduce 17
 	IN  reduce 17
 	AND  reduce 17
 	OR  reduce 17
+	NOT  reduce 17
+	FUN  reduce 17
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 53
+57: shift/reduce conflict (shift 3, reduce 20) on INT
+57: shift/reduce conflict (shift 4, reduce 20) on VAR
+57: shift/reduce conflict (shift 6, reduce 20) on LPAREN
+57: shift/reduce conflict (shift 9, reduce 20) on TRUE
+57: shift/reduce conflict (shift 10, reduce 20) on FALSE
+state 57
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -1092,28 +1613,48 @@ state 53
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
 	expression : expression AND expression .  (20)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	AND  shift 36
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	PRINT  shift 12
 	RPAREN  reduce 20
 	EOL  reduce 20
+	IF  reduce 20
 	THEN  reduce 20
 	ELSE  reduce 20
+	LET  reduce 20
 	IN  reduce 20
 	OR  reduce 20
+	NOT  reduce 20
+	FUN  reduce 20
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-state 54
+58: shift/reduce conflict (shift 3, reduce 19) on INT
+58: shift/reduce conflict (shift 4, reduce 19) on VAR
+58: shift/reduce conflict (shift 6, reduce 19) on LPAREN
+58: shift/reduce conflict (shift 9, reduce 19) on TRUE
+58: shift/reduce conflict (shift 10, reduce 19) on FALSE
+state 58
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -1128,137 +1669,88 @@ state 54
 	expression : expression . OR expression  (19)
 	expression : expression OR expression .  (19)
 	expression : expression . AND expression  (20)
-
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	AND  shift 36
-	OR  shift 37
-	RPAREN  reduce 19
-	EOL  reduce 19
-	THEN  reduce 19
-	ELSE  reduce 19
-	IN  reduce 19
-
-
-state 55
-	expression : expression . PLUS expression  (7)
-	expression : expression . TIMES expression  (8)
-	expression : expression . MINUS expression  (9)
-	expression : expression . DIV expression  (10)
-	expression : expression . MOD expression  (11)
-	expression : expression . L expression  (13)
-	expression : expression . LE expression  (14)
-	expression : expression . G expression  (15)
-	expression : expression . GE expression  (16)
-	expression : expression . EQ expression  (17)
-	expression : expression . NE expression  (18)
-	expression : expression . OR expression  (19)
-	expression : expression . AND expression  (20)
-	condition : IF expression THEN expression . ELSE expression  (26)
-
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	ELSE  shift 58
-	AND  shift 36
-	OR  shift 37
-	.  error
-
-
-state 56
-	expression : expression . PLUS expression  (7)
-	expression : expression . TIMES expression  (8)
-	expression : expression . MINUS expression  (9)
-	expression : expression . DIV expression  (10)
-	expression : expression . MOD expression  (11)
-	expression : expression . L expression  (13)
-	expression : expression . LE expression  (14)
-	expression : expression . G expression  (15)
-	expression : expression . GE expression  (16)
-	expression : expression . EQ expression  (17)
-	expression : expression . NE expression  (18)
-	expression : expression . OR expression  (19)
-	expression : expression . AND expression  (20)
-	declaration : LET VAR EQ expression . IN expression  (27)
-
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	IN  shift 59
-	AND  shift 36
-	OR  shift 37
-	.  error
-
-
-state 57
-	expression : PRINT LPAREN expression RPAREN .  (24)
-
-	.  reduce 24
-
-
-state 58
-	condition : IF expression THEN expression ELSE . expression  (26)
+	expression : expression . expression  (27)
 
 	INT  shift 3
 	VAR  shift 4
-	MINUS  shift 5
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
 	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
 	TRUE  shift 9
 	FALSE  shift 10
-	NOT  shift 11
+	AND  shift 38
+	OR  shift 39
 	PRINT  shift 12
-	.  error
+	RPAREN  reduce 19
+	EOL  reduce 19
+	IF  reduce 19
+	THEN  reduce 19
+	ELSE  reduce 19
+	LET  reduce 19
+	IN  reduce 19
+	NOT  reduce 19
+	FUN  reduce 19
 
-	expression  goto 60
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
 state 59
-	declaration : LET VAR EQ expression IN . expression  (27)
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
+	condition : IF expression THEN expression . ELSE expression  (28)
 
 	INT  shift 3
 	VAR  shift 4
-	MINUS  shift 5
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
 	LPAREN  shift 6
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
 	IF  shift 7
+	ELSE  shift 63
 	LET  shift 8
 	TRUE  shift 9
 	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
 	NOT  shift 11
 	PRINT  shift 12
+	FUN  shift 13
 	.  error
 
-	expression  goto 61
-	condition  goto 15
-	declaration  goto 16
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
 state 60
@@ -1275,29 +1767,70 @@ state 60
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
-	condition : IF expression THEN expression ELSE expression .  (26)
+	expression : expression . expression  (27)
+	declaration : LET VAR EQ expression . IN expression  (29)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	AND  shift 36
-	OR  shift 37
-	RPAREN  reduce 26
-	EOL  reduce 26
-	THEN  reduce 26
-	ELSE  reduce 26
-	IN  reduce 26
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	IF  shift 7
+	LET  shift 8
+	IN  shift 64
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	.  error
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
 state 61
+	expression : PRINT LPAREN expression RPAREN .  (24)
+
+	.  reduce 24
+
+
+62: shift/reduce conflict (shift 3, reduce 26) on INT
+62: shift/reduce conflict (shift 4, reduce 26) on VAR
+62: shift/reduce conflict (shift 26, reduce 26) on PLUS
+62: shift/reduce conflict (shift 27, reduce 26) on TIMES
+62: shift/reduce conflict (shift 28, reduce 26) on MINUS
+62: shift/reduce conflict (shift 29, reduce 26) on DIV
+62: shift/reduce conflict (shift 30, reduce 26) on MOD
+62: shift/reduce conflict (shift 6, reduce 26) on LPAREN
+62: shift/reduce conflict (shift 32, reduce 26) on L
+62: shift/reduce conflict (shift 33, reduce 26) on LE
+62: shift/reduce conflict (shift 34, reduce 26) on G
+62: shift/reduce conflict (shift 35, reduce 26) on GE
+62: shift/reduce conflict (shift 36, reduce 26) on NE
+62: shift/reduce conflict (shift 37, reduce 26) on EQ
+62: shift/reduce conflict (shift 7, reduce 26) on IF
+62: shift/reduce conflict (shift 8, reduce 26) on LET
+62: shift/reduce conflict (shift 9, reduce 26) on TRUE
+62: shift/reduce conflict (shift 10, reduce 26) on FALSE
+62: shift/reduce conflict (shift 38, reduce 26) on AND
+62: shift/reduce conflict (shift 39, reduce 26) on OR
+62: shift/reduce conflict (shift 11, reduce 26) on NOT
+62: shift/reduce conflict (shift 12, reduce 26) on PRINT
+62: shift/reduce conflict (shift 13, reduce 26) on FUN
+state 62
 	expression : expression . PLUS expression  (7)
 	expression : expression . TIMES expression  (8)
 	expression : expression . MINUS expression  (9)
@@ -1311,30 +1844,216 @@ state 61
 	expression : expression . NE expression  (18)
 	expression : expression . OR expression  (19)
 	expression : expression . AND expression  (20)
-	declaration : LET VAR EQ expression IN expression .  (27)
+	expression : FUN VAR FLECHE expression .  (26)
+	expression : expression . expression  (27)
 
-	PLUS  shift 24
-	TIMES  shift 25
-	MINUS  shift 26
-	DIV  shift 27
-	MOD  shift 28
-	L  shift 30
-	LE  shift 31
-	G  shift 32
-	GE  shift 33
-	NE  shift 34
-	EQ  shift 35
-	AND  shift 36
-	OR  shift 37
-	RPAREN  reduce 27
-	EOL  reduce 27
-	THEN  reduce 27
-	ELSE  reduce 27
-	IN  reduce 27
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	RPAREN  reduce 26
+	EOL  reduce 26
+	THEN  reduce 26
+	ELSE  reduce 26
+	IN  reduce 26
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
 
 
-State 21 contains 13 shift/reduce conflicts.
+state 63
+	condition : IF expression THEN expression ELSE . expression  (28)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	.  error
+
+	expression  goto 65
+	condition  goto 16
+	declaration  goto 17
 
 
-31 terminals, 6 nonterminals
-29 grammar rules, 62 states
+state 64
+	declaration : LET VAR EQ expression IN . expression  (29)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	.  error
+
+	expression  goto 66
+	condition  goto 16
+	declaration  goto 17
+
+
+65: shift/reduce conflict (shift 3, reduce 28) on INT
+65: shift/reduce conflict (shift 4, reduce 28) on VAR
+65: shift/reduce conflict (shift 6, reduce 28) on LPAREN
+65: shift/reduce conflict (shift 9, reduce 28) on TRUE
+65: shift/reduce conflict (shift 10, reduce 28) on FALSE
+state 65
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
+	condition : IF expression THEN expression ELSE expression .  (28)
+
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	RPAREN  reduce 28
+	EOL  reduce 28
+	THEN  reduce 28
+	ELSE  reduce 28
+	IN  reduce 28
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
+
+
+66: shift/reduce conflict (shift 3, reduce 29) on INT
+66: shift/reduce conflict (shift 4, reduce 29) on VAR
+66: shift/reduce conflict (shift 6, reduce 29) on LPAREN
+66: shift/reduce conflict (shift 9, reduce 29) on TRUE
+66: shift/reduce conflict (shift 10, reduce 29) on FALSE
+state 66
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	expression : expression . expression  (27)
+	declaration : LET VAR EQ expression IN expression .  (29)
+
+	INT  shift 3
+	VAR  shift 4
+	PLUS  shift 26
+	TIMES  shift 27
+	MINUS  shift 28
+	DIV  shift 29
+	MOD  shift 30
+	LPAREN  shift 6
+	L  shift 32
+	LE  shift 33
+	G  shift 34
+	GE  shift 35
+	NE  shift 36
+	EQ  shift 37
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	AND  shift 38
+	OR  shift 39
+	PRINT  shift 12
+	RPAREN  reduce 29
+	EOL  reduce 29
+	IF  reduce 29
+	THEN  reduce 29
+	ELSE  reduce 29
+	IN  reduce 29
+	NOT  reduce 29
+	FUN  reduce 29
+
+	expression  goto 40
+	condition  goto 16
+	declaration  goto 17
+
+
+State 18 contains 5 shift/reduce conflicts.
+State 22 contains 5 shift/reduce conflicts.
+State 40 contains 23 shift/reduce conflicts.
+State 46 contains 5 shift/reduce conflicts.
+State 47 contains 5 shift/reduce conflicts.
+State 48 contains 10 shift/reduce conflicts, 20 reduce/reduce conflicts.
+State 49 contains 5 shift/reduce conflicts.
+State 50 contains 5 shift/reduce conflicts.
+State 51 contains 5 shift/reduce conflicts.
+State 52 contains 5 shift/reduce conflicts.
+State 53 contains 5 shift/reduce conflicts.
+State 54 contains 5 shift/reduce conflicts.
+State 55 contains 5 shift/reduce conflicts.
+State 56 contains 5 shift/reduce conflicts.
+State 57 contains 5 shift/reduce conflicts.
+State 58 contains 5 shift/reduce conflicts.
+State 62 contains 23 shift/reduce conflicts.
+State 65 contains 5 shift/reduce conflicts.
+State 66 contains 5 shift/reduce conflicts.
+
+
+33 terminals, 6 nonterminals
+31 grammar rules, 67 states

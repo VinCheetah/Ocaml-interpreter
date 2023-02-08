@@ -26,6 +26,8 @@ type token =
   | OR
   | NOT
   | PRINT
+  | FUN
+  | FLECHE
 
 val main :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Expr.expr

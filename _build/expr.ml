@@ -38,17 +38,17 @@ type expr =
   | If      of expr*expr*expr
   | PrInt   of expr
   | Let     of string*expr*expr 
-
-
+  | Fun     of string*expr
+  | App     of expr*expr
+(* définition du type des environnements*)
+and env = (string*valeur) list
  (* définition du type pour les valeurs*) 
-type valeur = 
+and valeur = 
   | VInt  of int
   | VBool of bool    
-  
+  | VFun of string*expr*env
 
-(* définition du type des environnements*)
-type env = (string*valeur) list
-let empty_env = []
+  let empty_env = []
 
 (* Ajoute une variable a un environnement en écrasant l'ancienne variable de meme nom si elle existe *)
 let rec modifier_env cle valeur = function
@@ -120,3 +120,7 @@ let rec eval e env = match e with
         | _ -> failwith "Eval : PrInt error (arg type)"
       end 
   | Let (s,e1,e2)      -> eval e2 (modifier_env s (eval e1 env) env)
+  | Fun (arg,e1)       -> VFun (arg,e1,env)
+  | App (e1,e2) -> match eval e1 env with
+        | VFun (arg,corps,env') -> eval corps (modifier_env arg (eval e2 env) env')
+        | _ -> failwith "Eval : App error (fun type)"

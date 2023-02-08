@@ -73,7 +73,9 @@ let rec affiche_expr e =
                     affiche_expr e2
             end
   | If (c1,e1,e2) -> print_string "if " ; affiche_expr c1; print_string " then " ;affiche_expr e1; print_string " else "; affiche_expr e2
-  | PrInt (e1)    -> print_string "prInt ( "; affiche_expr e1 ; print_string ")"  
+  | PrInt (e1)    -> print_string "prInt "; (match e1 with
+            | Const _ -> affiche_expr
+            | _ -> print_parenthese) e1  
   | Let(x,e1,e2)  -> print_string "let "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
 
 

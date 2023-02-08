@@ -18,7 +18,7 @@ let recupere_entree () =
   with e -> (Printf.printf "probl�me de saisie\n"; raise e)
 
 (* mettre � true et recompiler si l'on veut voir l'ex�cution pas � pas de l'automate *)
-let trace = ref true
+let trace = ref false
 let _ = Stdlib.Parsing.set_trace !trace
 
 
@@ -27,6 +27,7 @@ let _ = Stdlib.Parsing.set_trace !trace
 (* le traitement d'une expression en entr�e *)   
 let execute e =
   begin
+    affiche_expr e; print_newline();
     (*affiche_expr e;*) (* Il faut enlever les commentaires sur les deux lignes si on veut voir le code caml généré par les fonctions d'affichages , dans cet état, *)
     (*print_newline();*) (* on ne voit que l'expression demandée si on inscrit le mot prInt et on n'a pas le code caml demandée à la question 1 *)
     let v =  Expr.eval e Expr.empty_env in

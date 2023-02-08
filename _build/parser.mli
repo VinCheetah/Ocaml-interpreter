@@ -4,6 +4,8 @@ type token =
   | PLUS
   | TIMES
   | MINUS
+  | DIV
+  | MOD
   | LPAREN
   | RPAREN
   | EOL
@@ -12,16 +14,18 @@ type token =
   | G
   | GE
   | NE
+  | EQ
   | IF
   | THEN
   | ELSE
-  | OP
-  | PRINT
   | LET
   | IN
-  | EQ
+  | TRUE
+  | FALSE
   | AND
   | OR
+  | NOT
+  | PRINT
 
 val main :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Expr.expr

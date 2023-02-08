@@ -14,10 +14,10 @@ open Expr   (* rappel: dans expr.ml:
 %token EOL             /* retour à la ligne */
 %token L LE G GE NE EQ
 %token IF THEN ELSE
-%token PRINT
 %token LET IN
 %token TRUE FALSE
 %token AND OR NOT
+%token PRINT
 
 %nonassoc IF THEN ELSE 
 %right LET IN
@@ -29,8 +29,8 @@ open Expr   (* rappel: dans expr.ml:
 %left TIMES DIV /* associativité gauche: a*b*c, c'est (a*b)*c */
 %nonassoc UMINUS  /* un "faux token", correspondant au "-" unaire */
                   /* cf. son usage plus bas : il sert à "marquer" une règle pour lui donner la précédence maximale */
-
 %nonassoc PRINT
+
 %start main             /* "start" signale le point d'entrée: */
                         /* c'est ici main, qui est défini plus bas */
 %type <Expr.expr> main     /* on _doit_ donner le type associé au point d'entrée */
@@ -67,7 +67,8 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression AND expression           { BoolOp (And,$1,$3) }
   | NOT expression                      { BoolOp (Not,$2, BConst true) }    /* On ajoute un troisième élément pour qu'elle s'intègre dans le type BoolOp */
   | condition                           { $1 }
-  | PRINT expression                    { PrInt $2 }
+  | PRINT INT                           { PrInt (Const $2) }
+  | PRINT LPAREN expression RPAREN      { PrInt $3 }
   | declaration                         { $1 }
 
 

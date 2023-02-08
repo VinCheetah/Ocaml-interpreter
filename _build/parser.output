@@ -2,27 +2,36 @@
 
    1  main : expression EOL
 
-   2  expression : VAR
-   3             | INT
-   4             | LPAREN expression RPAREN
-   5             | expression PLUS expression
-   6             | expression TIMES expression
-   7             | expression MINUS expression
-   8             | MINUS expression
-   9             | expression L expression
-  10             | expression LE expression
-  11             | expression G expression
-  12             | expression GE expression
-  13             | expression NE expression
-  14             | condition
-  15             | PRINT expression
-  16             | declaration
+   2  expression : INT
+   3             | TRUE
+   4             | FALSE
+   5             | VAR
+   6             | LPAREN expression RPAREN
+   7             | expression PLUS expression
+   8             | expression TIMES expression
+   9             | expression MINUS expression
+  10             | expression DIV expression
+  11             | expression MOD expression
+  12             | MINUS expression
+  13             | expression L expression
+  14             | expression LE expression
+  15             | expression G expression
+  16             | expression GE expression
+  17             | expression EQ expression
+  18             | expression NE expression
+  19             | expression OR expression
+  20             | expression AND expression
+  21             | NOT expression
+  22             | condition
+  23             | PRINT INT
+  24             | PRINT LPAREN expression RPAREN
+  25             | declaration
 
-  17  condition : IF expression THEN expression ELSE expression
+  26  condition : IF expression THEN expression ELSE expression
 
-  18  declaration : LET VAR EQ expression IN expression
+  27  declaration : LET VAR EQ expression IN expression
 
-  19  %entry% : '\001' main
+  28  %entry% : '\001' main
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -34,21 +43,24 @@ state 0
 
 
 state 1
-	%entry% : '\001' . main  (19)
+	%entry% : '\001' . main  (28)
 
 	INT  shift 3
 	VAR  shift 4
 	MINUS  shift 5
 	LPAREN  shift 6
 	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
 	.  error
 
-	main  goto 10
-	expression  goto 11
-	condition  goto 12
-	declaration  goto 13
+	main  goto 13
+	expression  goto 14
+	condition  goto 15
+	declaration  goto 16
 
 
 state 2
@@ -58,824 +70,1271 @@ state 2
 
 
 state 3
-	expression : INT .  (3)
-
-	.  reduce 3
-
-
-state 4
-	expression : VAR .  (2)
+	expression : INT .  (2)
 
 	.  reduce 2
 
 
+state 4
+	expression : VAR .  (5)
+
+	.  reduce 5
+
+
 state 5
-	expression : MINUS . expression  (8)
+	expression : MINUS . expression  (12)
 
 	INT  shift 3
 	VAR  shift 4
 	MINUS  shift 5
 	LPAREN  shift 6
 	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 14
-	condition  goto 12
-	declaration  goto 13
-
-
-state 6
-	expression : LPAREN . expression RPAREN  (4)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 15
-	condition  goto 12
-	declaration  goto 13
-
-
-state 7
-	condition : IF . expression THEN expression ELSE expression  (17)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 16
-	condition  goto 12
-	declaration  goto 13
-
-
-state 8
-	expression : PRINT . expression  (15)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
 	.  error
 
 	expression  goto 17
-	condition  goto 12
-	declaration  goto 13
+	condition  goto 15
+	declaration  goto 16
+
+
+state 6
+	expression : LPAREN . expression RPAREN  (6)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 18
+	condition  goto 15
+	declaration  goto 16
+
+
+state 7
+	condition : IF . expression THEN expression ELSE expression  (26)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 19
+	condition  goto 15
+	declaration  goto 16
+
+
+state 8
+	declaration : LET . VAR EQ expression IN expression  (27)
+
+	VAR  shift 20
+	.  error
 
 
 state 9
-	declaration : LET . VAR EQ expression IN expression  (18)
+	expression : TRUE .  (3)
 
-	VAR  shift 18
-	.  error
+	.  reduce 3
 
 
 state 10
-	%entry% : '\001' main .  (19)
+	expression : FALSE .  (4)
 
-	.  reduce 19
+	.  reduce 4
 
 
 state 11
-	main : expression . EOL  (1)
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
+	expression : NOT . expression  (21)
 
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	EOL  shift 22
-	L  shift 23
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
 	.  error
+
+	expression  goto 21
+	condition  goto 15
+	declaration  goto 16
 
 
 state 12
-	expression : condition .  (14)
+	expression : PRINT . INT  (23)
+	expression : PRINT . LPAREN expression RPAREN  (24)
 
-	.  reduce 14
+	INT  shift 22
+	LPAREN  shift 23
+	.  error
 
 
 state 13
-	expression : declaration .  (16)
+	%entry% : '\001' main .  (28)
 
-	.  reduce 16
+	.  reduce 28
 
 
-14: shift/reduce conflict (shift 25, reduce 8) on G
-14: shift/reduce conflict (shift 26, reduce 8) on GE
-14: shift/reduce conflict (shift 27, reduce 8) on NE
 state 14
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : MINUS expression .  (8)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
+	main : expression . EOL  (1)
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	PLUS  reduce 8
-	TIMES  reduce 8
-	MINUS  reduce 8
-	RPAREN  reduce 8
-	EOL  reduce 8
-	L  reduce 8
-	LE  reduce 8
-	THEN  reduce 8
-	ELSE  reduce 8
-	IN  reduce 8
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	EOL  shift 29
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	AND  shift 36
+	OR  shift 37
+	.  error
 
 
 state 15
-	expression : LPAREN expression . RPAREN  (4)
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
+	expression : condition .  (22)
 
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	RPAREN  shift 28
-	L  shift 23
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	.  error
+	.  reduce 22
 
 
 state 16
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
-	condition : IF expression . THEN expression ELSE expression  (17)
+	expression : declaration .  (25)
 
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	L  shift 23
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	THEN  shift 29
-	.  error
+	.  reduce 25
 
 
-17: shift/reduce conflict (shift 25, reduce 15) on G
-17: shift/reduce conflict (shift 26, reduce 15) on GE
-17: shift/reduce conflict (shift 27, reduce 15) on NE
 state 17
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
-	expression : PRINT expression .  (15)
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : MINUS expression .  (12)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	PLUS  reduce 15
-	TIMES  reduce 15
-	MINUS  reduce 15
-	RPAREN  reduce 15
-	EOL  reduce 15
-	L  reduce 15
-	LE  reduce 15
-	THEN  reduce 15
-	ELSE  reduce 15
-	IN  reduce 15
+	.  reduce 12
 
 
 state 18
-	declaration : LET VAR . EQ expression IN expression  (18)
+	expression : LPAREN expression . RPAREN  (6)
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	EQ  shift 30
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	RPAREN  shift 38
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	AND  shift 36
+	OR  shift 37
 	.  error
 
 
 state 19
-	expression : expression PLUS . expression  (5)
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	condition : IF expression . THEN expression ELSE expression  (26)
 
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	THEN  shift 39
+	AND  shift 36
+	OR  shift 37
 	.  error
-
-	expression  goto 31
-	condition  goto 12
-	declaration  goto 13
 
 
 state 20
-	expression : expression TIMES . expression  (6)
+	declaration : LET VAR . EQ expression IN expression  (27)
 
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
+	EQ  shift 40
 	.  error
 
-	expression  goto 32
-	condition  goto 12
-	declaration  goto 13
 
-
+21: shift/reduce conflict (shift 24, reduce 21) on PLUS
+21: shift/reduce conflict (shift 25, reduce 21) on TIMES
+21: shift/reduce conflict (shift 26, reduce 21) on MINUS
+21: shift/reduce conflict (shift 27, reduce 21) on DIV
+21: shift/reduce conflict (shift 28, reduce 21) on MOD
+21: shift/reduce conflict (shift 30, reduce 21) on L
+21: shift/reduce conflict (shift 31, reduce 21) on LE
+21: shift/reduce conflict (shift 32, reduce 21) on G
+21: shift/reduce conflict (shift 33, reduce 21) on GE
+21: shift/reduce conflict (shift 34, reduce 21) on NE
+21: shift/reduce conflict (shift 35, reduce 21) on EQ
+21: shift/reduce conflict (shift 36, reduce 21) on AND
+21: shift/reduce conflict (shift 37, reduce 21) on OR
 state 21
-	expression : expression MINUS . expression  (7)
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	expression : NOT expression .  (21)
 
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 33
-	condition  goto 12
-	declaration  goto 13
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	AND  shift 36
+	OR  shift 37
+	RPAREN  reduce 21
+	EOL  reduce 21
+	THEN  reduce 21
+	ELSE  reduce 21
+	IN  reduce 21
 
 
 state 22
+	expression : PRINT INT .  (23)
+
+	.  reduce 23
+
+
+state 23
+	expression : PRINT LPAREN . expression RPAREN  (24)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 41
+	condition  goto 15
+	declaration  goto 16
+
+
+state 24
+	expression : expression PLUS . expression  (7)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 42
+	condition  goto 15
+	declaration  goto 16
+
+
+state 25
+	expression : expression TIMES . expression  (8)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 43
+	condition  goto 15
+	declaration  goto 16
+
+
+state 26
+	expression : expression MINUS . expression  (9)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 44
+	condition  goto 15
+	declaration  goto 16
+
+
+state 27
+	expression : expression DIV . expression  (10)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 45
+	condition  goto 15
+	declaration  goto 16
+
+
+state 28
+	expression : expression MOD . expression  (11)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 46
+	condition  goto 15
+	declaration  goto 16
+
+
+state 29
 	main : expression EOL .  (1)
 
 	.  reduce 1
 
 
-state 23
-	expression : expression L . expression  (9)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 34
-	condition  goto 12
-	declaration  goto 13
-
-
-state 24
-	expression : expression LE . expression  (10)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 35
-	condition  goto 12
-	declaration  goto 13
-
-
-state 25
-	expression : expression G . expression  (11)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 36
-	condition  goto 12
-	declaration  goto 13
-
-
-state 26
-	expression : expression GE . expression  (12)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 37
-	condition  goto 12
-	declaration  goto 13
-
-
-state 27
-	expression : expression NE . expression  (13)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 38
-	condition  goto 12
-	declaration  goto 13
-
-
-state 28
-	expression : LPAREN expression RPAREN .  (4)
-
-	.  reduce 4
-
-
-state 29
-	condition : IF expression THEN . expression ELSE expression  (17)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 39
-	condition  goto 12
-	declaration  goto 13
-
-
 state 30
-	declaration : LET VAR EQ . expression IN expression  (18)
+	expression : expression L . expression  (13)
 
 	INT  shift 3
 	VAR  shift 4
 	MINUS  shift 5
 	LPAREN  shift 6
 	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
 	.  error
 
-	expression  goto 40
-	condition  goto 12
-	declaration  goto 13
+	expression  goto 47
+	condition  goto 15
+	declaration  goto 16
 
 
-31: shift/reduce conflict (shift 25, reduce 5) on G
-31: shift/reduce conflict (shift 26, reduce 5) on GE
-31: shift/reduce conflict (shift 27, reduce 5) on NE
 state 31
-	expression : expression . PLUS expression  (5)
-	expression : expression PLUS expression .  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
+	expression : expression LE . expression  (14)
 
-	TIMES  shift 20
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	PLUS  reduce 5
-	MINUS  reduce 5
-	RPAREN  reduce 5
-	EOL  reduce 5
-	L  reduce 5
-	LE  reduce 5
-	THEN  reduce 5
-	ELSE  reduce 5
-	IN  reduce 5
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 48
+	condition  goto 15
+	declaration  goto 16
 
 
-32: shift/reduce conflict (shift 25, reduce 6) on G
-32: shift/reduce conflict (shift 26, reduce 6) on GE
-32: shift/reduce conflict (shift 27, reduce 6) on NE
 state 32
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression TIMES expression .  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
+	expression : expression G . expression  (15)
 
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	PLUS  reduce 6
-	TIMES  reduce 6
-	MINUS  reduce 6
-	RPAREN  reduce 6
-	EOL  reduce 6
-	L  reduce 6
-	LE  reduce 6
-	THEN  reduce 6
-	ELSE  reduce 6
-	IN  reduce 6
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 49
+	condition  goto 15
+	declaration  goto 16
 
 
-33: shift/reduce conflict (shift 25, reduce 7) on G
-33: shift/reduce conflict (shift 26, reduce 7) on GE
-33: shift/reduce conflict (shift 27, reduce 7) on NE
 state 33
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression MINUS expression .  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
+	expression : expression GE . expression  (16)
 
-	TIMES  shift 20
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 50
+	condition  goto 15
+	declaration  goto 16
+
+
+state 34
+	expression : expression NE . expression  (18)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 51
+	condition  goto 15
+	declaration  goto 16
+
+
+state 35
+	expression : expression EQ . expression  (17)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 52
+	condition  goto 15
+	declaration  goto 16
+
+
+state 36
+	expression : expression AND . expression  (20)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 53
+	condition  goto 15
+	declaration  goto 16
+
+
+state 37
+	expression : expression OR . expression  (19)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 54
+	condition  goto 15
+	declaration  goto 16
+
+
+state 38
+	expression : LPAREN expression RPAREN .  (6)
+
+	.  reduce 6
+
+
+state 39
+	condition : IF expression THEN . expression ELSE expression  (26)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 55
+	condition  goto 15
+	declaration  goto 16
+
+
+state 40
+	declaration : LET VAR EQ . expression IN expression  (27)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 56
+	condition  goto 15
+	declaration  goto 16
+
+
+state 41
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	expression : PRINT LPAREN expression . RPAREN  (24)
+
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	RPAREN  shift 57
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	AND  shift 36
+	OR  shift 37
+	.  error
+
+
+state 42
+	expression : expression . PLUS expression  (7)
+	expression : expression PLUS expression .  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+
+	TIMES  shift 25
+	DIV  shift 27
 	PLUS  reduce 7
 	MINUS  reduce 7
+	MOD  reduce 7
 	RPAREN  reduce 7
 	EOL  reduce 7
 	L  reduce 7
 	LE  reduce 7
+	G  reduce 7
+	GE  reduce 7
+	NE  reduce 7
+	EQ  reduce 7
 	THEN  reduce 7
 	ELSE  reduce 7
 	IN  reduce 7
+	AND  reduce 7
+	OR  reduce 7
 
 
-34: shift/reduce conflict (shift 25, reduce 9) on G
-34: shift/reduce conflict (shift 26, reduce 9) on GE
-34: shift/reduce conflict (shift 27, reduce 9) on NE
-state 34
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression L expression .  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
+state 43
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression TIMES expression .  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
+	.  reduce 8
+
+
+state 44
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression MINUS expression .  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+
+	TIMES  shift 25
+	DIV  shift 27
+	PLUS  reduce 9
+	MINUS  reduce 9
+	MOD  reduce 9
 	RPAREN  reduce 9
 	EOL  reduce 9
 	L  reduce 9
+	LE  reduce 9
+	G  reduce 9
+	GE  reduce 9
+	NE  reduce 9
+	EQ  reduce 9
 	THEN  reduce 9
 	ELSE  reduce 9
 	IN  reduce 9
+	AND  reduce 9
+	OR  reduce 9
 
 
-35: shift/reduce conflict (shift 25, reduce 10) on G
-35: shift/reduce conflict (shift 26, reduce 10) on GE
-35: shift/reduce conflict (shift 27, reduce 10) on NE
-state 35
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression LE expression .  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
+state 45
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression DIV expression .  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	RPAREN  reduce 10
-	EOL  reduce 10
-	L  reduce 10
-	LE  reduce 10
-	THEN  reduce 10
-	ELSE  reduce 10
-	IN  reduce 10
+	.  reduce 10
 
 
-36: shift/reduce conflict (shift 19, reduce 11) on PLUS
-36: shift/reduce conflict (shift 20, reduce 11) on TIMES
-36: shift/reduce conflict (shift 21, reduce 11) on MINUS
-36: shift/reduce conflict (shift 23, reduce 11) on L
-36: shift/reduce conflict (shift 24, reduce 11) on LE
-36: shift/reduce conflict (shift 25, reduce 11) on G
-36: shift/reduce conflict (shift 26, reduce 11) on GE
-36: shift/reduce conflict (shift 27, reduce 11) on NE
-state 36
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression G expression .  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
+state 46
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression MOD expression .  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	L  shift 23
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
 	RPAREN  reduce 11
 	EOL  reduce 11
+	L  reduce 11
+	LE  reduce 11
+	G  reduce 11
+	GE  reduce 11
+	NE  reduce 11
+	EQ  reduce 11
 	THEN  reduce 11
 	ELSE  reduce 11
 	IN  reduce 11
+	AND  reduce 11
+	OR  reduce 11
 
 
-37: shift/reduce conflict (shift 19, reduce 12) on PLUS
-37: shift/reduce conflict (shift 20, reduce 12) on TIMES
-37: shift/reduce conflict (shift 21, reduce 12) on MINUS
-37: shift/reduce conflict (shift 23, reduce 12) on L
-37: shift/reduce conflict (shift 24, reduce 12) on LE
-37: shift/reduce conflict (shift 25, reduce 12) on G
-37: shift/reduce conflict (shift 26, reduce 12) on GE
-37: shift/reduce conflict (shift 27, reduce 12) on NE
-state 37
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression GE expression .  (12)
-	expression : expression . NE expression  (13)
+state 47
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression L expression .  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	L  shift 23
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	RPAREN  reduce 12
-	EOL  reduce 12
-	THEN  reduce 12
-	ELSE  reduce 12
-	IN  reduce 12
-
-
-38: shift/reduce conflict (shift 19, reduce 13) on PLUS
-38: shift/reduce conflict (shift 20, reduce 13) on TIMES
-38: shift/reduce conflict (shift 21, reduce 13) on MINUS
-38: shift/reduce conflict (shift 23, reduce 13) on L
-38: shift/reduce conflict (shift 24, reduce 13) on LE
-38: shift/reduce conflict (shift 25, reduce 13) on G
-38: shift/reduce conflict (shift 26, reduce 13) on GE
-38: shift/reduce conflict (shift 27, reduce 13) on NE
-state 38
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
-	expression : expression NE expression .  (13)
-
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	L  shift 23
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
 	RPAREN  reduce 13
 	EOL  reduce 13
 	THEN  reduce 13
 	ELSE  reduce 13
 	IN  reduce 13
+	AND  reduce 13
+	OR  reduce 13
 
 
-state 39
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
-	condition : IF expression THEN expression . ELSE expression  (17)
+state 48
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression LE expression .  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	L  shift 23
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	ELSE  shift 41
-	.  error
-
-
-state 40
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
-	declaration : LET VAR EQ expression . IN expression  (18)
-
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	L  shift 23
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	IN  shift 42
-	.  error
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	RPAREN  reduce 14
+	EOL  reduce 14
+	THEN  reduce 14
+	ELSE  reduce 14
+	IN  reduce 14
+	AND  reduce 14
+	OR  reduce 14
 
 
-state 41
-	condition : IF expression THEN expression ELSE . expression  (17)
+state 49
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression G expression .  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 43
-	condition  goto 12
-	declaration  goto 13
-
-
-state 42
-	declaration : LET VAR EQ expression IN . expression  (18)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	PRINT  shift 8
-	LET  shift 9
-	.  error
-
-	expression  goto 44
-	condition  goto 12
-	declaration  goto 13
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	RPAREN  reduce 15
+	EOL  reduce 15
+	THEN  reduce 15
+	ELSE  reduce 15
+	IN  reduce 15
+	AND  reduce 15
+	OR  reduce 15
 
 
-43: shift/reduce conflict (shift 25, reduce 17) on G
-43: shift/reduce conflict (shift 26, reduce 17) on GE
-43: shift/reduce conflict (shift 27, reduce 17) on NE
-state 43
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
-	condition : IF expression THEN expression ELSE expression .  (17)
+state 50
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression GE expression .  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
-	PLUS  reduce 17
-	TIMES  reduce 17
-	MINUS  reduce 17
-	RPAREN  reduce 17
-	EOL  reduce 17
-	L  reduce 17
-	LE  reduce 17
-	THEN  reduce 17
-	ELSE  reduce 17
-	IN  reduce 17
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	RPAREN  reduce 16
+	EOL  reduce 16
+	THEN  reduce 16
+	ELSE  reduce 16
+	IN  reduce 16
+	AND  reduce 16
+	OR  reduce 16
 
 
-44: shift/reduce conflict (shift 25, reduce 18) on G
-44: shift/reduce conflict (shift 26, reduce 18) on GE
-44: shift/reduce conflict (shift 27, reduce 18) on NE
-state 44
-	expression : expression . PLUS expression  (5)
-	expression : expression . TIMES expression  (6)
-	expression : expression . MINUS expression  (7)
-	expression : expression . L expression  (9)
-	expression : expression . LE expression  (10)
-	expression : expression . G expression  (11)
-	expression : expression . GE expression  (12)
-	expression : expression . NE expression  (13)
-	declaration : LET VAR EQ expression IN expression .  (18)
+state 51
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression NE expression .  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
 
-	PLUS  shift 19
-	TIMES  shift 20
-	MINUS  shift 21
-	L  shift 23
-	LE  shift 24
-	G  shift 25
-	GE  shift 26
-	NE  shift 27
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
 	RPAREN  reduce 18
 	EOL  reduce 18
 	THEN  reduce 18
 	ELSE  reduce 18
 	IN  reduce 18
+	AND  reduce 18
+	OR  reduce 18
 
 
-State 14 contains 3 shift/reduce conflicts.
-State 17 contains 3 shift/reduce conflicts.
-State 31 contains 3 shift/reduce conflicts.
-State 32 contains 3 shift/reduce conflicts.
-State 33 contains 3 shift/reduce conflicts.
-State 34 contains 3 shift/reduce conflicts.
-State 35 contains 3 shift/reduce conflicts.
-State 36 contains 8 shift/reduce conflicts.
-State 37 contains 8 shift/reduce conflicts.
-State 38 contains 8 shift/reduce conflicts.
-State 43 contains 3 shift/reduce conflicts.
-State 44 contains 3 shift/reduce conflicts.
+state 52
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression EQ expression .  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	RPAREN  reduce 17
+	EOL  reduce 17
+	THEN  reduce 17
+	ELSE  reduce 17
+	IN  reduce 17
+	AND  reduce 17
+	OR  reduce 17
 
 
-27 terminals, 6 nonterminals
-20 grammar rules, 45 states
+state 53
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	expression : expression AND expression .  (20)
+
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	AND  shift 36
+	RPAREN  reduce 20
+	EOL  reduce 20
+	THEN  reduce 20
+	ELSE  reduce 20
+	IN  reduce 20
+	OR  reduce 20
+
+
+state 54
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression OR expression .  (19)
+	expression : expression . AND expression  (20)
+
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	AND  shift 36
+	OR  shift 37
+	RPAREN  reduce 19
+	EOL  reduce 19
+	THEN  reduce 19
+	ELSE  reduce 19
+	IN  reduce 19
+
+
+state 55
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	condition : IF expression THEN expression . ELSE expression  (26)
+
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	ELSE  shift 58
+	AND  shift 36
+	OR  shift 37
+	.  error
+
+
+state 56
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	declaration : LET VAR EQ expression . IN expression  (27)
+
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	IN  shift 59
+	AND  shift 36
+	OR  shift 37
+	.  error
+
+
+state 57
+	expression : PRINT LPAREN expression RPAREN .  (24)
+
+	.  reduce 24
+
+
+state 58
+	condition : IF expression THEN expression ELSE . expression  (26)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 60
+	condition  goto 15
+	declaration  goto 16
+
+
+state 59
+	declaration : LET VAR EQ expression IN . expression  (27)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	.  error
+
+	expression  goto 61
+	condition  goto 15
+	declaration  goto 16
+
+
+state 60
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	condition : IF expression THEN expression ELSE expression .  (26)
+
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	AND  shift 36
+	OR  shift 37
+	RPAREN  reduce 26
+	EOL  reduce 26
+	THEN  reduce 26
+	ELSE  reduce 26
+	IN  reduce 26
+
+
+state 61
+	expression : expression . PLUS expression  (7)
+	expression : expression . TIMES expression  (8)
+	expression : expression . MINUS expression  (9)
+	expression : expression . DIV expression  (10)
+	expression : expression . MOD expression  (11)
+	expression : expression . L expression  (13)
+	expression : expression . LE expression  (14)
+	expression : expression . G expression  (15)
+	expression : expression . GE expression  (16)
+	expression : expression . EQ expression  (17)
+	expression : expression . NE expression  (18)
+	expression : expression . OR expression  (19)
+	expression : expression . AND expression  (20)
+	declaration : LET VAR EQ expression IN expression .  (27)
+
+	PLUS  shift 24
+	TIMES  shift 25
+	MINUS  shift 26
+	DIV  shift 27
+	MOD  shift 28
+	L  shift 30
+	LE  shift 31
+	G  shift 32
+	GE  shift 33
+	NE  shift 34
+	EQ  shift 35
+	AND  shift 36
+	OR  shift 37
+	RPAREN  reduce 27
+	EOL  reduce 27
+	THEN  reduce 27
+	ELSE  reduce 27
+	IN  reduce 27
+
+
+State 21 contains 13 shift/reduce conflicts.
+
+
+31 terminals, 6 nonterminals
+29 grammar rules, 62 states

@@ -23,8 +23,9 @@ open Expr   (* rappel: dans expr.ml:
 %token UNIT
 
 %nonassoc IF THEN ELSE 
+
 %nonassoc NOT
-%left FUN 
+%left FUN FLECHE
 %right LET IN
 %right OR  
 %right AND
@@ -36,6 +37,7 @@ open Expr   (* rappel: dans expr.ml:
                   /* cf. son usage plus bas : il sert à "marquer" une règle pour lui donner la précédence maximale */
 %nonassoc PRINT
 %left SCOLON
+%nonassoc LPAREN RPAREN
 
 %start main             /* "start" signale le point d'entrée: */
                         /* c'est ici main, qui est défini plus bas */
@@ -57,6 +59,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | FALSE                               { BConst false }
   | VAR                                 { Var $1 }
   | UNIT                                { Unit }
+  | applic                              { $1 }
   | LPAREN expression RPAREN            { $2 }
   | expression PLUS expression          { ArithOp (Add,$1,$3) }
   | expression TIMES expression         { ArithOp (Mul,$1,$3) }
@@ -78,9 +81,20 @@ expression:			    /* règles de grammaire pour les expressions */
   | PRINT LPAREN expression RPAREN      { PrInt $3 }
   | declaration                         { $1 }
   | FUN VAR FLECHE expression           { Fun ($2,$4) }
-  | expression expression               { App ($1,$2) }
   | expression SCOLON expression        { Seq ($1,$3) }
 
+sexpr:
+  | INT                                 { Const $1 }
+  | TRUE                                { BConst true}
+  | FALSE                               { BConst false }
+  | VAR                                 { Var $1 }
+  | UNIT                                { Unit }
+  |LPAREN expression RPAREN             { $2 }
+
+applic:
+  | applic sexpr                        { App ($1,$2) }
+  | VAR sexpr                           { App (Var $1,$2) }
+  | LPAREN FUN VAR FLECHE expression RPAREN sexpr     { App (Fun($3,$5),$7) }
 
 condition:
   |IF expression THEN expression ELSE expression { If($2,$4,$6) }

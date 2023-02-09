@@ -20,6 +20,7 @@ type token =
   | ELSE
   | LET
   | IN
+  | REC
   | TRUE
   | FALSE
   | AND

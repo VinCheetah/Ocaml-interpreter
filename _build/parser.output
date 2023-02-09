@@ -44,9 +44,10 @@
 
   39  condition : IF expression THEN expression ELSE expression
 
-  40  declaration : LET VAR EQ expression IN expression
+  40  declaration : LET REC VAR EQ expression IN expression
+  41              | LET VAR EQ expression IN expression
 
-  41  %entry% : '\001' main
+  42  %entry% : '\001' main
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -58,7 +59,7 @@ state 0
 
 
 state 1
-	%entry% : '\001' . main  (41)
+	%entry% : '\001' . main  (42)
 
 	INT  shift 3
 	VAR  shift 4
@@ -197,9 +198,11 @@ state 7
 
 
 state 8
-	declaration : LET . VAR EQ expression IN expression  (40)
+	declaration : LET . REC VAR EQ expression IN expression  (40)
+	declaration : LET . VAR EQ expression IN expression  (41)
 
 	VAR  shift 31
+	REC  shift 32
 	.  error
 
 
@@ -232,7 +235,7 @@ state 11
 	UNIT  shift 14
 	.  error
 
-	expression  goto 32
+	expression  goto 33
 	applic  goto 17
 	condition  goto 18
 	declaration  goto 19
@@ -242,15 +245,15 @@ state 12
 	expression : PRINT . INT  (25)
 	expression : PRINT . LPAREN expression RPAREN  (26)
 
-	INT  shift 33
-	LPAREN  shift 34
+	INT  shift 34
+	LPAREN  shift 35
 	.  error
 
 
 state 13
 	expression : FUN . VAR FLECHE expression  (28)
 
-	VAR  shift 35
+	VAR  shift 36
 	.  error
 
 
@@ -261,9 +264,9 @@ state 14
 
 
 state 15
-	%entry% : '\001' main .  (41)
+	%entry% : '\001' main .  (42)
 
-	.  reduce 41
+	.  reduce 42
 
 
 state 16
@@ -283,21 +286,21 @@ state 16
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	EOF  shift 41
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	EOF  shift 42
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	.  error
 
 
@@ -331,7 +334,7 @@ state 17
 	OR  reduce 7
 	SCOLON  reduce 7
 
-	sexpr  goto 51
+	sexpr  goto 52
 
 
 state 18
@@ -375,7 +378,7 @@ state 22
 	UNIT  shift 14
 	.  error
 
-	expression  goto 52
+	expression  goto 53
 	applic  goto 17
 	condition  goto 18
 	declaration  goto 19
@@ -422,7 +425,7 @@ state 27
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	SCOLON  shift 50
+	SCOLON  shift 51
 	PLUS  reduce 14
 	TIMES  reduce 14
 	MINUS  reduce 14
@@ -447,7 +450,7 @@ state 28
 	expression : FUN . VAR FLECHE expression  (28)
 	applic : LPAREN FUN . VAR FLECHE expression RPAREN sexpr  (38)
 
-	VAR  shift 53
+	VAR  shift 54
 	.  error
 
 
@@ -468,21 +471,21 @@ state 29
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	RPAREN  shift 54
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	RPAREN  shift 55
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	.  error
 
 
@@ -503,32 +506,39 @@ state 30
 	expression : expression . SCOLON expression  (29)
 	condition : IF expression . THEN expression ELSE expression  (39)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	THEN  shift 55
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	THEN  shift 56
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	.  error
 
 
 state 31
-	declaration : LET VAR . EQ expression IN expression  (40)
+	declaration : LET VAR . EQ expression IN expression  (41)
 
-	EQ  shift 56
+	EQ  shift 57
 	.  error
 
 
 state 32
+	declaration : LET REC . VAR EQ expression IN expression  (40)
+
+	VAR  shift 58
+	.  error
+
+
+state 33
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -545,20 +555,20 @@ state 32
 	expression : NOT expression .  (23)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	RPAREN  reduce 23
 	EOF  reduce 23
 	THEN  reduce 23
@@ -566,44 +576,14 @@ state 32
 	IN  reduce 23
 
 
-state 33
+state 34
 	expression : PRINT INT .  (25)
 
 	.  reduce 25
 
 
-state 34
-	expression : PRINT LPAREN . expression RPAREN  (26)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	.  error
-
-	expression  goto 57
-	applic  goto 17
-	condition  goto 18
-	declaration  goto 19
-
-
 state 35
-	expression : FUN VAR . FLECHE expression  (28)
-
-	FLECHE  shift 58
-	.  error
-
-
-state 36
-	expression : expression PLUS . expression  (9)
+	expression : PRINT LPAREN . expression RPAREN  (26)
 
 	INT  shift 3
 	VAR  shift 4
@@ -625,31 +605,15 @@ state 36
 	declaration  goto 19
 
 
-state 37
-	expression : expression TIMES . expression  (10)
+state 36
+	expression : FUN VAR . FLECHE expression  (28)
 
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
+	FLECHE  shift 60
 	.  error
 
-	expression  goto 60
-	applic  goto 17
-	condition  goto 18
-	declaration  goto 19
 
-
-state 38
-	expression : expression MINUS . expression  (11)
+state 37
+	expression : expression PLUS . expression  (9)
 
 	INT  shift 3
 	VAR  shift 4
@@ -671,8 +635,8 @@ state 38
 	declaration  goto 19
 
 
-state 39
-	expression : expression DIV . expression  (12)
+state 38
+	expression : expression TIMES . expression  (10)
 
 	INT  shift 3
 	VAR  shift 4
@@ -694,8 +658,8 @@ state 39
 	declaration  goto 19
 
 
-state 40
-	expression : expression MOD . expression  (13)
+state 39
+	expression : expression MINUS . expression  (11)
 
 	INT  shift 3
 	VAR  shift 4
@@ -717,14 +681,8 @@ state 40
 	declaration  goto 19
 
 
-state 41
-	main : expression EOF .  (1)
-
-	.  reduce 1
-
-
-state 42
-	expression : expression L . expression  (15)
+state 40
+	expression : expression DIV . expression  (12)
 
 	INT  shift 3
 	VAR  shift 4
@@ -746,8 +704,8 @@ state 42
 	declaration  goto 19
 
 
-state 43
-	expression : expression LE . expression  (16)
+state 41
+	expression : expression MOD . expression  (13)
 
 	INT  shift 3
 	VAR  shift 4
@@ -769,8 +727,14 @@ state 43
 	declaration  goto 19
 
 
-state 44
-	expression : expression G . expression  (17)
+state 42
+	main : expression EOF .  (1)
+
+	.  reduce 1
+
+
+state 43
+	expression : expression L . expression  (15)
 
 	INT  shift 3
 	VAR  shift 4
@@ -792,8 +756,8 @@ state 44
 	declaration  goto 19
 
 
-state 45
-	expression : expression GE . expression  (18)
+state 44
+	expression : expression LE . expression  (16)
 
 	INT  shift 3
 	VAR  shift 4
@@ -815,8 +779,8 @@ state 45
 	declaration  goto 19
 
 
-state 46
-	expression : expression NE . expression  (20)
+state 45
+	expression : expression G . expression  (17)
 
 	INT  shift 3
 	VAR  shift 4
@@ -838,8 +802,8 @@ state 46
 	declaration  goto 19
 
 
-state 47
-	expression : expression EQ . expression  (19)
+state 46
+	expression : expression GE . expression  (18)
 
 	INT  shift 3
 	VAR  shift 4
@@ -861,8 +825,8 @@ state 47
 	declaration  goto 19
 
 
-state 48
-	expression : expression AND . expression  (22)
+state 47
+	expression : expression NE . expression  (20)
 
 	INT  shift 3
 	VAR  shift 4
@@ -884,8 +848,8 @@ state 48
 	declaration  goto 19
 
 
-state 49
-	expression : expression OR . expression  (21)
+state 48
+	expression : expression EQ . expression  (19)
 
 	INT  shift 3
 	VAR  shift 4
@@ -907,8 +871,8 @@ state 49
 	declaration  goto 19
 
 
-state 50
-	expression : expression SCOLON . expression  (29)
+state 49
+	expression : expression AND . expression  (22)
 
 	INT  shift 3
 	VAR  shift 4
@@ -930,13 +894,59 @@ state 50
 	declaration  goto 19
 
 
+state 50
+	expression : expression OR . expression  (21)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	.  error
+
+	expression  goto 73
+	applic  goto 17
+	condition  goto 18
+	declaration  goto 19
+
+
 state 51
+	expression : expression SCOLON . expression  (29)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	.  error
+
+	expression  goto 74
+	applic  goto 17
+	condition  goto 18
+	declaration  goto 19
+
+
+state 52
 	applic : applic sexpr .  (36)
 
 	.  reduce 36
 
 
-state 52
+state 53
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -953,39 +963,39 @@ state 52
 	expression : expression . SCOLON expression  (29)
 	sexpr : LPAREN expression . RPAREN  (35)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	RPAREN  shift 73
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
-	.  error
-
-
-state 53
-	expression : FUN VAR . FLECHE expression  (28)
-	applic : LPAREN FUN VAR . FLECHE expression RPAREN sexpr  (38)
-
-	FLECHE  shift 74
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	RPAREN  shift 75
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	.  error
 
 
 state 54
+	expression : FUN VAR . FLECHE expression  (28)
+	applic : LPAREN FUN VAR . FLECHE expression RPAREN sexpr  (38)
+
+	FLECHE  shift 76
+	.  error
+
+
+state 55
 	expression : LPAREN expression RPAREN .  (8)
 
 	.  reduce 8
 
 
-state 55
+state 56
 	condition : IF expression THEN . expression ELSE expression  (39)
 
 	INT  shift 3
@@ -1002,72 +1012,14 @@ state 55
 	UNIT  shift 14
 	.  error
 
-	expression  goto 75
-	applic  goto 17
-	condition  goto 18
-	declaration  goto 19
-
-
-state 56
-	declaration : LET VAR EQ . expression IN expression  (40)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	.  error
-
-	expression  goto 76
+	expression  goto 77
 	applic  goto 17
 	condition  goto 18
 	declaration  goto 19
 
 
 state 57
-	expression : expression . PLUS expression  (9)
-	expression : expression . TIMES expression  (10)
-	expression : expression . MINUS expression  (11)
-	expression : expression . DIV expression  (12)
-	expression : expression . MOD expression  (13)
-	expression : expression . L expression  (15)
-	expression : expression . LE expression  (16)
-	expression : expression . G expression  (17)
-	expression : expression . GE expression  (18)
-	expression : expression . EQ expression  (19)
-	expression : expression . NE expression  (20)
-	expression : expression . OR expression  (21)
-	expression : expression . AND expression  (22)
-	expression : PRINT LPAREN expression . RPAREN  (26)
-	expression : expression . SCOLON expression  (29)
-
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	RPAREN  shift 77
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
-	.  error
-
-
-state 58
-	expression : FUN VAR FLECHE . expression  (28)
+	declaration : LET VAR EQ . expression IN expression  (41)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1089,7 +1041,72 @@ state 58
 	declaration  goto 19
 
 
+state 58
+	declaration : LET REC VAR . EQ expression IN expression  (40)
+
+	EQ  shift 79
+	.  error
+
+
 state 59
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : PRINT LPAREN expression . RPAREN  (26)
+	expression : expression . SCOLON expression  (29)
+
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	RPAREN  shift 80
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
+	.  error
+
+
+state 60
+	expression : FUN VAR FLECHE . expression  (28)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	.  error
+
+	expression  goto 81
+	applic  goto 17
+	condition  goto 18
+	declaration  goto 19
+
+
+state 61
 	expression : expression . PLUS expression  (9)
 	expression : expression PLUS expression .  (9)
 	expression : expression . TIMES expression  (10)
@@ -1106,9 +1123,9 @@ state 59
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	TIMES  shift 37
-	DIV  shift 39
-	SCOLON  shift 50
+	TIMES  shift 38
+	DIV  shift 40
+	SCOLON  shift 51
 	PLUS  reduce 9
 	MINUS  reduce 9
 	MOD  reduce 9
@@ -1127,7 +1144,7 @@ state 59
 	OR  reduce 9
 
 
-state 60
+state 62
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression TIMES expression .  (10)
@@ -1144,7 +1161,7 @@ state 60
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	SCOLON  shift 50
+	SCOLON  shift 51
 	PLUS  reduce 10
 	TIMES  reduce 10
 	MINUS  reduce 10
@@ -1165,7 +1182,7 @@ state 60
 	OR  reduce 10
 
 
-state 61
+state 63
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1182,9 +1199,9 @@ state 61
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	TIMES  shift 37
-	DIV  shift 39
-	SCOLON  shift 50
+	TIMES  shift 38
+	DIV  shift 40
+	SCOLON  shift 51
 	PLUS  reduce 11
 	MINUS  reduce 11
 	MOD  reduce 11
@@ -1203,7 +1220,7 @@ state 61
 	OR  reduce 11
 
 
-state 62
+state 64
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1220,7 +1237,7 @@ state 62
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	SCOLON  shift 50
+	SCOLON  shift 51
 	PLUS  reduce 12
 	TIMES  reduce 12
 	MINUS  reduce 12
@@ -1241,7 +1258,7 @@ state 62
 	OR  reduce 12
 
 
-state 63
+state 65
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1258,11 +1275,11 @@ state 63
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	SCOLON  shift 51
 	RPAREN  reduce 13
 	EOF  reduce 13
 	L  reduce 13
@@ -1278,7 +1295,7 @@ state 63
 	OR  reduce 13
 
 
-state 64
+state 66
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1295,12 +1312,12 @@ state 64
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	SCOLON  shift 51
 	RPAREN  reduce 15
 	EOF  reduce 15
 	THEN  reduce 15
@@ -1310,7 +1327,7 @@ state 64
 	OR  reduce 15
 
 
-state 65
+state 67
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1327,12 +1344,12 @@ state 65
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	SCOLON  shift 51
 	RPAREN  reduce 16
 	EOF  reduce 16
 	THEN  reduce 16
@@ -1342,7 +1359,7 @@ state 65
 	OR  reduce 16
 
 
-state 66
+state 68
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1359,12 +1376,12 @@ state 66
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	SCOLON  shift 51
 	RPAREN  reduce 17
 	EOF  reduce 17
 	THEN  reduce 17
@@ -1374,7 +1391,7 @@ state 66
 	OR  reduce 17
 
 
-state 67
+state 69
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1391,12 +1408,12 @@ state 67
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	SCOLON  shift 51
 	RPAREN  reduce 18
 	EOF  reduce 18
 	THEN  reduce 18
@@ -1406,7 +1423,7 @@ state 67
 	OR  reduce 18
 
 
-state 68
+state 70
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1423,12 +1440,12 @@ state 68
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	SCOLON  shift 51
 	RPAREN  reduce 20
 	EOF  reduce 20
 	THEN  reduce 20
@@ -1438,7 +1455,7 @@ state 68
 	OR  reduce 20
 
 
-state 69
+state 71
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1455,12 +1472,12 @@ state 69
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	SCOLON  shift 51
 	RPAREN  reduce 19
 	EOF  reduce 19
 	THEN  reduce 19
@@ -1470,7 +1487,7 @@ state 69
 	OR  reduce 19
 
 
-state 70
+state 72
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1487,19 +1504,19 @@ state 70
 	expression : expression AND expression .  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	SCOLON  shift 51
 	RPAREN  reduce 22
 	EOF  reduce 22
 	THEN  reduce 22
@@ -1508,7 +1525,7 @@ state 70
 	OR  reduce 22
 
 
-state 71
+state 73
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1525,20 +1542,20 @@ state 71
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	RPAREN  reduce 21
 	EOF  reduce 21
 	THEN  reduce 21
@@ -1546,7 +1563,7 @@ state 71
 	IN  reduce 21
 
 
-state 72
+state 74
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1566,13 +1583,13 @@ state 72
 	.  reduce 29
 
 
-state 73
+state 75
 	sexpr : LPAREN expression RPAREN .  (35)
 
 	.  reduce 35
 
 
-state 74
+state 76
 	expression : FUN VAR FLECHE . expression  (28)
 	applic : LPAREN FUN VAR FLECHE . expression RPAREN sexpr  (38)
 
@@ -1590,13 +1607,13 @@ state 74
 	UNIT  shift 14
 	.  error
 
-	expression  goto 79
+	expression  goto 82
 	applic  goto 17
 	condition  goto 18
 	declaration  goto 19
 
 
-state 75
+state 77
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1613,63 +1630,22 @@ state 75
 	expression : expression . SCOLON expression  (29)
 	condition : IF expression THEN expression . ELSE expression  (39)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	ELSE  shift 80
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	ELSE  shift 83
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	.  error
-
-
-state 76
-	expression : expression . PLUS expression  (9)
-	expression : expression . TIMES expression  (10)
-	expression : expression . MINUS expression  (11)
-	expression : expression . DIV expression  (12)
-	expression : expression . MOD expression  (13)
-	expression : expression . L expression  (15)
-	expression : expression . LE expression  (16)
-	expression : expression . G expression  (17)
-	expression : expression . GE expression  (18)
-	expression : expression . EQ expression  (19)
-	expression : expression . NE expression  (20)
-	expression : expression . OR expression  (21)
-	expression : expression . AND expression  (22)
-	expression : expression . SCOLON expression  (29)
-	declaration : LET VAR EQ expression . IN expression  (40)
-
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	IN  shift 81
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
-	.  error
-
-
-state 77
-	expression : PRINT LPAREN expression RPAREN .  (26)
-
-	.  reduce 26
 
 
 state 78
@@ -1686,23 +1662,87 @@ state 78
 	expression : expression . NE expression  (20)
 	expression : expression . OR expression  (21)
 	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	declaration : LET VAR EQ expression . IN expression  (41)
+
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	IN  shift 84
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
+	.  error
+
+
+state 79
+	declaration : LET REC VAR EQ . expression IN expression  (40)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	.  error
+
+	expression  goto 85
+	applic  goto 17
+	condition  goto 18
+	declaration  goto 19
+
+
+state 80
+	expression : PRINT LPAREN expression RPAREN .  (26)
+
+	.  reduce 26
+
+
+state 81
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
 	expression : FUN VAR FLECHE expression .  (28)
 	expression : expression . SCOLON expression  (29)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	RPAREN  reduce 28
 	EOF  reduce 28
 	THEN  reduce 28
@@ -1710,7 +1750,7 @@ state 78
 	IN  reduce 28
 
 
-state 79
+state 82
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1728,25 +1768,25 @@ state 79
 	expression : expression . SCOLON expression  (29)
 	applic : LPAREN FUN VAR FLECHE expression . RPAREN sexpr  (38)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	RPAREN  shift 82
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	RPAREN  shift 86
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	.  error
 
 
-state 80
+state 83
 	condition : IF expression THEN expression ELSE . expression  (39)
 
 	INT  shift 3
@@ -1763,14 +1803,14 @@ state 80
 	UNIT  shift 14
 	.  error
 
-	expression  goto 83
+	expression  goto 87
 	applic  goto 17
 	condition  goto 18
 	declaration  goto 19
 
 
-state 81
-	declaration : LET VAR EQ expression IN . expression  (40)
+state 84
+	declaration : LET VAR EQ expression IN . expression  (41)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1786,13 +1826,48 @@ state 81
 	UNIT  shift 14
 	.  error
 
-	expression  goto 84
+	expression  goto 88
 	applic  goto 17
 	condition  goto 18
 	declaration  goto 19
 
 
-state 82
+state 85
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	declaration : LET REC VAR EQ expression . IN expression  (40)
+
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	IN  shift 89
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
+	.  error
+
+
+state 86
 	applic : LPAREN FUN VAR FLECHE expression RPAREN . sexpr  (38)
 
 	INT  shift 20
@@ -1803,10 +1878,10 @@ state 82
 	UNIT  shift 25
 	.  error
 
-	sexpr  goto 85
+	sexpr  goto 90
 
 
-state 83
+state 87
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1823,20 +1898,20 @@ state 83
 	expression : expression . SCOLON expression  (29)
 	condition : IF expression THEN expression ELSE expression .  (39)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	RPAREN  reduce 39
 	EOF  reduce 39
 	THEN  reduce 39
@@ -1844,7 +1919,7 @@ state 83
 	IN  reduce 39
 
 
-state 84
+state 88
 	expression : expression . PLUS expression  (9)
 	expression : expression . TIMES expression  (10)
 	expression : expression . MINUS expression  (11)
@@ -1859,22 +1934,89 @@ state 84
 	expression : expression . OR expression  (21)
 	expression : expression . AND expression  (22)
 	expression : expression . SCOLON expression  (29)
-	declaration : LET VAR EQ expression IN expression .  (40)
+	declaration : LET VAR EQ expression IN expression .  (41)
 
-	PLUS  shift 36
-	TIMES  shift 37
-	MINUS  shift 38
-	DIV  shift 39
-	MOD  shift 40
-	L  shift 42
-	LE  shift 43
-	G  shift 44
-	GE  shift 45
-	NE  shift 46
-	EQ  shift 47
-	AND  shift 48
-	OR  shift 49
-	SCOLON  shift 50
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
+	RPAREN  reduce 41
+	EOF  reduce 41
+	THEN  reduce 41
+	ELSE  reduce 41
+	IN  reduce 41
+
+
+state 89
+	declaration : LET REC VAR EQ expression IN . expression  (40)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	.  error
+
+	expression  goto 91
+	applic  goto 17
+	condition  goto 18
+	declaration  goto 19
+
+
+state 90
+	applic : LPAREN FUN VAR FLECHE expression RPAREN sexpr .  (38)
+
+	.  reduce 38
+
+
+state 91
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	declaration : LET REC VAR EQ expression IN expression .  (40)
+
+	PLUS  shift 37
+	TIMES  shift 38
+	MINUS  shift 39
+	DIV  shift 40
+	MOD  shift 41
+	L  shift 43
+	LE  shift 44
+	G  shift 45
+	GE  shift 46
+	NE  shift 47
+	EQ  shift 48
+	AND  shift 49
+	OR  shift 50
+	SCOLON  shift 51
 	RPAREN  reduce 40
 	EOF  reduce 40
 	THEN  reduce 40
@@ -1882,11 +2024,5 @@ state 84
 	IN  reduce 40
 
 
-state 85
-	applic : LPAREN FUN VAR FLECHE expression RPAREN sexpr .  (38)
-
-	.  reduce 38
-
-
-35 terminals, 8 nonterminals
-42 grammar rules, 86 states
+36 terminals, 8 nonterminals
+43 grammar rules, 92 states

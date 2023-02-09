@@ -78,8 +78,9 @@ let rec affiche_expr e =
             | Const _ -> affiche_expr
             | _ -> print_parenthese) e1  
   | Let (x,e1,e2) -> print_string "let "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
+  | LetRec (x,e1,e2) -> print_string "let rec "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
   | Fun (arg,e1)  -> print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
-  | App (e1,e2)   -> affiche_expr e1; print_string " "; (match e2 with
+  | App (e1,e2)       -> affiche_expr e1; print_string " "; (match e2 with
             | Const _
             | BConst _
             | Var _ -> affiche_expr

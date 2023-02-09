@@ -14,7 +14,7 @@ open Expr   (* rappel: dans expr.ml:
 %token EOF  
 %token L LE G GE NE EQ
 %token IF THEN ELSE
-%token LET IN
+%token LET IN REC
 %token TRUE FALSE
 %token AND OR NOT
 %token PRINT
@@ -101,6 +101,7 @@ condition:
 
 
 declaration : 
+  | LET REC VAR EQ expression IN expression { LetRec ($3,$5,$7) }
   | LET VAR EQ expression IN expression { Let($2,$4,$6) }
 
 

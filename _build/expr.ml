@@ -39,6 +39,7 @@ type expr =
   | If      of expr*expr*expr
   | PrInt   of expr
   | Let     of string*expr*expr 
+  | LetRec  of string*expr*expr 
   | Fun     of string*expr
   | App     of expr*expr
   | Seq     of expr*expr
@@ -123,7 +124,8 @@ let rec eval e env = match e with
         | VInt x -> print_int x ; print_newline () ; VInt x
         | _ -> failwith "Eval : PrInt error (arg type)"
       end 
-  | Let (s,e1,e2)      -> eval e2 (modifier_env s (eval e1 env) env)
+  | Let (nom,e1,e2)      -> eval e2 (modifier_env nom (eval e1 env) env)
+  | LetRec (nom,e1,e2) -> let rec f env_rec = f (modifier_env nom (eval e1 env_rec) env_rec) in eval e2 (f env)
   | Fun (arg,e1)       -> VFun (arg,e1,env)
   | App (e1,e2) -> begin match eval e1 env with
         | VFun (arg,corps,env') -> eval corps (modifier_env arg (eval e2 env) env')

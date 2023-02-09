@@ -38,6 +38,7 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "let"                                    { LET }
   | "in"                                     { IN }
   | "fun"                                    { FUN }
+  | "rec"                                    { REC }
   | "->"                                     { FLECHE }
   | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9']* as s { VAR (s) }
  

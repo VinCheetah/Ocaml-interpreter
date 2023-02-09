@@ -8,7 +8,7 @@ type token =
   | MOD
   | LPAREN
   | RPAREN
-  | EOL
+  | EOF
   | L
   | LE
   | G
@@ -28,6 +28,8 @@ type token =
   | PRINT
   | FUN
   | FLECHE
+  | SCOLON
+  | UNIT
 
 val main :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Expr.expr

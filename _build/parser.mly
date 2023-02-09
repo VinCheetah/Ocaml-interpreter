@@ -7,11 +7,11 @@ open Expr   (* rappel: dans expr.ml:
 %}
 /* description des lexèmes, ceux-ci sont décrits (par vous) dans lexer.mll */
 
-%token <int> INT       /* le lexème INT a un attribut entier */
+%token <int> INT 
 %token <string> VAR 
 %token PLUS TIMES MINUS DIV MOD
 %token LPAREN RPAREN
-%token EOL             /* retour à la ligne */
+%token EOF  
 %token L LE G GE NE EQ
 %token IF THEN ELSE
 %token LET IN
@@ -19,6 +19,8 @@ open Expr   (* rappel: dans expr.ml:
 %token AND OR NOT
 %token PRINT
 %token FUN FLECHE
+%token SCOLON
+%token UNIT
 
 %nonassoc IF THEN ELSE 
 %nonassoc NOT
@@ -33,6 +35,7 @@ open Expr   (* rappel: dans expr.ml:
 %nonassoc UMINUS  /* un "faux token", correspondant au "-" unaire */
                   /* cf. son usage plus bas : il sert à "marquer" une règle pour lui donner la précédence maximale */
 %nonassoc PRINT
+%left SCOLON
 
 %start main             /* "start" signale le point d'entrée: */
                         /* c'est ici main, qui est défini plus bas */
@@ -44,7 +47,7 @@ open Expr   (* rappel: dans expr.ml:
 
 
 main:                       /* <- le point d'entrée (cf. + haut, "start") */
-expression EOL                { $1 }  /* on veut reconnaître une expression */
+expression EOF                          { $1 }  /* on veut reconnaître une expression */
   ;
   
 
@@ -53,6 +56,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | TRUE                                { BConst true}
   | FALSE                               { BConst false }
   | VAR                                 { Var $1 }
+  | UNIT                                { Unit }
   | LPAREN expression RPAREN            { $2 }
   | expression PLUS expression          { ArithOp (Add,$1,$3) }
   | expression TIMES expression         { ArithOp (Mul,$1,$3) }
@@ -75,6 +79,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | declaration                         { $1 }
   | FUN VAR FLECHE expression           { Fun ($2,$4) }
   | expression expression               { App ($1,$2) }
+  | expression SCOLON expression        { Seq ($1,$3) }
 
 
 condition:

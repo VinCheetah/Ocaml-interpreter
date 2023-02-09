@@ -32,6 +32,7 @@ type expr =
   | Const   of int
   | BConst  of bool
   | Var     of string 
+  | Unit
   | ArithOp of arith_op*expr*expr
   | CompOp  of comp_op*expr*expr
   | BoolOp  of bool_op*expr*expr
@@ -40,13 +41,15 @@ type expr =
   | Let     of string*expr*expr 
   | Fun     of string*expr
   | App     of expr*expr
+  | Seq     of expr*expr
 (* définition du type des environnements*)
 and env = (string*valeur) list
  (* définition du type pour les valeurs*) 
 and valeur = 
-  | VInt  of int
+  | VInt  of int 
   | VBool of bool    
   | VFun of string*expr*env
+  | VUnit
 
   let empty_env = []
 
@@ -88,6 +91,7 @@ let rec eval e env = match e with
   | Const k            -> VInt k
   | BConst b           -> VBool b
   | Var cle            -> trouver_env cle env
+  | Unit               -> VUnit
   | ArithOp (op,e1,e2) -> begin 
       match eval e1 env, eval e2 env with
         | VInt x, VInt y -> VInt (arith_op_eval op x y)
@@ -121,6 +125,10 @@ let rec eval e env = match e with
       end 
   | Let (s,e1,e2)      -> eval e2 (modifier_env s (eval e1 env) env)
   | Fun (arg,e1)       -> VFun (arg,e1,env)
-  | App (e1,e2) -> match eval e1 env with
+  | App (e1,e2) -> begin match eval e1 env with
         | VFun (arg,corps,env') -> eval corps (modifier_env arg (eval e2 env) env')
         | _ -> failwith "Eval : App error (fun type)"
+      end
+  | Seq (e1,e2) -> match eval e1 env with
+        | VUnit -> eval e2 env
+        | _ -> failwith "Eval : Seq error (first expression should have type unit)"

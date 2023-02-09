@@ -31,6 +31,7 @@ let rec affiche_expr e =
   | Const n            -> print_int n
   | BConst b           -> print_string (if b then "true" else "false")
   | Var x              -> print_string x
+  | Unit               -> print_string "()"
   | ArithOp (op,e1,e2) -> (match e1 with
             | If _ -> print_parenthese
             | ArithOp (op',_,_) when op' = Add || op' = Min -> (match op with
@@ -83,6 +84,7 @@ let rec affiche_expr e =
             | BConst _
             | Var _ -> affiche_expr
             | _ -> print_parenthese) e2
+  | Seq (e1,e2)   -> affiche_expr e1; print_string ";\n"; affiche_expr e2
 
 
 (* let affiche_val v =  print_string "TODO" *)
@@ -90,4 +92,5 @@ let affiche_val v = match v with
   | VInt k          -> print_int k
   | VBool b         -> print_string (if b then "true" else "false")
   | VFun (arg,e1,_) -> print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
+  | VUnit           -> print_string "()";
                       

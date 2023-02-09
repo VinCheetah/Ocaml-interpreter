@@ -4,17 +4,19 @@ exception Eof
 }
 
 rule token = parse    (* la "fonction" aussi s'appelle token .. *)
-  | [' ' '\t']                                          { token lexbuf }    (* on saute les blancs et les tabulations *)
+  | [' ' '\t' '\n']                          { token lexbuf }    (* on saute les blancs et les tabulations *)
  	     	   	           (* token: appel récursif *)
                                    (* lexbuf: argument implicite
                                       associé au tampon où sont
                                       lus les caractères *)
-  | '\n'                                     { EOL }
+  | ";;"                                     { EOF } (* fin du fichier *)
+  | ";"                                      { SCOLON }
   | '+'                                      { PLUS }
   | '*'                                      { TIMES }
   | '-'                                      { MINUS }
   | "/"                                      { DIV }
   | "mod"                                    { MOD }
+  | "()"                                     { UNIT }
   | '('                                      { LPAREN }
   | ')'                                      { RPAREN }
   | "if"                                     { IF }
@@ -38,5 +40,5 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "fun"                                    { FUN }
   | "->"                                     { FLECHE }
   | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9']* as s { VAR (s) }
-  | eof                                      { raise Eof } (* fin du fichier *)
+ 
 

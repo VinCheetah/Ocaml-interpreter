@@ -23,13 +23,12 @@ open Expr   (* rappel: dans expr.ml:
 %token UNIT
 
 %nonassoc IF THEN ELSE 
-
-%nonassoc NOT
 %left FUN FLECHE
 %right LET IN
 %right OR  
 %right AND
 %nonassoc L LE G GE NE EQ
+%nonassoc NOT
 %nonassoc MOD
 %left PLUS MINUS  /* associativité gauche: a+b+c, c'est (a+b)+c */
 %left TIMES DIV /* associativité gauche: a*b*c, c'est (a*b)*c */

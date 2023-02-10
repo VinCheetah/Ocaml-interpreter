@@ -43,13 +43,15 @@ type expr =
   | Fun     of string*expr
   | App     of expr*expr
   | Seq     of expr*expr
+
 (* définition du type des environnements*)
 and env = (string*valeur) list
+
  (* définition du type pour les valeurs*) 
 and valeur = 
-  | VInt  of int 
-  | VBool of bool    
-  | VFun of string*expr*env
+  | VInt    of int 
+  | VBool   of bool    
+  | VFun    of string*expr*env
   | VUnit
 
   let empty_env = []
@@ -63,10 +65,7 @@ let rec modifier_env cle valeur = function
 (* permet de récupérer la valeur d'une variable dans un environnement*)
 let rec trouver_env nom env = match env with
   | (cle,valeur) :: env' -> if nom = cle then valeur else  trouver_env nom env'
-  | [] -> print_string nom; print_newline (); failwith "Trouver_env : Variable absente"
-
-
-
+  | [] -> failwith ("Trouver_env : Variable absente : " ^ nom) 
 
 
 
@@ -149,6 +148,7 @@ let rec affiche_expr e =
                     print_string " || ";
                     affiche_expr e2
             end
+
   | If (c1,e1,e2) -> print_string "if " ; affiche_expr c1; print_string " then " ;affiche_expr e1; print_string " else "; affiche_expr e2
   | PrInt (e1)    -> print_string "prInt "; (match e1 with
             | Const _ -> affiche_expr
@@ -167,18 +167,21 @@ let rec affiche_expr e =
 
 
 
-  let affiche_val v = match v with
+let affiche_val v = match v with
   | VInt k          -> print_int k
   | VBool b         -> print_string (if b then "true" else "false")
   | VFun (arg,e1,_) -> print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
   | VUnit           -> print_string "()"
-                      
+
 
 
 
 let rec display_env env = match env with
-  |[] -> print_newline ()
-  |a::q -> let (s,v) = a in print_string s; affiche_val v; display_env q
+  | [] -> ()
+  | (cle,valeur) :: env' -> display_env env'; print_string cle; print_string " : "; affiche_val valeur; print_string "   /   "
+  
+let print_env env = print_newline (); print_string "Environnement -> " ; display_env env; print_newline ()
+
 
 let arith_op_eval op x y = match op with
   | Add -> x + y
@@ -201,27 +204,29 @@ let bool_op_eval op a b = match op with
   | Not -> not a 
 
 
-let debug e = print_string ("\nJe suis dans " ^ (match e with
-| Const _ -> "Const"
-| BConst _ -> "BConst"
-| Var s -> "Var " ^ s
-| Unit  -> "Unit"
-| ArithOp _ -> "ArithOp"
-| CompOp _  -> "CompOp"
-| BoolOp  _ -> "BoolOp"
-| If      _ -> "If"
-| PrInt   _ -> "PrInt"
-| LetRec   _ -> "LetRec"
-| Fun     _ -> "Fun"
-| App     _ -> "App"
-| Let _ -> "Let"
-| Seq _ -> "Seq"))
+let debug e = print_string ("Je suis dans " ^ (match e with
+  | Const i   -> "Const " ^ (string_of_int i)
+  | BConst _  -> "BConst"
+  | Var s     -> "Var " ^ s
+  | Unit      -> "Unit"
+  | ArithOp _ -> "ArithOp"
+  | CompOp _  -> "CompOp"
+  | BoolOp _  -> "BoolOp"
+  | If _      -> "If"
+  | PrInt _   -> "PrInt"
+  | LetRec _  -> "LetRec"
+  | Fun _     -> "Fun"
+  | App _     -> "App"
+  | Let _     -> "Let"
+  | Seq _     -> "Seq") ^ "\n")
+
+
 
 (* évaluation à grands pas *)
-let rec eval e env = display_env env ;debug e; match e with
+let rec eval e env = (*let _ = input_line stdin in*) print_env env ;debug e; match e with
   | Const k            -> VInt k
   | BConst b           -> VBool b
-  | Var cle            -> trouver_env cle env
+  | Var cle            -> let v = trouver_env cle env in print_string "---->"; affiche_val v; v
   | Unit               -> VUnit
   | ArithOp (op,e1,e2) -> begin 
       match eval e1 env, eval e2 env with
@@ -241,12 +246,12 @@ let rec eval e env = display_env env ;debug e; match e with
       end
   | If (c,e1,e2)       -> begin 
       match eval c env with 
-        | VBool b -> begin
+        | VBool b -> (*begin
               match eval e1 env, eval e2 env with
                 | VInt x, VInt y   -> if b then VInt x else VInt y  
                 | VBool c, VBool d -> if b then VBool c else VBool d
                 | _ -> failwith "Eval : If error (mismatch type)"
-              end
+              end*) if b then eval e1 env else eval e2 env
         | _ -> failwith "Eval : If error (condition type)" 
       end
   | PrInt (e1)         -> begin
@@ -255,18 +260,22 @@ let rec eval e env = display_env env ;debug e; match e with
         | _ -> failwith "Eval : PrInt error (arg type)"
       end 
   | Let (nom,e1,e2)      -> eval e2 (modifier_env nom (eval e1 env) env)
-  | LetRec (nom,e1,e2) -> display_env env; print_string "i am here"; begin match e1 with 
-        | Fun (arg,e3) -> print_string "i am here";begin 
-          
-          match eval e2 (modifier_env nom (VFun (arg,e3,env)) env) with
-                | VFun (arg',e4,env') when e3 = e4 ->print_string "i am here3"; display_env env'; eval e4 env'
-                | valeur -> valeur
-              end
+
+(*
+LET       REC        NOM      =         e1       in         e2    
+                                 fun arg -> e3
+*)
+
+  | LetRec (nom,e1,e2) -> begin match e1 with 
+        | Fun (arg,e3) -> begin match eval e2 (modifier_env nom (VFun (arg,e3,env)) env) with
+              | VFun (arg',e4,env') when e3 = e4 -> print_string "J'ai retrouvé la fonction"; eval e4 env'
+              | valeur -> valeur
+            end
         | exp -> eval exp env
     end
   | Fun (arg,e1)       -> VFun (arg,e1,env)
   | App (e1,e2) -> begin match eval e1 env with
-        | VFun (arg,corps,env') -> eval corps (modifier_env arg (eval e2 env) env')
+        | VFun (arg,corps,env') -> eval corps (modifier_env arg (eval e2 env) (env@env'))
         | _ -> failwith "Eval : App error (fun type)"
       end
   | Seq (e1,e2) -> match eval e1 env with

@@ -560,20 +560,20 @@ state 33
 	MINUS  shift 39
 	DIV  shift 40
 	MOD  shift 41
-	L  shift 43
-	LE  shift 44
-	G  shift 45
-	GE  shift 46
-	NE  shift 47
-	EQ  shift 48
-	AND  shift 49
-	OR  shift 50
 	SCOLON  shift 51
 	RPAREN  reduce 23
 	EOF  reduce 23
+	L  reduce 23
+	LE  reduce 23
+	G  reduce 23
+	GE  reduce 23
+	NE  reduce 23
+	EQ  reduce 23
 	THEN  reduce 23
 	ELSE  reduce 23
 	IN  reduce 23
+	AND  reduce 23
+	OR  reduce 23
 
 
 state 34

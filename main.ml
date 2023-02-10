@@ -17,7 +17,7 @@ let recupere_entree () =
       | s -> open_in s in
     let lexbuf = Lexing.from_channel where_from in
     let parse () = Parser.main Lexer.token lexbuf in
-    parse (), !showsrc, !debug
+    parse (), (!showsrc, !debug)
   with e -> (Printf.printf "problème de saisie\n"; raise e)
 
 (* mettre � true et recompiler si l'on veut voir l'ex�cution pas � pas de l'automate *)
@@ -28,23 +28,22 @@ let _ = Stdlib.Parsing.set_trace !trace
       
       
 (* le traitement d'une expression en entr�e *)   
-let execute e showsrc debug =
+let execute e options =
+  let showsrc, debug = options in
   begin
-    if debug || showsrc then (affiche_expr e; print_newline());
-    (*affiche_expr e;*) (* Il faut enlever les commentaires sur les deux lignes si on veut voir le code caml généré par les fonctions d'affichages , dans cet état, *)
-    (*print_newline();*) (* on ne voit que l'expression demandée si on inscrit le mot prInt et on n'a pas le code caml demandée à la question 1 *)
+    if debug then affiche_expr_tree e
+    else if showsrc then (affiche_expr e; print_newline());
     if not showsrc then begin
-    let v =  Expr.eval e Expr.empty_env in
-    affiche_val v;
-    print_newline()
+      let v =  Expr.eval e Expr.empty_env in
+      affiche_val v;
+      print_newline()
     end 
   end
-
 (* la boucle principale *)
 let calc () =
   try
-      let saisie, showsrc_bool, debug_bool = recupere_entree () in
-	execute saisie showsrc_bool debug_bool; flush stdout
+      let saisie, options = recupere_entree () in
+	execute saisie options; flush stdout
   with e -> raise e
 
 

@@ -44,7 +44,7 @@ type expr =
   | App     of expr*expr
   | Seq     of expr*expr
 (* définition du type des environnements*)
-and env = (string*valeur) list
+and env = Env of (string*expr*env) list
  (* définition du type pour les valeurs*) 
 and valeur = 
   | VInt  of int 
@@ -52,19 +52,21 @@ and valeur =
   | VFun of string*expr*env
   | VUnit
 
-  let empty_env = []
+let empty_env = Env []
 
 (* Ajoute une variable a un environnement en écrasant l'ancienne variable de meme nom si elle existe *)
-let rec modifier_env cle valeur = function
-  | (cle',valeur') :: env' -> if cle = cle' then (cle, valeur) :: env' else (cle', valeur') :: modifier_env cle valeur env'
-  | [] -> [(cle,valeur)]
-
+let rec modifier_env cle ex en = function
+  | Env env -> begin match env with
+  | (cle',ex',en') :: env' -> if cle = cle' then (cle, ex', en') :: env' else (cle', ex', en') :: modifier_env cle ex en (Env env')
+  | [] -> [(cle,ex,en)]
+  end
 
 (* permet de récupérer la valeur d'une variable dans un environnement*)
-let rec trouver_env nom env = match env with
-  | (cle,valeur) :: env' -> if nom = cle then valeur else  trouver_env nom env'
-  | [] -> failwith "Trouver_env : Variable absente"
-
+let rec trouver_env nom = function
+  | Env env -> begin match env with
+  | (cle,ex,en) :: env' -> if nom = cle then (ex,en) else  trouver_env nom (Env env')
+  | [] -> print_string nom; failwith "Trouver_env : Variable absente"
+  end
 
 let arith_op_eval op x y = match op with
   | Add -> x + y
@@ -88,10 +90,10 @@ let bool_op_eval op a b = match op with
 
 
 (* évaluation à grands pas *)
-let rec eval e env = match e with
+let rec eval e (env:env) = match e with
   | Const k            -> VInt k
   | BConst b           -> VBool b
-  | Var cle            -> trouver_env cle env
+  | Var cle            -> let ex, en = trouver_env cle env in eval ex en
   | Unit               -> VUnit
   | ArithOp (op,e1,e2) -> begin 
       match eval e1 env, eval e2 env with
@@ -124,13 +126,17 @@ let rec eval e env = match e with
         | VInt x -> print_int x ; print_newline () ; VInt x
         | _ -> failwith "Eval : PrInt error (arg type)"
       end 
-  | Let (nom,e1,e2)      -> eval e2 (modifier_env nom (eval e1 env) env)
-  | LetRec (nom,e1,e2) -> let rec f env_rec = f (modifier_env nom (eval e1 env_rec) env_rec) in eval e2 (f env)
+  | Let (nom,e1,e2)      -> eval e2 (Env (modifier_env nom  e1 env env))
+  | LetRec (nom,e1,e2) -> eval e2 (Env (modifier_env nom  e2 (Env (modifier_env nom e1 env env)) env))
   | Fun (arg,e1)       -> VFun (arg,e1,env)
   | App (e1,e2) -> begin match eval e1 env with
-        | VFun (arg,corps,env') -> eval corps (modifier_env arg (eval e2 env) env')
+        | VFun (arg,corps,env') -> eval corps (Env (modifier_env arg e2 env env'))
         | _ -> failwith "Eval : App error (fun type)"
       end
   | Seq (e1,e2) -> match eval e1 env with
         | VUnit -> eval e2 env
         | _ -> failwith "Eval : Seq error (first expression should have type unit)"
+
+
+
+        (*let rec f env_rec = modifier_env nom (eval e1 (f env_rec)) env_rec in eval e2 (f env)*)

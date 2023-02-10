@@ -21,7 +21,7 @@ let recupere_entree () =
   with e -> (Printf.printf "problème de saisie\n"; raise e)
 
 (* mettre � true et recompiler si l'on veut voir l'ex�cution pas � pas de l'automate *)
-let trace = ref true
+let trace = ref false
 let _ = Stdlib.Parsing.set_trace !trace
 
 

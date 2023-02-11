@@ -24,7 +24,7 @@ open Expr   (* rappel: dans expr.ml:
 
 %nonassoc IF THEN ELSE 
 %left FUN FLECHE
-%right LET IN
+%left LET IN
 %right OR  
 %right AND
 %nonassoc L LE G GE NE EQ

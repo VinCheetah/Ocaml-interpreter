@@ -1,5 +1,5 @@
 (* d�finition des diff�rents types : tout est � reprendre et �tendre *)
-
+open Options
 
 (* définition du type pour les opérateurs de comparaison *)
 type comp_op =
@@ -51,7 +51,7 @@ and env = (string*valeur) list
 and valeur = 
   | VInt    of int 
   | VBool   of bool    
-  | VFun    of string*expr*env
+  | VFun    of string*expr*env*bool
   | VUnit
 
   let empty_env = []
@@ -68,7 +68,9 @@ let rec trouver_env nom env = match env with
   | [] -> failwith ("Trouver_env : Variable absente : " ^ nom) 
 
 
-
+let rec fusion_env env_act = function
+  | (cle,valeur) :: env_anc' -> fusion_env (modifier_env cle valeur env_act) env_anc'
+  | [] -> env_act
 
 
 
@@ -168,10 +170,10 @@ let rec affiche_expr e =
 
 
 let affiche_val v = match v with
-  | VInt k          -> print_int k
-  | VBool b         -> print_string (if b then "true" else "false")
-  | VFun (arg,e1,_) -> print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
-  | VUnit           -> print_string "()"
+  | VInt k            -> print_int k
+  | VBool b           -> print_string (if b then "true" else "false")
+  | VFun (arg,e1,_,b) -> if b then print_string "(rec) "; print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
+  | VUnit             -> print_string "()"
 
 
 
@@ -204,7 +206,7 @@ let bool_op_eval op a b = match op with
   | Not -> not a 
 
 
-let debug e = print_string ("Je suis dans " ^ (match e with
+let print_debug e = print_string ("Je suis dans " ^ (match e with
   | Const i   -> "Const " ^ (string_of_int i)
   | BConst _  -> "BConst"
   | Var s     -> "Var " ^ s
@@ -218,15 +220,15 @@ let debug e = print_string ("Je suis dans " ^ (match e with
   | Fun _     -> "Fun"
   | App _     -> "App"
   | Let _     -> "Let"
-  | Seq _     -> "Seq") ^ "\n")
+  | Seq _     -> "Seq") ^ (if not !Options.slow then "\n" else ""))
 
 
 
 (* évaluation à grands pas *)
-let rec eval e env = (*let _ = input_line stdin in*) print_env env ;debug e; match e with
+let rec eval e env = if !Options.slow then (let _ = input_line stdin in ()); if !Options.debug || !Options.slow then (print_env env ;print_debug e); match e with
   | Const k            -> VInt k
   | BConst b           -> VBool b
-  | Var cle            -> let v = trouver_env cle env in print_string "---->"; affiche_val v; v
+  | Var cle            -> let v = trouver_env cle env in if !debug then (print_string "---->"; affiche_val v); v
   | Unit               -> VUnit
   | ArithOp (op,e1,e2) -> begin 
       match eval e1 env, eval e2 env with
@@ -266,16 +268,13 @@ LET       REC        NOM      =         e1       in         e2
                                  fun arg -> e3
 *)
 
-  | LetRec (nom,e1,e2) -> begin match e1 with 
-        | Fun (arg,e3) -> begin match eval e2 (modifier_env nom (VFun (arg,e3,env)) env) with
-              | VFun (arg',e4,env') when e3 = e4 -> print_string "J'ai retrouvé la fonction"; eval e4 env'
-              | valeur -> valeur
-            end
-        | exp -> eval exp env
-    end
-  | Fun (arg,e1)       -> VFun (arg,e1,env)
+  | LetRec (nom,e1,e2) -> begin match e1 with
+        | Fun (arg,e1) -> eval e2 (modifier_env nom (VFun (arg,e1,env,true)) env)
+        | _ -> eval e2 (modifier_env nom (eval e1 env) env)
+      end
+  | Fun (arg,e1)       -> VFun (arg,e1,env,false)
   | App (e1,e2) -> begin match eval e1 env with
-        | VFun (arg,corps,env') -> eval corps (modifier_env arg (eval e2 env) (env@env'))
+        | VFun (arg,corps,env',b) -> eval corps (modifier_env arg (eval e2 env) (if b then fusion_env env env' else env'))
         | _ -> failwith "Eval : App error (fun type)"
       end
   | Seq (e1,e2) -> match eval e1 env with

@@ -92,7 +92,7 @@ let rec affiche_expr e =
 let affiche_val v = match v with
   | VInt k          -> print_int k
   | VBool b         -> print_string (if b then "true" else "false")
-  | VFun (arg,e1,_) -> print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
+  | VFun (arg,e1,_,b) -> if b then print_string "(rec) "; print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
   | VUnit           -> print_string "()"
                       
 

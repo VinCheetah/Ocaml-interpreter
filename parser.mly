@@ -1,7 +1,7 @@
 %{
 (* --- préambule: ici du code Caml --- *)
 
-open Expr   (* rappel: dans expr.ml: 
+open Types   (* rappel: dans Types.ml: 
              type expr = Const of int | Add of expr*expr | Mull of expr*expr *)
 
 %}
@@ -40,7 +40,7 @@ open Expr   (* rappel: dans expr.ml:
 
 %start main             /* "start" signale le point d'entrée: */
                         /* c'est ici main, qui est défini plus bas */
-%type <Expr.expr> main     /* on _doit_ donner le type associé au point d'entrée */
+%type <Types.expr> main     /* on _doit_ donner le type associé au point d'entrée */
 
 %%
     /* --- début des règles de grammaire --- */

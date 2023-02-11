@@ -1,5 +1,6 @@
 open Expr
 open Affichage
+open Options
 
 (* "incantations" qu'il n'est pas n�cessaire de comprendre dans un premier
    temps : on r�cup�re l'entr�e, dans un fichier ou sur le clavier *)
@@ -7,11 +8,11 @@ let nom_fichier = ref ""
 
 
 let recupere_entree () =
-  let speclist = [("-showsrc",Arg.Set Expr.(Options.showsrc),"Print an ocaml code of the input");("-debug",Arg.Set Expr.(Options.debug),"Debug activated");
-                  ("-slow",Arg.Set Expr.(Options.slow),"Eval function works step by step");("-tree",Arg.Set Expr.(Options.tree),"Tree activated");
-                  ("-trace",Arg.Set Expr.(Options.trace),"Trace activated")] in 
+  let speclist = [("-showsrc",Arg.Set Options.showsrc,"Print an ocaml code of the input");("-debug",Arg.Set Options.debug,"Debug activated");
+                  ("-slow",Arg.Set Options.slow,"Eval function works step by step");("-tree",Arg.Set Options.tree,"Tree activated");
+                  ("-trace",Arg.Set Options.trace,"Trace activated")] in 
   Arg.parse speclist (fun s -> nom_fichier := s) "Bienvenue sur Fouine 1.0";
-  let _ = Stdlib.Parsing.set_trace !Expr.(Options.trace) in
+  let _ = Stdlib.Parsing.set_trace !Options.trace in
   try
     let where_from = match !nom_fichier with
       | "" -> stdin
@@ -31,9 +32,9 @@ let _ = Stdlib.Parsing.set_trace !trace
 (* le traitement d'une expression en entr�e *)   
 let execute e =
   begin
-    if !Expr.(Options.tree) || !Expr.(Options.debug) then (affiche_expr_tree e; print_newline ());
-    if !Expr.(Options.showsrc) || !Expr.(Options.debug) then (affiche_expr e; print_newline());
-    if not !Expr.(Options.showsrc) then begin
+    if !Options.tree || !Options.debug then (affiche_expr_tree e; print_newline ());
+    if !Options.showsrc || !Options.debug then (affiche_expr e; print_string ";;\n");
+    if not !Options.showsrc then begin
       let v =  Expr.eval e Expr.empty_env in
       print_string "\nout : ";affiche_val v;
       print_newline()

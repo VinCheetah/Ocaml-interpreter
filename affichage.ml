@@ -1,5 +1,5 @@
-open Expr
-
+open Types
+open Options
 
 (* fonction d'affichage comparateur *) 
 let affiche_comp = function
@@ -46,16 +46,16 @@ let rec affiche_expr e =
                       | _   -> affiche_expr)
             | _ -> affiche_expr) e2
 
-  | CompOp (op,e1,e2) -> (match e1 with
+  | CompOp (op,e1,e2)  -> (match e1 with
             | BoolOp _ 
             | If _ -> print_parenthese
-            | _ -> affiche_expr) e1;
+            | _    -> affiche_expr) e1;
             print_string (affiche_comp op);
             (match e2 with
             | BoolOp _ -> print_parenthese
-            | _ -> affiche_expr) e2
+            | _        -> affiche_expr) e2
 
-  | BoolOp (op,e1,e2) -> begin match op with
+  | BoolOp (op,e1,e2)  -> begin match op with
             | Not -> print_string " not "; (match e1 with
                       | BConst _ -> affiche_expr
                       | _ -> print_parenthese) e1
@@ -73,27 +73,27 @@ let rec affiche_expr e =
                     print_string " || ";
                     affiche_expr e2
             end
-  | If (c1,e1,e2) -> print_string "if " ; affiche_expr c1; print_string " then " ;affiche_expr e1; print_string " else "; affiche_expr e2
-  | PrInt (e1)    -> print_string "prInt "; (match e1 with
-            | Const _ -> affiche_expr
+  | If (c1,e1,e2)      -> print_string "if " ; affiche_expr c1; print_string " then " ;affiche_expr e1; print_string " else "; affiche_expr e2
+  | PrInt (e1)         -> print_string "prInt "; (match e1 with
+            | Const _  -> affiche_expr
             | _ -> print_parenthese) e1  
-  | Let (x,e1,e2) -> print_string "let "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
-  | LetRec (x,e1,e2) -> print_string "let rec "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
-  | Fun (arg,e1)  -> print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
-  | App (e1,e2)       -> affiche_expr e1; print_string " "; (match e2 with
+  | Let (x,e1,e2)      -> print_string "let "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
+  | LetRec (x,e1,e2)   -> print_string "let rec "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
+  | Fun (arg,e1)       -> print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
+  | App (e1,e2)        -> affiche_expr e1; print_string " "; (match e2 with
             | Const _
             | BConst _
             | Var _ -> affiche_expr
             | _ -> print_parenthese) e2
-  | Seq (e1,e2)   -> affiche_expr e1; print_string ";\n"; affiche_expr e2
+  | Seq (e1,e2)        -> affiche_expr e1; print_string ";\n"; affiche_expr e2
 
 
 (* let affiche_val v =  print_string "TODO" *)
 let affiche_val v = match v with
-  | VInt k          -> print_int k
-  | VBool b         -> print_string (if b then "true" else "false")
+  | VInt k            -> print_int k
+  | VBool b           -> print_string (if b then "true" else "false")
   | VFun (arg,e1,_,b) -> if b then print_string "(rec) "; print_string "fun "; print_string arg; print_string" -> "; affiche_expr e1 
-  | VUnit           -> print_string "()"
+  | VUnit             -> print_string "()"
                       
 
 
@@ -154,3 +154,27 @@ let rec affiche_expr_tree e =
   | Seq(e1,e2)         -> aff_aux2 "Seq(" e1 e2
 
 
+let rec display_env env = match env with
+  | (cle,valeur) :: env' -> display_env env'; print_string cle; print_string " : "; affiche_val valeur; print_string "   /   "
+  | [] -> ()
+
+  
+let print_env env = print_newline (); print_string "Environnement -> " ; display_env env; print_newline ()
+
+
+
+let print_debug e = print_string ("Je suis dans " ^ (match e with
+  | Const i   -> "Const " ^ (string_of_int i)
+  | BConst _  -> "BConst"
+  | Var s     -> "Var " ^ s
+  | Unit      -> "Unit"
+  | ArithOp _ -> "ArithOp"
+  | CompOp _  -> "CompOp"
+  | BoolOp _  -> "BoolOp"
+  | If _      -> "If"
+  | PrInt _   -> "PrInt"
+  | LetRec _  -> "LetRec"
+  | Fun _     -> "Fun"
+  | App _     -> "App"
+  | Let _     -> "Let"
+  | Seq _     -> "Seq") ^ (if not !Options.slow then "\n" else ""))

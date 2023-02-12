@@ -45,15 +45,18 @@ type expr =
   | Ref     of expr
   | ValRef  of expr
   | RefNew  of expr*expr
+  | Raise   of expr
+  | TryWith of expr*expr*expr
 
 (* définition du type des environnements*)
 and env = (string*valeur) list
 
  (* définition du type pour les valeurs*) 
 and valeur = 
-  | VInt    of int 
-  | VBool   of bool    
-  | VFun    of name*expr*env*bool
-  | VUnit   of env
-  | VRef    of valeur
+  | VInt   of int 
+  | VBool  of bool    
+  | VFun   of name*expr*env*bool
+  | VUnit  of env
+  | VRef   of valeur
+  | VExcep of int
 

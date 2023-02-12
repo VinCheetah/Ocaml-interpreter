@@ -118,3 +118,14 @@ let rec eval e env =
         | Var (Nom s) when begin match trouver_env s env with | VRef r -> true | _ -> false end -> VUnit (modifier_env s (VRef (eval e2 env)) env)
         | _ -> eval e2 env
       end
+  | Raise e1           -> begin match eval e1 env with 
+        | VInt k -> VExcep k
+        | _ -> failwith "Eval : Raise error (arg should have type int)"
+      end
+  | TryWith (e1,e2,e3)  -> begin match eval e2 env with
+        | VInt n -> begin match (eval e1 env) with
+              | VExcep m when n = m -> eval e3 env
+              | v -> v
+            end
+        | _ -> failwith "Eval : TryWith error (exception's arg should have type int)"
+      end

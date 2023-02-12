@@ -93,6 +93,7 @@ let rec affiche_expr e =
             | Var _ -> affiche_expr
             | _ -> print_parenthese) e2
   | Seq (e1,e2)        -> affiche_expr e1; print_string ";\n"; affiche_expr e2
+
   | _ -> print_string "later"
 
 
@@ -101,7 +102,8 @@ let rec affiche_val v = match v with
   | VBool b           -> print_string (if b then "true" else "false")
   | VFun (arg,e1,_,b) -> if b then print_string "(rec) "; print_string "fun "; affiche_var arg; print_string" -> "; affiche_expr e1 
   | VUnit _           -> print_string "()"
-  | VRef v            -> print_string "ref : {content : "; affiche_val v; print_string ")"
+  | VRef v            -> print_string "ref : {content : "; affiche_val v; print_string "}"
+  | VExcep n          -> print_string "E "; print_int n 
                       
 
 
@@ -162,6 +164,8 @@ let rec affiche_expr_tree e =
   | Ref e1             -> aff_aux1 "Ref(" e1
   | ValRef e1          -> aff_aux1 "ValRef(" e1
   | RefNew (e1,e2)     -> aff_aux2 "RefNew(" e1 e2
+  | Raise e1           -> aff_aux1 "Raise(" e1
+  | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
 
 
 let rec display_env env = match env with
@@ -187,5 +191,10 @@ let print_debug e = print_string ("Je suis dans " ^ (match e with
   | App _     -> "App"
   | Let _     -> "Let"
   | Seq _     -> "Seq" 
-  | _ -> "later")
+  | Ref _     -> "Ref"
+  | ValRef _  -> "ValRef"
+  | RefNew _  -> "RefNew"
+  | Raise _   -> "Raise"
+  | TryWith _ -> "TryWith"
+(*| _ -> "TO DO")*))
   ^ (if not !Options.slow then "\n" else ""))

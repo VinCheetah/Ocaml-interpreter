@@ -44,6 +44,10 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "ref"                                    { REF }
   | ":="                                     { REVAL }
   | "!"                                      { EXCL }
+  | "raise"                                  { RAISE }
+  | "try"                                    { TRY }
+  | "with"                                   { WITH }
+  | "E"                                      { E }
   | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9']* as s { VAR (s) }
  
 

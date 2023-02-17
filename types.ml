@@ -47,6 +47,7 @@ type expr =
   | Ref     of expr
   | ValRef  of expr
   | RefNew  of expr*expr
+  | Exn     of expr
   | Raise   of expr
   | TryWith of expr*expr*expr
   | Incr    of expr
@@ -62,7 +63,7 @@ and valeur =
   | VUnit  of env
   | VRef   of int
   | VVal   of string*valeur
-  | VExcep of int
+  | VExcep of int*bool
 
 
 

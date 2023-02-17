@@ -99,13 +99,13 @@ let rec affiche_expr e =
 
 
 let rec affiche_val v = match v with
-  | VInt k            -> print_string "- : int = "; print_int k
-  | VBool b           -> print_string "- : bool = "; print_string (if b then "true" else "false")
-  | VFun (arg,e1,_,b) -> print_string "- : <fun> = "; if b then print_string "(rec) "; affiche_var arg; print_string" -> "; affiche_expr e1 
-  | VUnit _           -> print_string "- : unit = ()"
-  | VRef k            -> print_string "- : ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
-  | VVal (name,v)     -> print_string ("val "^name); affiche_val v
-  | VExcep n          -> print_string "- : exn = E "; print_int n 
+  | VInt k            -> print_string "int = "; print_int k
+  | VBool b           -> print_string "bool = "; print_string (if b then "true" else "false")
+  | VFun (arg,e1,_,b) -> print_string "<fun> = "; if b then print_string "(rec) "; affiche_var arg; print_string" -> "; affiche_expr e1 
+  | VUnit _           -> print_string "unit = ()"
+  | VRef k            -> print_string "ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
+  | VVal (name,v)     -> print_string ("val "^name^" : "); affiche_val v
+  | VExcep (n,_)      -> print_string "exn = E "; print_int n 
                       
 
 
@@ -167,6 +167,7 @@ let rec affiche_expr_tree e =
   | Ref e1             -> aff_aux1 "Ref(" e1
   | ValRef e1          -> aff_aux1 "ValRef(" e1
   | RefNew (e1,e2)     -> aff_aux2 "RefNew(" e1 e2
+  | Exn (e1)           -> aff_aux1 "Exn(" e1
   | Raise e1           -> aff_aux1 "Raise(" e1
   | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
   | Incr e1            -> aff_aux1 "Incr(" e1
@@ -199,6 +200,7 @@ let print_debug e = print_string ("Je suis dans " ^ (match e with
   | Ref _     -> "Ref"
   | ValRef _  -> "ValRef"
   | RefNew _  -> "RefNew"
+  | Exn _     -> "Exn"
   | Raise _   -> "Raise"
   | TryWith _ -> "TryWith"
   | Incr _    -> "Incr"

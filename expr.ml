@@ -126,16 +126,20 @@ let rec eval e env =
             end
         | _ -> failwith "Eval : RefNew error (should have type var)"
       end
+  | Exn e1              -> begin match eval e1 env with
+        | VInt k -> VExcep (k,false)
+        | _ -> failwith "Eval : Exn error (arg should have type int)"
+      end
   | Raise e1           -> begin match eval e1 env with 
-        | VInt k -> VExcep k
-        | _ -> failwith "Eval : Raise error (arg should have type int)"
+        | VExcep (k,_) -> VExcep (k,true)
+        | _ -> failwith "Eval : Raise error (arg should have type exn)"
       end
   | TryWith (e1,arg,e2) -> begin match eval e1 env with
-        | VExcep (m) -> begin match arg with
+        | VExcep (m,true) -> begin match arg with
               | Var var -> eval (App(Fun(var,e2),Const m)) env 
               | _ -> begin match eval arg env with
                     | VInt n when n = m -> eval e2 env
-                    | VInt k -> VExcep m
+                    | VInt k -> VExcep (m,true)
                     | _ -> failwith "Eval : TryWith error (exception arg should be var or int)"
                   end
             end

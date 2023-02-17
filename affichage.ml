@@ -84,7 +84,7 @@ let rec affiche_expr e =
   | PrInt (e1)         -> print_string "prInt "; (match e1 with
             | Const _  -> affiche_expr
             | _ -> print_parenthese) e1  
-  | Let (x,recursif,e1,e2)      -> print_string ("let " ^ if recursif then "rec "else "") ; affiche_var x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
+  | Let (x,recursif,e1)-> print_string ("let " ^ if recursif then "rec "else "") ; affiche_var x; print_string " = "; affiche_expr e1
  (* | LetRec (x,e1,e2)   -> print_string "let rec "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2*)
   | Fun (arg,e1)       -> print_string "fun "; affiche_var arg; print_string" -> "; affiche_expr e1 
   | App (e1,e2)        -> affiche_expr e1; print_string " "; (match e2 with
@@ -98,12 +98,13 @@ let rec affiche_expr e =
 
 
 let rec affiche_val v = match v with
-  | VInt k            -> print_int k
-  | VBool b           -> print_string (if b then "true" else "false")
-  | VFun (arg,e1,_,b) -> if b then print_string "(rec) "; print_string "fun "; affiche_var arg; print_string" -> "; affiche_expr e1 
-  | VUnit _           -> print_string "()"
-  | VRef v            -> print_string "ref : {content : "; affiche_val v; print_string "}"
-  | VExcep (n,_)      -> print_string "E "; print_int n 
+  | VInt k            -> print_string "- : int = "; print_int k
+  | VBool b           -> print_string "- : bool = "; print_string (if b then "true" else "false")
+  | VFun (arg,e1,_,b) -> print_string "- : <fun> = "; if b then print_string "(rec) "; affiche_var arg; print_string" -> "; affiche_expr e1 
+  | VUnit _           -> print_string "- : unit = ()"
+  | VRef k            -> print_string "- : ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
+  | VVal (name,v)     -> print_string ("val "^name); affiche_val v
+  | VExcep (n,_)      -> print_string "- : exn = E "; print_int n 
                       
 
 
@@ -113,7 +114,7 @@ let rec affiche_expr_tree e =
     print_string s;
     affiche_expr_tree a;
     print_string ")"
-  and aff_aux2 s a b = 
+  and aff_aux2 s a b =  
       begin
   print_string s;
   affiche_expr_tree a;
@@ -157,7 +158,8 @@ let rec affiche_expr_tree e =
                          end
   | If (e1,e2,e3)      -> aff_aux3 "If(" e1 e2 e3
   | PrInt e1           -> aff_aux1 "prInt(" e1
-  | Let (s,b,e1,e2)    -> aff_aux3 ("Let"^(if b then "Rec(" else "(")) (Var s) e1 e2
+  | Let (s,b,e1)       -> aff_aux2 ("Let"^(if b then "Rec(" else "(")) (Var s) e1
+  | In (e1,e2)         -> aff_aux2 "In(" e1 e2
   | Fun (s,e1)         -> aff_aux2 "Fun(" (Var s) e1
   | App (e1,e2)        -> aff_aux2 "App(" e1 e2
   | Seq (e1,e2)        -> aff_aux2 "Seq(" e1 e2
@@ -166,7 +168,7 @@ let rec affiche_expr_tree e =
   | RefNew (e1,e2)     -> aff_aux2 "RefNew(" e1 e2
   | Raise e1           -> aff_aux1 "Raise(" e1
   | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
-  | Incr e1            -> aff_aux1 "Incr" e1
+  | Incr e1            -> aff_aux1 "Incr(" e1
 
 
 let rec display_env env = match env with
@@ -191,6 +193,7 @@ let print_debug e = print_string ("Je suis dans " ^ (match e with
   | Fun _     -> "Fun"
   | App _     -> "App"
   | Let _     -> "Let"
+  | In _      -> "In"
   | Seq _     -> "Seq" 
   | Ref _     -> "Ref"
   | ValRef _  -> "ValRef"

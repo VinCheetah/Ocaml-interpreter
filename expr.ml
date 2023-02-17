@@ -3,8 +3,6 @@ open Options
 open Affichage
 
 
-let empty_env = []
-
 (* Ajoute une variable a un environnement en écrasant l'ancienne variable de meme nom si elle existe *)
 let rec modifier_env cle valeur = function
   | (cle',valeur') :: env' -> if cle = cle' then (cle, valeur) :: env' else (cle', valeur') :: modifier_env cle valeur env'
@@ -88,35 +86,41 @@ let rec eval e env =
         | VInt x -> print_int x ; print_newline () ; VInt x
         | _ -> failwith "Eval : PrInt error (arg type)"
       end 
-  (*| Let (nom,e1,e2)      -> eval e2 (modifier_env nom (eval e1 env) env)*)
-  | Let (var,recursif,e1,e2) -> begin match var with
-        | Nom nom -> eval e2 (modifier_env nom (if recursif then begin match e1 with
-              | Fun (arg,e1) -> VFun (arg,e1,env,true)
-              | _ -> eval e1 env end else eval e1 env) env)
-        | None -> begin match eval e1 env with
-              | VUnit env' -> eval e2 env'
-              | _ -> eval e2 env
-            end
+  | Let (var,recursif,e1) -> begin match var with 
+        | Nom s -> VVal (s, begin match e1 with
+              | Fun (arg,e1) -> VFun (arg,e1,env,recursif)
+              | _ -> eval e1 env end)
+        | _ -> eval e1 env
+      end
+  | In (e1,e2)         -> begin match eval e1 env with
+        | VVal (s,v) -> eval e2 (modifier_env s v env)
+        | _ -> failwith "Eval : In error (first expression should be a Let)"
       end
   | Fun (arg,e1)       -> VFun (arg,e1,env,false)
   | App (e1,e2)        -> begin match eval e1 env with
         | VFun (arg,corps,env',recursif) -> eval corps ((match arg with
               | Nom nom -> modifier_env nom (eval e2 env)
-              | None -> fun x -> x) (if recursif then fusion_env env' env else env'))
+              | None -> fun x -> x) (if recursif then fusion_env env env' else env'))
         | _ -> failwith "Eval : App error (fun type)"
       end
   | Seq (e1,e2)        -> begin match eval e1 env with
         | VUnit env' -> eval e2 env'
         | _ -> failwith "Eval : Seq error (first expression should have type unit)"
       end
-  | Ref e1             -> VRef (eval e1 env)
+  | Ref e1             -> incr next_ref ; let my_ref = !next_ref in
+                          if my_ref < max_ref 
+                            then (ref_memory.(my_ref) <- eval e1 env; VRef my_ref)
+                            else failwith "Eval : Ref error (max limit of ref)"
   | ValRef e1          -> begin match eval e1 env with
-        | VRef v -> v
+        | VRef k -> ref_memory.(k)
         | _ -> failwith "Eval : ValRef error (arg should have type ref)"
       end
   | RefNew (e1,e2)     -> begin match e1 with
-        | Var (Nom s) when begin match trouver_env s env with | VRef r -> true | _ -> false end -> VUnit (modifier_env s (VRef (eval e2 env)) env)
-        | _ -> eval e2 env
+        | Var (Nom s) -> begin match trouver_env s env with 
+              | VRef k -> ref_memory.(k) <- eval e2 env; VUnit (env)
+              | _ -> failwith "Eval : RefNew error (should have type ref)"
+            end
+        | _ -> failwith "Eval : RefNew error (should have type var)"
       end
   | Raise e1           -> begin match eval e1 env with 
         | VInt k -> VExcep (k,env)
@@ -129,10 +133,10 @@ let rec eval e env =
             end
         | _ -> failwith "Eval : TryWith error (exception's arg should have type int)"
       end
-  | Incr e1            -> begin match e1 with
-        | Var (Nom s) -> begin match trouver_env s env with 
-              | VRef (VInt k) -> VUnit (modifier_env s (VRef (VInt (k+1))) env)
-              | _ -> failwith "Eval : Incr error (unknown ref)" 
+  | Incr e1            -> begin match eval e1 env with
+        | VRef k -> begin match ref_memory.(k) with
+              | VInt n -> ref_memory.(k) <- VInt (n+1); VUnit env
+              | _ -> failwith "Eval : Incr error (ref should have type int)" 
             end
-        | _ -> failwith "Eval : Incr error (arg error)"
+        | _ -> failwith "Eval : Incr error (arg should have type ref)"
       end

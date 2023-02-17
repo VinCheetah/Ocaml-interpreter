@@ -38,7 +38,8 @@ type expr =
   | BoolOp  of bool_op*expr*expr
   | If      of expr*expr*expr
   | PrInt   of expr
-  | Let     of name*bool*expr*expr
+  | Let     of name*bool*expr
+  | In      of expr*expr
   | Fun     of name*expr
   | App     of expr*expr
   | Seq     of expr*expr
@@ -58,6 +59,13 @@ and valeur =
   | VBool  of bool    
   | VFun   of name*expr*env*bool
   | VUnit  of env
-  | VRef   of valeur
+  | VRef   of int
+  | VVal   of string*valeur
   | VExcep of int*env
 
+
+
+let empty_env = []
+let max_ref = 1234
+let ref_memory = Array.make max_ref (VUnit [])
+let next_ref = ref 0  

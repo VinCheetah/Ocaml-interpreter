@@ -1,1 +1,1 @@
-let rec facto = fun n -> if n = 0 then 1 else n * facto (n-1) in facto 5;;
+let rec f n = if n = 0 then 1 else n * f (n-1) in f 6;;

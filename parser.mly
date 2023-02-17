@@ -33,7 +33,6 @@ open Types   (* rappel: dans Types.ml:
 %right LET
 %left FUN
 %left FLECHE
-%left SCOLON
 %nonassoc UNIT REVAL
 %right OR  
 %right AND
@@ -53,6 +52,7 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc VAR
 %nonassoc EXCL
 %nonassoc REC
+%left SCOLON
 %nonassoc LPAREN RPAREN
 
 %start main             /* "start" signale le point d'entrée: */
@@ -95,18 +95,19 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression SCOLON expression                  { Seq ($1,$3) }
   | expression REVAL expression                   { RefNew ($1,$3) }
   | RAISE except                                  { Raise $2 }
-  | TRY expression WITH except FLECHE expression  { TryWith($2,$4,$6) }
+  | TRY expression WITH E expression FLECHE expression   { TryWith ($2,$5,$7) }
   | EXCL sexpr                                    { ValRef ($2) }
   | REF sexpr                                     { Ref $2 }   
   | INCR sexpr                                    { Incr $2 }
   | PRINT sexpr                                   { PrInt ($2) }
   | func                                          { $1 }
   | applic                                        { $1 }
-  | declaration IN expression                      { In ($1,$3) }
+  | declaration IN expression                     { In ($1,$3) }
   | declaration                                   { $1 }
 
 variable :
   | VAR                                           { Nom $1 }
+  | UNIT                                          { Uni }
   | UNDERSCORE                                    { None }
 
 except :

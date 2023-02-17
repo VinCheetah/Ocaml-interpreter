@@ -27,7 +27,8 @@ let affiche_bool = function
 
 let get_var = function
   | Nom s -> s
-  | None -> "'a"
+  | None  -> "'a"
+  | Uni   -> "()"
 
 let affiche_var v = print_string (get_var v)
 
@@ -104,7 +105,7 @@ let rec affiche_val v = match v with
   | VUnit _           -> print_string "- : unit = ()"
   | VRef k            -> print_string "- : ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
   | VVal (name,v)     -> print_string ("val "^name); affiche_val v
-  | VExcep (n,_)      -> print_string "- : exn = E "; print_int n 
+  | VExcep n          -> print_string "- : exn = E "; print_int n 
                       
 
 

@@ -25,6 +25,7 @@ type bool_op =
 type name =
   | Nom of string 
   | None
+  | Uni
 
 
  (* définition du type pour les expressions*) 
@@ -61,7 +62,7 @@ and valeur =
   | VUnit  of env
   | VRef   of int
   | VVal   of string*valeur
-  | VExcep of int*env
+  | VExcep of int
 
 
 

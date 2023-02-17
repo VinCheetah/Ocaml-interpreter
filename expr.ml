@@ -52,7 +52,7 @@ let rec eval e env =
   | BConst b           -> VBool b
   | Var cle            -> let v = begin match cle with
         | Nom nom -> trouver_env nom env
-        | None    -> VUnit env
+        | _       -> VUnit env
       end in if !debug then (print_string "---->"; Affichage.affiche_val v); v
   | Unit               -> VUnit env
   | ArithOp (op,e1,e2) -> begin 
@@ -98,9 +98,13 @@ let rec eval e env =
       end
   | Fun (arg,e1)       -> VFun (arg,e1,env,false)
   | App (e1,e2)        -> begin match eval e1 env with
+        | VFun (Uni,corps,env',recursif) -> begin match eval e2 env with
+              | VUnit _ -> eval corps env' 
+              | _ -> failwith "Eval : App error (arg should have type Unit)" 
+            end
         | VFun (arg,corps,env',recursif) -> eval corps ((match arg with
               | Nom nom -> modifier_env nom (eval e2 env)
-              | None -> fun x -> x) (if recursif then fusion_env env env' else env'))
+              | _ -> fun x -> x) (if recursif then fusion_env env env' else env'))
         | _ -> failwith "Eval : App error (fun type)"
       end
   | Seq (e1,e2)        -> begin match eval e1 env with
@@ -123,15 +127,19 @@ let rec eval e env =
         | _ -> failwith "Eval : RefNew error (should have type var)"
       end
   | Raise e1           -> begin match eval e1 env with 
-        | VInt k -> VExcep (k,env)
+        | VInt k -> VExcep k
         | _ -> failwith "Eval : Raise error (arg should have type int)"
       end
-  | TryWith (e1,e2,e3) -> begin match eval e2 env with
-        | VInt n -> begin match (eval e1 env) with
-              | VExcep (m,env') when n = m -> eval e3 env'
-              | v -> v
+  | TryWith (e1,arg,e2) -> begin match eval e1 env with
+        | VExcep (m) -> begin match arg with
+              | Var var -> eval (App(Fun(var,e2),Const m)) env 
+              | _ -> begin match eval arg env with
+                    | VInt n when n = m -> eval e2 env
+                    | VInt k -> VExcep m
+                    | _ -> failwith "Eval : TryWith error (exception arg should be var or int)"
+                  end
             end
-        | _ -> failwith "Eval : TryWith error (exception's arg should have type int)"
+        | v -> v
       end
   | Incr e1            -> begin match eval e1 env with
         | VRef k -> begin match ref_memory.(k) with

@@ -111,9 +111,8 @@ let rec eval e env =
         | VVal (nom,e1) -> (modifier_env nom e1 env)
         | _ -> env)
   | Seq (e1,e2)        -> begin match eval e1 env with
-        | VUnit -> eval e2 env
-        | _ -> failwith "Eval : Seq error (first expression should have type unit)"
-      end
+        | VUnit -> ()
+        | _ -> print_string "[WARNING] : Seq (first expression should have type unit)" end; eval e2 env
   | Ref e1             -> incr next_ref ; let my_ref = !next_ref in
                           if my_ref < max_ref 
                             then (ref_memory.(my_ref) <- eval e1 env; VRef my_ref)
@@ -137,16 +136,16 @@ let rec eval e env =
         | VExcep (k,_) -> VExcep (k,true)
         | _ -> failwith "Eval : Raise error (arg should have type exn)"
       end
-  | TryWith (e1,arg,e2) -> begin match eval e1 env with
-        | VExcep (m,true) -> begin match arg with
-              | Var var -> eval (App(Fun(var,e2),Const m)) env 
-              | _ -> begin match eval arg env with
-                    | VInt n when n = m -> eval e2 env
-                    | VInt k -> VExcep (m,true)
+  | TryWith (e1,e2,e3) -> begin match e2 with
+        | Exn arg -> begin match eval e1 env with
+              | VExcep (m,true) -> begin match arg with
+                    | Var var -> eval (App(Fun(var,e3),Const m)) env 
+                    | Const k when k = m ->  eval e3 env
                     | _ -> failwith "Eval : TryWith error (exception arg should be var or int)"
                   end
+              | v -> v
             end
-        | v -> v
+        | _ -> failwith "Eval : TryWith error (with arg should be an exn)"
       end
   | Incr e1            -> begin match eval e1 env with
         | VRef k -> begin match ref_memory.(k) with

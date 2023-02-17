@@ -64,7 +64,7 @@ and valeur =
   | VUnit
   | VRef   of int
   | VVal   of string*valeur
-  | VExcep of int*bool
+  | VExcep of int*bool (*Le booléen permet de savoir si l'exception est levée ou juste renvoyée*)
 
 
 

@@ -105,7 +105,7 @@ let rec affiche_val v = match v with
   | VUnit             -> print_string "unit = ()"
   | VRef k            -> print_string "ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
   | VVal (name,v)     -> print_string ("val "^name^" : "); affiche_val v
-  | VExcep (n,_)      -> print_string "exn = E "; print_int n 
+  | VExcep (n,b)      -> if b then print_string "[ERROR] "; print_string "exn = E "; print_int n 
                       
 
 

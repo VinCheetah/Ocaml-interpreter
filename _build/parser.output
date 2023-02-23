@@ -5,66 +5,70 @@
    2  expression : INT
    3             | TRUE
    4             | FALSE
-   5             | variable
+   5             | VAR
    6             | UNIT
-   7             | LPAREN expression RPAREN
-   8             | expression PLUS expression
-   9             | expression TIMES expression
-  10             | expression MINUS expression
-  11             | expression DIV expression
-  12             | expression MOD expression
-  13             | MINUS expression
-  14             | expression L expression
-  15             | expression LE expression
-  16             | expression G expression
-  17             | expression GE expression
-  18             | expression EQ expression
-  19             | expression NE expression
-  20             | expression OR expression
-  21             | expression AND expression
-  22             | NOT expression
-  23             | IF expression THEN expression ELSE expression
-  24             | LET variable corps_func
-  25             | LET REC variable corps_func
-  26             | LET REC variable EQ expression
-  27             | LET variable EQ expression
-  28             | expression IN expression
-  29             | expression DSCOLON
-  30             | expression DSCOLON expression
-  31             | expression SCOLON expression
+   7             | applic
+   8             | LPAREN expression RPAREN
+   9             | expression PLUS expression
+  10             | expression TIMES expression
+  11             | expression MINUS expression
+  12             | expression DIV expression
+  13             | expression MOD expression
+  14             | MINUS expression
+  15             | expression L expression
+  16             | expression LE expression
+  17             | expression G expression
+  18             | expression GE expression
+  19             | expression EQ expression
+  20             | expression NE expression
+  21             | expression OR expression
+  22             | expression AND expression
+  23             | NOT expression
+  24             | condition
+  25             | PRINT INT
+  26             | PRINT LPAREN expression RPAREN
+  27             | declaration
+  28             | FUN VAR FLECHE expression
+  29             | expression SCOLON expression
+  30             | REF sexpr
+  31             | EXCL expression
   32             | expression REVAL expression
-  33             | E expression
-  34             | RAISE expression
-  35             | TRY expression WITH expression FLECHE expression
-  36             | EXCL sexpr
-  37             | REF sexpr
-  38             | INCR sexpr
-  39             | PRINT sexpr
-  40             | func
-  41             | applic
+  33             | RAISE LPAREN E expression RPAREN
+  34             | TRY expression WITH LPAREN E expression RPAREN FLECHE expression
+  35             | INCR expression
+  36             | VAR func
+  37             | expression COMMA expression
 
-  42  variable : VAR
-  43           | UNDERSCORE
+  38  sexpr : INT
+  39        | TRUE
+  40        | FALSE
+  41        | VAR
+  42        | UNIT
+  43        | LPAREN expression RPAREN
 
-  44  sexpr : INT
-  45        | TRUE
-  46        | FALSE
-  47        | EXCL sexpr
-  48        | VAR
-  49        | UNIT
-  50        | LPAREN expression RPAREN
+  44  func : VAR func
+  45       | UNDERSCORE func
+  46       | VAR EQ expression
+  47       | UNDERSCORE EQ expression
 
-  51  func : VAR corps_func
-  52       | FUN corps_func
+  48  applic : applic sexpr
+  49         | VAR sexpr
+  50         | LPAREN FUN VAR FLECHE expression RPAREN sexpr
 
-  53  corps_func : variable corps_func
-  54             | variable EQ expression
-  55             | variable FLECHE expression
+  51  condition : IF expression THEN expression ELSE expression
 
-  56  applic : applic sexpr
-  57         | sexpr sexpr
+  52  motif : VAR
+  53        | UNDERSCORE
+  54        | motif COMMA motif
 
-  58  %entry% : '\001' main
+  55  declaration : LET VAR func IN expression
+  56              | LET REC VAR func IN expression
+  57              | LET REC VAR EQ expression IN expression
+  58              | LET motif EQ expression IN expression
+  59              | LET REC UNDERSCORE EQ expression IN expression
+  60              | LET UNDERSCORE EQ expression IN expression
+
+  61  %entry% : '\001' main
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -76,7 +80,7 @@ state 0
 
 
 state 1
-	%entry% : '\001' . main  (58)
+	%entry% : '\001' . main  (61)
 
 	INT  shift 3
 	VAR  shift 4
@@ -92,19 +96,16 @@ state 1
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	main  goto 22
-	expression  goto 23
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	main  goto 20
+	expression  goto 21
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 2
@@ -115,82 +116,51 @@ state 2
 
 state 3
 	expression : INT .  (2)
-	sexpr : INT .  (44)
 
-	INT  reduce 44
-	VAR  reduce 44
-	PLUS  reduce 2
-	TIMES  reduce 2
-	MINUS  reduce 2
-	DIV  reduce 2
-	MOD  reduce 2
-	LPAREN  reduce 44
-	RPAREN  reduce 2
-	EOF  reduce 2
-	L  reduce 2
-	LE  reduce 2
-	G  reduce 2
-	GE  reduce 2
-	NE  reduce 2
-	EQ  reduce 2
-	THEN  reduce 2
-	ELSE  reduce 2
-	IN  reduce 2
-	TRUE  reduce 44
-	FALSE  reduce 44
-	AND  reduce 2
-	OR  reduce 2
-	FLECHE  reduce 2
-	SCOLON  reduce 2
-	DSCOLON  reduce 2
-	UNIT  reduce 44
-	EXCL  reduce 44
-	REVAL  reduce 2
-	WITH  reduce 2
+	.  reduce 2
 
 
 state 4
-	variable : VAR .  (42)
-	sexpr : VAR .  (48)
-	func : VAR . corps_func  (51)
+	expression : VAR .  (5)
+	expression : VAR . func  (36)
+	applic : VAR . sexpr  (49)
 
-	UNDERSCORE  shift 17
-	INT  reduce 48
-	PLUS  reduce 42
-	TIMES  reduce 42
-	MINUS  reduce 42
-	DIV  reduce 42
-	MOD  reduce 42
-	LPAREN  reduce 48
-	RPAREN  reduce 42
-	EOF  reduce 42
-	L  reduce 42
-	LE  reduce 42
-	G  reduce 42
-	GE  reduce 42
-	NE  reduce 42
-	EQ  reduce 42
-	THEN  reduce 42
-	ELSE  reduce 42
-	IN  reduce 42
-	TRUE  reduce 48
-	FALSE  reduce 48
-	AND  reduce 42
-	OR  reduce 42
-	FLECHE  reduce 42
-	SCOLON  reduce 42
-	DSCOLON  reduce 42
-	UNIT  reduce 48
-	EXCL  reduce 48
-	REVAL  reduce 42
-	WITH  reduce 42
+	INT  shift 25
+	VAR  shift 26
+	LPAREN  shift 27
+	TRUE  shift 28
+	FALSE  shift 29
+	UNIT  shift 30
+	UNDERSCORE  shift 31
+	PLUS  reduce 5
+	TIMES  reduce 5
+	MINUS  reduce 5
+	DIV  reduce 5
+	MOD  reduce 5
+	RPAREN  reduce 5
+	EOF  reduce 5
+	L  reduce 5
+	LE  reduce 5
+	G  reduce 5
+	GE  reduce 5
+	NE  reduce 5
+	EQ  reduce 5
+	THEN  reduce 5
+	ELSE  reduce 5
+	IN  reduce 5
+	AND  reduce 5
+	OR  reduce 5
+	SCOLON  reduce 5
+	REVAL  reduce 5
+	WITH  reduce 5
+	COMMA  reduce 5
 
-	variable  goto 29
-	corps_func  goto 30
+	sexpr  goto 32
+	func  goto 33
 
 
 state 5
-	expression : MINUS . expression  (13)
+	expression : MINUS . expression  (14)
 
 	INT  shift 3
 	VAR  shift 4
@@ -206,23 +176,20 @@ state 5
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 31
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 34
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 6
-	expression : LPAREN . expression RPAREN  (7)
-	sexpr : LPAREN . expression RPAREN  (50)
+	expression : LPAREN . expression RPAREN  (8)
+	applic : LPAREN . FUN VAR FLECHE expression RPAREN sexpr  (50)
 
 	INT  shift 3
 	VAR  shift 4
@@ -234,26 +201,23 @@ state 6
 	FALSE  shift 10
 	NOT  shift 11
 	PRINT  shift 12
-	FUN  shift 13
+	FUN  shift 35
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 32
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 36
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 7
-	expression : IF . expression THEN expression ELSE expression  (23)
+	condition : IF . expression THEN expression ELSE expression  (51)
 
 	INT  shift 3
 	VAR  shift 4
@@ -269,108 +233,47 @@ state 7
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 33
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 37
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 8
-	expression : LET . variable corps_func  (24)
-	expression : LET . REC variable corps_func  (25)
-	expression : LET . REC variable EQ expression  (26)
-	expression : LET . variable EQ expression  (27)
+	declaration : LET . VAR func IN expression  (55)
+	declaration : LET . REC VAR func IN expression  (56)
+	declaration : LET . REC VAR EQ expression IN expression  (57)
+	declaration : LET . motif EQ expression IN expression  (58)
+	declaration : LET . REC UNDERSCORE EQ expression IN expression  (59)
+	declaration : LET . UNDERSCORE EQ expression IN expression  (60)
 
-	VAR  shift 28
-	REC  shift 34
-	UNDERSCORE  shift 17
+	VAR  shift 38
+	REC  shift 39
+	UNDERSCORE  shift 40
 	.  error
 
-	variable  goto 35
+	motif  goto 41
 
 
 state 9
 	expression : TRUE .  (3)
-	sexpr : TRUE .  (45)
 
-	INT  reduce 45
-	VAR  reduce 45
-	PLUS  reduce 3
-	TIMES  reduce 3
-	MINUS  reduce 3
-	DIV  reduce 3
-	MOD  reduce 3
-	LPAREN  reduce 45
-	RPAREN  reduce 3
-	EOF  reduce 3
-	L  reduce 3
-	LE  reduce 3
-	G  reduce 3
-	GE  reduce 3
-	NE  reduce 3
-	EQ  reduce 3
-	THEN  reduce 3
-	ELSE  reduce 3
-	IN  reduce 3
-	TRUE  reduce 45
-	FALSE  reduce 45
-	AND  reduce 3
-	OR  reduce 3
-	FLECHE  reduce 3
-	SCOLON  reduce 3
-	DSCOLON  reduce 3
-	UNIT  reduce 45
-	EXCL  reduce 45
-	REVAL  reduce 3
-	WITH  reduce 3
+	.  reduce 3
 
 
 state 10
 	expression : FALSE .  (4)
-	sexpr : FALSE .  (46)
 
-	INT  reduce 46
-	VAR  reduce 46
-	PLUS  reduce 4
-	TIMES  reduce 4
-	MINUS  reduce 4
-	DIV  reduce 4
-	MOD  reduce 4
-	LPAREN  reduce 46
-	RPAREN  reduce 4
-	EOF  reduce 4
-	L  reduce 4
-	LE  reduce 4
-	G  reduce 4
-	GE  reduce 4
-	NE  reduce 4
-	EQ  reduce 4
-	THEN  reduce 4
-	ELSE  reduce 4
-	IN  reduce 4
-	TRUE  reduce 46
-	FALSE  reduce 46
-	AND  reduce 4
-	OR  reduce 4
-	FLECHE  reduce 4
-	SCOLON  reduce 4
-	DSCOLON  reduce 4
-	UNIT  reduce 46
-	EXCL  reduce 46
-	REVAL  reduce 4
-	WITH  reduce 4
+	.  reduce 4
 
 
 state 11
-	expression : NOT . expression  (22)
+	expression : NOT . expression  (23)
 
 	INT  shift 3
 	VAR  shift 4
@@ -386,121 +289,55 @@ state 11
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 36
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 42
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 12
-	expression : PRINT . sexpr  (39)
+	expression : PRINT . INT  (25)
+	expression : PRINT . LPAREN expression RPAREN  (26)
 
-	INT  shift 37
-	VAR  shift 38
-	LPAREN  shift 39
-	TRUE  shift 40
-	FALSE  shift 41
-	UNIT  shift 42
-	EXCL  shift 43
+	INT  shift 43
+	LPAREN  shift 44
 	.  error
-
-	sexpr  goto 44
 
 
 state 13
-	func : FUN . corps_func  (52)
+	expression : FUN . VAR FLECHE expression  (28)
 
-	VAR  shift 28
-	UNDERSCORE  shift 17
+	VAR  shift 45
 	.  error
-
-	variable  goto 29
-	corps_func  goto 45
 
 
 state 14
 	expression : UNIT .  (6)
-	sexpr : UNIT .  (49)
 
-	INT  reduce 49
-	VAR  reduce 49
-	PLUS  reduce 6
-	TIMES  reduce 6
-	MINUS  reduce 6
-	DIV  reduce 6
-	MOD  reduce 6
-	LPAREN  reduce 49
-	RPAREN  reduce 6
-	EOF  reduce 6
-	L  reduce 6
-	LE  reduce 6
-	G  reduce 6
-	GE  reduce 6
-	NE  reduce 6
-	EQ  reduce 6
-	THEN  reduce 6
-	ELSE  reduce 6
-	IN  reduce 6
-	TRUE  reduce 49
-	FALSE  reduce 49
-	AND  reduce 6
-	OR  reduce 6
-	FLECHE  reduce 6
-	SCOLON  reduce 6
-	DSCOLON  reduce 6
-	UNIT  reduce 49
-	EXCL  reduce 49
-	REVAL  reduce 6
-	WITH  reduce 6
+	.  reduce 6
 
 
 state 15
-	expression : REF . sexpr  (37)
+	expression : REF . sexpr  (30)
 
-	INT  shift 37
-	VAR  shift 38
-	LPAREN  shift 39
-	TRUE  shift 40
-	FALSE  shift 41
-	UNIT  shift 42
-	EXCL  shift 43
-	.  error
-
-	sexpr  goto 46
-
-
-state 16
-	expression : EXCL . sexpr  (36)
-	sexpr : EXCL . sexpr  (47)
-
-	INT  shift 37
-	VAR  shift 38
-	LPAREN  shift 39
-	TRUE  shift 40
-	FALSE  shift 41
-	UNIT  shift 42
-	EXCL  shift 43
+	INT  shift 25
+	VAR  shift 46
+	LPAREN  shift 27
+	TRUE  shift 28
+	FALSE  shift 29
+	UNIT  shift 30
 	.  error
 
 	sexpr  goto 47
 
 
-state 17
-	variable : UNDERSCORE .  (43)
-
-	.  reduce 43
-
-
-state 18
-	expression : E . expression  (33)
+state 16
+	expression : EXCL . expression  (31)
 
 	INT  shift 3
 	VAR  shift 4
@@ -516,53 +353,26 @@ state 18
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
 	expression  goto 48
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 19
-	expression : RAISE . expression  (34)
+state 17
+	expression : RAISE . LPAREN E expression RPAREN  (33)
 
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	LPAREN  shift 49
 	.  error
 
-	expression  goto 49
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
 
-
-state 20
-	expression : TRY . expression WITH expression FLECHE expression  (35)
+state 18
+	expression : TRY . expression WITH LPAREN E expression RPAREN FLECHE expression  (34)
 
 	INT  shift 3
 	VAR  shift 4
@@ -578,61 +388,69 @@ state 20
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
 	expression  goto 50
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 19
+	expression : INCR . expression  (35)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 51
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 20
+	%entry% : '\001' main .  (61)
+
+	.  reduce 61
 
 
 state 21
-	expression : INCR . sexpr  (38)
-
-	INT  shift 37
-	VAR  shift 38
-	LPAREN  shift 39
-	TRUE  shift 40
-	FALSE  shift 41
-	UNIT  shift 42
-	EXCL  shift 43
-	.  error
-
-	sexpr  goto 51
-
-
-state 22
-	%entry% : '\001' main .  (58)
-
-	.  reduce 58
-
-
-state 23
 	main : expression . EOF  (1)
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
@@ -646,58 +464,81 @@ state 23
 	GE  shift 61
 	NE  shift 62
 	EQ  shift 63
-	IN  shift 64
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	DSCOLON  shift 68
-	REVAL  shift 69
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
 	.  error
+
+
+state 22
+	expression : applic .  (7)
+	applic : applic . sexpr  (48)
+
+	INT  shift 25
+	VAR  shift 46
+	LPAREN  shift 27
+	TRUE  shift 28
+	FALSE  shift 29
+	UNIT  shift 30
+	PLUS  reduce 7
+	TIMES  reduce 7
+	MINUS  reduce 7
+	DIV  reduce 7
+	MOD  reduce 7
+	RPAREN  reduce 7
+	EOF  reduce 7
+	L  reduce 7
+	LE  reduce 7
+	G  reduce 7
+	GE  reduce 7
+	NE  reduce 7
+	EQ  reduce 7
+	THEN  reduce 7
+	ELSE  reduce 7
+	IN  reduce 7
+	AND  reduce 7
+	OR  reduce 7
+	SCOLON  reduce 7
+	REVAL  reduce 7
+	WITH  reduce 7
+	COMMA  reduce 7
+
+	sexpr  goto 69
+
+
+state 23
+	expression : condition .  (24)
+
+	.  reduce 24
 
 
 state 24
-	expression : variable .  (5)
+	expression : declaration .  (27)
 
-	.  reduce 5
+	.  reduce 27
 
 
 state 25
-	applic : sexpr . sexpr  (57)
+	sexpr : INT .  (38)
 
-	INT  shift 37
-	VAR  shift 38
-	LPAREN  shift 39
-	TRUE  shift 40
-	FALSE  shift 41
-	UNIT  shift 42
-	EXCL  shift 43
-	.  error
-
-	sexpr  goto 70
+	.  reduce 38
 
 
 state 26
-	expression : func .  (40)
+	sexpr : VAR .  (41)
+	func : VAR . func  (44)
+	func : VAR . EQ expression  (46)
 
-	.  reduce 40
-
-
-state 27
-	expression : applic .  (41)
-	applic : applic . sexpr  (56)
-
-	INT  shift 37
-	VAR  shift 38
-	LPAREN  shift 39
-	TRUE  shift 40
-	FALSE  shift 41
-	UNIT  shift 42
-	EXCL  shift 43
+	UNDERSCORE  shift 31
+	INT  reduce 41
 	PLUS  reduce 41
 	TIMES  reduce 41
 	MINUS  reduce 41
 	DIV  reduce 41
 	MOD  reduce 41
+	LPAREN  reduce 41
 	RPAREN  reduce 41
 	EOF  reduce 41
 	L  reduce 41
@@ -709,259 +550,21 @@ state 27
 	THEN  reduce 41
 	ELSE  reduce 41
 	IN  reduce 41
+	TRUE  reduce 41
+	FALSE  reduce 41
 	AND  reduce 41
 	OR  reduce 41
-	FLECHE  reduce 41
 	SCOLON  reduce 41
-	DSCOLON  reduce 41
+	UNIT  reduce 41
 	REVAL  reduce 41
 	WITH  reduce 41
+	COMMA  reduce 41
 
-	sexpr  goto 71
-
-
-state 28
-	variable : VAR .  (42)
-
-	.  reduce 42
+	func  goto 72
 
 
-state 29
-	corps_func : variable . corps_func  (53)
-	corps_func : variable . EQ expression  (54)
-	corps_func : variable . FLECHE expression  (55)
-
-	VAR  shift 28
-	EQ  shift 72
-	FLECHE  shift 73
-	UNDERSCORE  shift 17
-	.  error
-
-	variable  goto 29
-	corps_func  goto 74
-
-
-state 30
-	func : VAR corps_func .  (51)
-
-	.  reduce 51
-
-
-state 31
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : MINUS expression .  (13)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-
-	SCOLON  shift 67
-	PLUS  reduce 13
-	TIMES  reduce 13
-	MINUS  reduce 13
-	DIV  reduce 13
-	MOD  reduce 13
-	RPAREN  reduce 13
-	EOF  reduce 13
-	L  reduce 13
-	LE  reduce 13
-	G  reduce 13
-	GE  reduce 13
-	NE  reduce 13
-	EQ  reduce 13
-	THEN  reduce 13
-	ELSE  reduce 13
-	IN  reduce 13
-	AND  reduce 13
-	OR  reduce 13
-	FLECHE  reduce 13
-	DSCOLON  reduce 13
-	REVAL  reduce 13
-	WITH  reduce 13
-
-
-state 32
-	expression : LPAREN expression . RPAREN  (7)
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-	sexpr : LPAREN expression . RPAREN  (50)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	RPAREN  shift 75
-	L  shift 58
-	LE  shift 59
-	G  shift 60
-	GE  shift 61
-	NE  shift 62
-	EQ  shift 63
-	IN  shift 64
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	DSCOLON  shift 68
-	REVAL  shift 69
-	.  error
-
-
-state 33
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : IF expression . THEN expression ELSE expression  (23)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	L  shift 58
-	LE  shift 59
-	G  shift 60
-	GE  shift 61
-	NE  shift 62
-	EQ  shift 63
-	THEN  shift 76
-	IN  shift 64
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	DSCOLON  shift 68
-	REVAL  shift 69
-	.  error
-
-
-state 34
-	expression : LET REC . variable corps_func  (25)
-	expression : LET REC . variable EQ expression  (26)
-
-	VAR  shift 28
-	UNDERSCORE  shift 17
-	.  error
-
-	variable  goto 77
-
-
-state 35
-	expression : LET variable . corps_func  (24)
-	expression : LET variable . EQ expression  (27)
-
-	VAR  shift 28
-	EQ  shift 78
-	UNDERSCORE  shift 17
-	.  error
-
-	variable  goto 29
-	corps_func  goto 79
-
-
-state 36
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : NOT expression .  (22)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	SCOLON  shift 67
-	RPAREN  reduce 22
-	EOF  reduce 22
-	L  reduce 22
-	LE  reduce 22
-	G  reduce 22
-	GE  reduce 22
-	NE  reduce 22
-	EQ  reduce 22
-	THEN  reduce 22
-	ELSE  reduce 22
-	IN  reduce 22
-	AND  reduce 22
-	OR  reduce 22
-	FLECHE  reduce 22
-	DSCOLON  reduce 22
-	REVAL  reduce 22
-	WITH  reduce 22
-
-
-state 37
-	sexpr : INT .  (44)
-
-	.  reduce 44
-
-
-state 38
-	sexpr : VAR .  (48)
-
-	.  reduce 48
-
-
-state 39
-	sexpr : LPAREN . expression RPAREN  (50)
+state 27
+	sexpr : LPAREN . expression RPAREN  (43)
 
 	INT  shift 3
 	VAR  shift 4
@@ -977,219 +580,168 @@ state 39
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 80
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 73
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 40
-	sexpr : TRUE .  (45)
-
-	.  reduce 45
-
-
-state 41
-	sexpr : FALSE .  (46)
-
-	.  reduce 46
-
-
-state 42
-	sexpr : UNIT .  (49)
-
-	.  reduce 49
-
-
-state 43
-	sexpr : EXCL . sexpr  (47)
-
-	INT  shift 37
-	VAR  shift 38
-	LPAREN  shift 39
-	TRUE  shift 40
-	FALSE  shift 41
-	UNIT  shift 42
-	EXCL  shift 43
-	.  error
-
-	sexpr  goto 81
-
-
-state 44
-	expression : PRINT sexpr .  (39)
+state 28
+	sexpr : TRUE .  (39)
 
 	.  reduce 39
 
 
-state 45
-	func : FUN corps_func .  (52)
+state 29
+	sexpr : FALSE .  (40)
 
-	.  reduce 52
-
-
-state 46
-	expression : REF sexpr .  (37)
-
-	.  reduce 37
+	.  reduce 40
 
 
-state 47
-	expression : EXCL sexpr .  (36)
-	sexpr : EXCL sexpr .  (47)
+state 30
+	sexpr : UNIT .  (42)
 
-	INT  reduce 47
-	VAR  reduce 47
-	PLUS  reduce 36
-	TIMES  reduce 36
-	MINUS  reduce 36
-	DIV  reduce 36
-	MOD  reduce 36
-	LPAREN  reduce 47
-	RPAREN  reduce 36
-	EOF  reduce 36
-	L  reduce 36
-	LE  reduce 36
-	G  reduce 36
-	GE  reduce 36
-	NE  reduce 36
-	EQ  reduce 36
-	THEN  reduce 36
-	ELSE  reduce 36
-	IN  reduce 36
-	TRUE  reduce 47
-	FALSE  reduce 47
-	AND  reduce 36
-	OR  reduce 36
-	FLECHE  reduce 36
-	SCOLON  reduce 36
-	DSCOLON  reduce 36
-	UNIT  reduce 47
-	EXCL  reduce 47
-	REVAL  reduce 36
-	WITH  reduce 36
+	.  reduce 42
 
 
-state 48
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+state 31
+	func : UNDERSCORE . func  (45)
+	func : UNDERSCORE . EQ expression  (47)
+
+	VAR  shift 70
+	EQ  shift 74
+	UNDERSCORE  shift 31
+	.  error
+
+	func  goto 75
+
+
+state 32
+	applic : VAR sexpr .  (49)
+
+	.  reduce 49
+
+
+state 33
+	expression : VAR func .  (36)
+
+	.  reduce 36
+
+
+34: shift/reduce conflict (shift 68, reduce 14) on COMMA
+state 34
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : MINUS expression .  (14)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
-	expression : E expression .  (33)
+	expression : expression . COMMA expression  (37)
 
-	SCOLON  shift 67
-	PLUS  reduce 33
-	TIMES  reduce 33
-	MINUS  reduce 33
-	DIV  reduce 33
-	MOD  reduce 33
-	RPAREN  reduce 33
-	EOF  reduce 33
-	L  reduce 33
-	LE  reduce 33
-	G  reduce 33
-	GE  reduce 33
-	NE  reduce 33
-	EQ  reduce 33
-	THEN  reduce 33
-	ELSE  reduce 33
-	IN  reduce 33
-	AND  reduce 33
-	OR  reduce 33
-	FLECHE  reduce 33
-	DSCOLON  reduce 33
-	REVAL  reduce 33
-	WITH  reduce 33
+	COMMA  shift 68
+	PLUS  reduce 14
+	TIMES  reduce 14
+	MINUS  reduce 14
+	DIV  reduce 14
+	MOD  reduce 14
+	RPAREN  reduce 14
+	EOF  reduce 14
+	L  reduce 14
+	LE  reduce 14
+	G  reduce 14
+	GE  reduce 14
+	NE  reduce 14
+	EQ  reduce 14
+	THEN  reduce 14
+	ELSE  reduce 14
+	IN  reduce 14
+	AND  reduce 14
+	OR  reduce 14
+	SCOLON  reduce 14
+	REVAL  reduce 14
+	WITH  reduce 14
 
 
-state 49
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+state 35
+	expression : FUN . VAR FLECHE expression  (28)
+	applic : LPAREN FUN . VAR FLECHE expression RPAREN sexpr  (50)
+
+	VAR  shift 76
+	.  error
+
+
+state 36
+	expression : LPAREN expression . RPAREN  (8)
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
-	expression : RAISE expression .  (34)
+	expression : expression . COMMA expression  (37)
 
-	SCOLON  shift 67
-	PLUS  reduce 34
-	TIMES  reduce 34
-	MINUS  reduce 34
-	DIV  reduce 34
-	MOD  reduce 34
-	RPAREN  reduce 34
-	EOF  reduce 34
-	L  reduce 34
-	LE  reduce 34
-	G  reduce 34
-	GE  reduce 34
-	NE  reduce 34
-	EQ  reduce 34
-	THEN  reduce 34
-	ELSE  reduce 34
-	IN  reduce 34
-	AND  reduce 34
-	OR  reduce 34
-	FLECHE  reduce 34
-	DSCOLON  reduce 34
-	REVAL  reduce 34
-	WITH  reduce 34
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	RPAREN  shift 77
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	.  error
 
 
-state 50
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+state 37
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
-	expression : TRY expression . WITH expression FLECHE expression  (35)
+	expression : expression . COMMA expression  (37)
+	condition : IF expression . THEN expression ELSE expression  (51)
 
 	PLUS  shift 52
 	TIMES  shift 53
@@ -1202,24 +754,107 @@ state 50
 	GE  shift 61
 	NE  shift 62
 	EQ  shift 63
-	IN  shift 64
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	DSCOLON  shift 68
-	REVAL  shift 69
-	WITH  shift 82
+	THEN  shift 78
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
 	.  error
 
 
-state 51
-	expression : INCR sexpr .  (38)
+state 38
+	motif : VAR .  (52)
+	declaration : LET VAR . func IN expression  (55)
 
-	.  reduce 38
+	VAR  shift 70
+	UNDERSCORE  shift 31
+	EQ  reduce 52
+	COMMA  reduce 52
+
+	func  goto 79
 
 
-state 52
-	expression : expression PLUS . expression  (8)
+state 39
+	declaration : LET REC . VAR func IN expression  (56)
+	declaration : LET REC . VAR EQ expression IN expression  (57)
+	declaration : LET REC . UNDERSCORE EQ expression IN expression  (59)
+
+	VAR  shift 80
+	UNDERSCORE  shift 81
+	.  error
+
+
+40: shift/reduce conflict (shift 82, reduce 53) on EQ
+state 40
+	motif : UNDERSCORE .  (53)
+	declaration : LET UNDERSCORE . EQ expression IN expression  (60)
+
+	EQ  shift 82
+	COMMA  reduce 53
+
+
+state 41
+	motif : motif . COMMA motif  (54)
+	declaration : LET motif . EQ expression IN expression  (58)
+
+	EQ  shift 83
+	COMMA  shift 84
+	.  error
+
+
+42: shift/reduce conflict (shift 68, reduce 23) on COMMA
+state 42
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : NOT expression .  (23)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	COMMA  shift 68
+	RPAREN  reduce 23
+	EOF  reduce 23
+	L  reduce 23
+	LE  reduce 23
+	G  reduce 23
+	GE  reduce 23
+	NE  reduce 23
+	EQ  reduce 23
+	THEN  reduce 23
+	ELSE  reduce 23
+	IN  reduce 23
+	AND  reduce 23
+	OR  reduce 23
+	SCOLON  reduce 23
+	REVAL  reduce 23
+	WITH  reduce 23
+
+
+state 43
+	expression : PRINT INT .  (25)
+
+	.  reduce 25
+
+
+state 44
+	expression : PRINT LPAREN . expression RPAREN  (26)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1235,84 +870,256 @@ state 52
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 83
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 53
-	expression : expression TIMES . expression  (9)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 84
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 54
-	expression : expression MINUS . expression  (10)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
 	expression  goto 85
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 45
+	expression : FUN VAR . FLECHE expression  (28)
+
+	FLECHE  shift 86
+	.  error
+
+
+state 46
+	sexpr : VAR .  (41)
+
+	.  reduce 41
+
+
+state 47
+	expression : REF sexpr .  (30)
+
+	.  reduce 30
+
+
+48: shift/reduce conflict (shift 68, reduce 31) on COMMA
+state 48
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : EXCL expression .  (31)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+
+	COMMA  shift 68
+	PLUS  reduce 31
+	TIMES  reduce 31
+	MINUS  reduce 31
+	DIV  reduce 31
+	MOD  reduce 31
+	RPAREN  reduce 31
+	EOF  reduce 31
+	L  reduce 31
+	LE  reduce 31
+	G  reduce 31
+	GE  reduce 31
+	NE  reduce 31
+	EQ  reduce 31
+	THEN  reduce 31
+	ELSE  reduce 31
+	IN  reduce 31
+	AND  reduce 31
+	OR  reduce 31
+	SCOLON  reduce 31
+	REVAL  reduce 31
+	WITH  reduce 31
+
+
+state 49
+	expression : RAISE LPAREN . E expression RPAREN  (33)
+
+	E  shift 87
+	.  error
+
+
+state 50
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : TRY expression . WITH LPAREN E expression RPAREN FLECHE expression  (34)
+	expression : expression . COMMA expression  (37)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	WITH  shift 88
+	COMMA  shift 68
+	.  error
+
+
+51: shift/reduce conflict (shift 68, reduce 35) on COMMA
+state 51
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : INCR expression .  (35)
+	expression : expression . COMMA expression  (37)
+
+	COMMA  shift 68
+	PLUS  reduce 35
+	TIMES  reduce 35
+	MINUS  reduce 35
+	DIV  reduce 35
+	MOD  reduce 35
+	RPAREN  reduce 35
+	EOF  reduce 35
+	L  reduce 35
+	LE  reduce 35
+	G  reduce 35
+	GE  reduce 35
+	NE  reduce 35
+	EQ  reduce 35
+	THEN  reduce 35
+	ELSE  reduce 35
+	IN  reduce 35
+	AND  reduce 35
+	OR  reduce 35
+	SCOLON  reduce 35
+	REVAL  reduce 35
+	WITH  reduce 35
+
+
+state 52
+	expression : expression PLUS . expression  (9)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 89
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 53
+	expression : expression TIMES . expression  (10)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 90
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 54
+	expression : expression MINUS . expression  (11)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 91
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 55
-	expression : expression DIV . expression  (11)
+	expression : expression DIV . expression  (12)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1328,22 +1135,19 @@ state 55
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 86
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 92
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 56
-	expression : expression MOD . expression  (12)
+	expression : expression MOD . expression  (13)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1359,18 +1163,15 @@ state 56
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 87
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 93
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 57
@@ -1380,7 +1181,7 @@ state 57
 
 
 state 58
-	expression : expression L . expression  (14)
+	expression : expression L . expression  (15)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1396,208 +1197,19 @@ state 58
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 88
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 59
-	expression : expression LE . expression  (15)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 89
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 60
-	expression : expression G . expression  (16)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 90
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 61
-	expression : expression GE . expression  (17)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 91
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 62
-	expression : expression NE . expression  (19)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 92
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 63
-	expression : expression EQ . expression  (18)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 93
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 64
-	expression : expression IN . expression  (28)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
 	expression  goto 94
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 65
-	expression : expression AND . expression  (21)
+state 59
+	expression : expression LE . expression  (16)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1613,22 +1225,19 @@ state 65
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
 	expression  goto 95
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 66
-	expression : expression OR . expression  (20)
+state 60
+	expression : expression G . expression  (17)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1644,22 +1253,19 @@ state 66
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
 	expression  goto 96
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 67
-	expression : expression SCOLON . expression  (31)
+state 61
+	expression : expression GE . expression  (18)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1675,23 +1281,19 @@ state 67
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
 	expression  goto 97
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 68
-	expression : expression DSCOLON .  (29)
-	expression : expression DSCOLON . expression  (30)
+state 62
+	expression : expression NE . expression  (20)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1707,42 +1309,130 @@ state 68
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	PLUS  reduce 29
-	TIMES  reduce 29
-	DIV  reduce 29
-	MOD  reduce 29
-	RPAREN  reduce 29
-	EOF  reduce 29
-	L  reduce 29
-	LE  reduce 29
-	G  reduce 29
-	GE  reduce 29
-	NE  reduce 29
-	EQ  reduce 29
-	THEN  reduce 29
-	ELSE  reduce 29
-	IN  reduce 29
-	AND  reduce 29
-	OR  reduce 29
-	FLECHE  reduce 29
-	SCOLON  reduce 29
-	DSCOLON  reduce 29
-	REVAL  reduce 29
-	WITH  reduce 29
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
 
 	expression  goto 98
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 69
+state 63
+	expression : expression EQ . expression  (19)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 99
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 64
+	expression : expression AND . expression  (22)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 100
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 65
+	expression : expression OR . expression  (21)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 101
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 66
+	expression : expression SCOLON . expression  (29)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 102
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 67
 	expression : expression REVAL . expression  (32)
 
 	INT  shift 3
@@ -1759,34 +1449,65 @@ state 69
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 99
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 103
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 68
+	expression : expression COMMA . expression  (37)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 104
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 69
+	applic : applic sexpr .  (48)
+
+	.  reduce 48
 
 
 state 70
-	applic : sexpr sexpr .  (57)
+	func : VAR . func  (44)
+	func : VAR . EQ expression  (46)
 
-	.  reduce 57
+	VAR  shift 70
+	EQ  shift 71
+	UNDERSCORE  shift 31
+	.  error
+
+	func  goto 72
 
 
 state 71
-	applic : applic sexpr .  (56)
-
-	.  reduce 56
-
-
-state 72
-	corps_func : variable EQ . expression  (54)
+	func : VAR EQ . expression  (46)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1802,194 +1523,41 @@ state 72
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 100
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 73
-	corps_func : variable FLECHE . expression  (55)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 101
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 74
-	corps_func : variable corps_func .  (53)
-
-	.  reduce 53
-
-
-state 75
-	expression : LPAREN expression RPAREN .  (7)
-	sexpr : LPAREN expression RPAREN .  (50)
-
-	INT  reduce 50
-	VAR  reduce 50
-	PLUS  reduce 7
-	TIMES  reduce 7
-	MINUS  reduce 7
-	DIV  reduce 7
-	MOD  reduce 7
-	LPAREN  reduce 50
-	RPAREN  reduce 7
-	EOF  reduce 7
-	L  reduce 7
-	LE  reduce 7
-	G  reduce 7
-	GE  reduce 7
-	NE  reduce 7
-	EQ  reduce 7
-	THEN  reduce 7
-	ELSE  reduce 7
-	IN  reduce 7
-	TRUE  reduce 50
-	FALSE  reduce 50
-	AND  reduce 7
-	OR  reduce 7
-	FLECHE  reduce 7
-	SCOLON  reduce 7
-	DSCOLON  reduce 7
-	UNIT  reduce 50
-	EXCL  reduce 50
-	REVAL  reduce 7
-	WITH  reduce 7
-
-
-state 76
-	expression : IF expression THEN . expression ELSE expression  (23)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 102
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 77
-	expression : LET REC variable . corps_func  (25)
-	expression : LET REC variable . EQ expression  (26)
-
-	VAR  shift 28
-	EQ  shift 103
-	UNDERSCORE  shift 17
-	.  error
-
-	variable  goto 29
-	corps_func  goto 104
-
-
-state 78
-	expression : LET variable EQ . expression  (27)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
 	expression  goto 105
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 79
-	expression : LET variable corps_func .  (24)
+state 72
+	func : VAR func .  (44)
 
-	.  reduce 24
+	.  reduce 44
 
 
-state 80
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+state 73
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
-	sexpr : LPAREN expression . RPAREN  (50)
+	expression : expression . COMMA expression  (37)
+	sexpr : LPAREN expression . RPAREN  (43)
 
 	PLUS  shift 52
 	TIMES  shift 53
@@ -2003,23 +1571,16 @@ state 80
 	GE  shift 61
 	NE  shift 62
 	EQ  shift 63
-	IN  shift 64
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	DSCOLON  shift 68
-	REVAL  shift 69
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
 	.  error
 
 
-state 81
-	sexpr : EXCL sexpr .  (47)
-
-	.  reduce 47
-
-
-state 82
-	expression : TRY expression WITH . expression FLECHE expression  (35)
+state 74
+	func : UNDERSCORE EQ . expression  (47)
 
 	INT  shift 3
 	VAR  shift 4
@@ -2035,92 +1596,284 @@ state 82
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
 	expression  goto 107
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 75
+	func : UNDERSCORE func .  (45)
+
+	.  reduce 45
+
+
+state 76
+	expression : FUN VAR . FLECHE expression  (28)
+	applic : LPAREN FUN VAR . FLECHE expression RPAREN sexpr  (50)
+
+	FLECHE  shift 108
+	.  error
+
+
+state 77
+	expression : LPAREN expression RPAREN .  (8)
+
+	.  reduce 8
+
+
+state 78
+	condition : IF expression THEN . expression ELSE expression  (51)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 109
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 79
+	declaration : LET VAR func . IN expression  (55)
+
+	IN  shift 110
+	.  error
+
+
+state 80
+	declaration : LET REC VAR . func IN expression  (56)
+	declaration : LET REC VAR . EQ expression IN expression  (57)
+
+	VAR  shift 70
+	EQ  shift 111
+	UNDERSCORE  shift 31
+	.  error
+
+	func  goto 112
+
+
+state 81
+	declaration : LET REC UNDERSCORE . EQ expression IN expression  (59)
+
+	EQ  shift 113
+	.  error
+
+
+state 82
+	declaration : LET UNDERSCORE EQ . expression IN expression  (60)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 114
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 83
-	expression : expression . PLUS expression  (8)
-	expression : expression PLUS expression .  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
+	declaration : LET motif EQ . expression IN expression  (58)
 
-	TIMES  shift 53
-	DIV  shift 55
-	SCOLON  shift 67
-	PLUS  reduce 8
-	MINUS  reduce 8
-	MOD  reduce 8
-	RPAREN  reduce 8
-	EOF  reduce 8
-	L  reduce 8
-	LE  reduce 8
-	G  reduce 8
-	GE  reduce 8
-	NE  reduce 8
-	EQ  reduce 8
-	THEN  reduce 8
-	ELSE  reduce 8
-	IN  reduce 8
-	AND  reduce 8
-	OR  reduce 8
-	FLECHE  reduce 8
-	DSCOLON  reduce 8
-	REVAL  reduce 8
-	WITH  reduce 8
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 115
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
 state 84
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression TIMES expression .  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
+	motif : motif COMMA . motif  (54)
 
-	SCOLON  shift 67
+	VAR  shift 116
+	UNDERSCORE  shift 117
+	.  error
+
+	motif  goto 118
+
+
+state 85
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : PRINT LPAREN expression . RPAREN  (26)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	RPAREN  shift 119
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	.  error
+
+
+state 86
+	expression : FUN VAR FLECHE . expression  (28)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 120
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 87
+	expression : RAISE LPAREN E . expression RPAREN  (33)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 121
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 88
+	expression : TRY expression WITH . LPAREN E expression RPAREN FLECHE expression  (34)
+
+	LPAREN  shift 122
+	.  error
+
+
+89: shift/reduce conflict (shift 68, reduce 9) on COMMA
+state 89
+	expression : expression . PLUS expression  (9)
+	expression : expression PLUS expression .  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+
+	TIMES  shift 53
+	DIV  shift 55
+	COMMA  shift 68
 	PLUS  reduce 9
-	TIMES  reduce 9
 	MINUS  reduce 9
-	DIV  reduce 9
 	MOD  reduce 9
 	RPAREN  reduce 9
 	EOF  reduce 9
@@ -2135,38 +1888,36 @@ state 84
 	IN  reduce 9
 	AND  reduce 9
 	OR  reduce 9
-	FLECHE  reduce 9
-	DSCOLON  reduce 9
+	SCOLON  reduce 9
 	REVAL  reduce 9
 	WITH  reduce 9
 
 
-state 85
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression MINUS expression .  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+90: shift/reduce conflict (shift 68, reduce 10) on COMMA
+state 90
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression TIMES expression .  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
-	TIMES  shift 53
-	DIV  shift 55
-	SCOLON  shift 67
+	COMMA  shift 68
 	PLUS  reduce 10
+	TIMES  reduce 10
 	MINUS  reduce 10
+	DIV  reduce 10
 	MOD  reduce 10
 	RPAREN  reduce 10
 	EOF  reduce 10
@@ -2181,38 +1932,36 @@ state 85
 	IN  reduce 10
 	AND  reduce 10
 	OR  reduce 10
-	FLECHE  reduce 10
-	DSCOLON  reduce 10
+	SCOLON  reduce 10
 	REVAL  reduce 10
 	WITH  reduce 10
 
 
-state 86
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression DIV expression .  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+91: shift/reduce conflict (shift 68, reduce 11) on COMMA
+state 91
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression MINUS expression .  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
-	SCOLON  shift 67
+	TIMES  shift 53
+	DIV  shift 55
+	COMMA  shift 68
 	PLUS  reduce 11
-	TIMES  reduce 11
 	MINUS  reduce 11
-	DIV  reduce 11
 	MOD  reduce 11
 	RPAREN  reduce 11
 	EOF  reduce 11
@@ -2227,38 +1976,37 @@ state 86
 	IN  reduce 11
 	AND  reduce 11
 	OR  reduce 11
-	FLECHE  reduce 11
-	DSCOLON  reduce 11
+	SCOLON  reduce 11
 	REVAL  reduce 11
 	WITH  reduce 11
 
 
-state 87
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression MOD expression .  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+92: shift/reduce conflict (shift 68, reduce 12) on COMMA
+state 92
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression DIV expression .  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	SCOLON  shift 67
+	COMMA  shift 68
+	PLUS  reduce 12
+	TIMES  reduce 12
+	MINUS  reduce 12
+	DIV  reduce 12
+	MOD  reduce 12
 	RPAREN  reduce 12
 	EOF  reduce 12
 	L  reduce 12
@@ -2272,79 +2020,80 @@ state 87
 	IN  reduce 12
 	AND  reduce 12
 	OR  reduce 12
-	FLECHE  reduce 12
-	DSCOLON  reduce 12
+	SCOLON  reduce 12
 	REVAL  reduce 12
 	WITH  reduce 12
 
 
-state 88
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression L expression .  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+93: shift/reduce conflict (shift 68, reduce 13) on COMMA
+state 93
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression MOD expression .  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	COMMA  shift 68
+	RPAREN  reduce 13
+	EOF  reduce 13
+	L  reduce 13
+	LE  reduce 13
+	G  reduce 13
+	GE  reduce 13
+	NE  reduce 13
+	EQ  reduce 13
+	THEN  reduce 13
+	ELSE  reduce 13
+	IN  reduce 13
+	AND  reduce 13
+	OR  reduce 13
+	SCOLON  reduce 13
+	REVAL  reduce 13
+	WITH  reduce 13
+
+
+94: shift/reduce conflict (shift 68, reduce 15) on COMMA
+state 94
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression L expression .  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
 	MINUS  shift 54
 	DIV  shift 55
 	MOD  shift 56
-	SCOLON  shift 67
-	RPAREN  reduce 14
-	EOF  reduce 14
-	THEN  reduce 14
-	ELSE  reduce 14
-	IN  reduce 14
-	AND  reduce 14
-	OR  reduce 14
-	FLECHE  reduce 14
-	DSCOLON  reduce 14
-	REVAL  reduce 14
-	WITH  reduce 14
-
-
-state 89
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression LE expression .  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	SCOLON  shift 67
+	COMMA  shift 68
 	RPAREN  reduce 15
 	EOF  reduce 15
 	THEN  reduce 15
@@ -2352,39 +2101,37 @@ state 89
 	IN  reduce 15
 	AND  reduce 15
 	OR  reduce 15
-	FLECHE  reduce 15
-	DSCOLON  reduce 15
+	SCOLON  reduce 15
 	REVAL  reduce 15
 	WITH  reduce 15
 
 
-state 90
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression G expression .  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+95: shift/reduce conflict (shift 68, reduce 16) on COMMA
+state 95
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression LE expression .  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
 	MINUS  shift 54
 	DIV  shift 55
 	MOD  shift 56
-	SCOLON  shift 67
+	COMMA  shift 68
 	RPAREN  reduce 16
 	EOF  reduce 16
 	THEN  reduce 16
@@ -2392,39 +2139,37 @@ state 90
 	IN  reduce 16
 	AND  reduce 16
 	OR  reduce 16
-	FLECHE  reduce 16
-	DSCOLON  reduce 16
+	SCOLON  reduce 16
 	REVAL  reduce 16
 	WITH  reduce 16
 
 
-state 91
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression GE expression .  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+96: shift/reduce conflict (shift 68, reduce 17) on COMMA
+state 96
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression G expression .  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
 	MINUS  shift 54
 	DIV  shift 55
 	MOD  shift 56
-	SCOLON  shift 67
+	COMMA  shift 68
 	RPAREN  reduce 17
 	EOF  reduce 17
 	THEN  reduce 17
@@ -2432,79 +2177,37 @@ state 91
 	IN  reduce 17
 	AND  reduce 17
 	OR  reduce 17
-	FLECHE  reduce 17
-	DSCOLON  reduce 17
+	SCOLON  reduce 17
 	REVAL  reduce 17
 	WITH  reduce 17
 
 
-state 92
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression NE expression .  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+97: shift/reduce conflict (shift 68, reduce 18) on COMMA
+state 97
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression GE expression .  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
 	MINUS  shift 54
 	DIV  shift 55
 	MOD  shift 56
-	SCOLON  shift 67
-	RPAREN  reduce 19
-	EOF  reduce 19
-	THEN  reduce 19
-	ELSE  reduce 19
-	IN  reduce 19
-	AND  reduce 19
-	OR  reduce 19
-	FLECHE  reduce 19
-	DSCOLON  reduce 19
-	REVAL  reduce 19
-	WITH  reduce 19
-
-
-state 93
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression EQ expression .  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	SCOLON  shift 67
+	COMMA  shift 68
 	RPAREN  reduce 18
 	EOF  reduce 18
 	THEN  reduce 18
@@ -2512,194 +2215,106 @@ state 93
 	IN  reduce 18
 	AND  reduce 18
 	OR  reduce 18
-	FLECHE  reduce 18
-	DSCOLON  reduce 18
+	SCOLON  reduce 18
 	REVAL  reduce 18
 	WITH  reduce 18
 
 
-state 94
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression IN expression .  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+98: shift/reduce conflict (shift 68, reduce 20) on COMMA
+state 98
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression NE expression .  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
 	MINUS  shift 54
 	DIV  shift 55
 	MOD  shift 56
-	L  shift 58
-	LE  shift 59
-	G  shift 60
-	GE  shift 61
-	NE  shift 62
-	EQ  shift 63
-	IN  shift 64
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	REVAL  shift 69
-	RPAREN  reduce 28
-	EOF  reduce 28
-	THEN  reduce 28
-	ELSE  reduce 28
-	FLECHE  reduce 28
-	DSCOLON  reduce 28
-	WITH  reduce 28
-
-
-state 95
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression AND expression .  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	L  shift 58
-	LE  shift 59
-	G  shift 60
-	GE  shift 61
-	NE  shift 62
-	EQ  shift 63
-	AND  shift 65
-	SCOLON  shift 67
-	RPAREN  reduce 21
-	EOF  reduce 21
-	THEN  reduce 21
-	ELSE  reduce 21
-	IN  reduce 21
-	OR  reduce 21
-	FLECHE  reduce 21
-	DSCOLON  reduce 21
-	REVAL  reduce 21
-	WITH  reduce 21
-
-
-state 96
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression OR expression .  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	L  shift 58
-	LE  shift 59
-	G  shift 60
-	GE  shift 61
-	NE  shift 62
-	EQ  shift 63
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
+	COMMA  shift 68
 	RPAREN  reduce 20
 	EOF  reduce 20
 	THEN  reduce 20
 	ELSE  reduce 20
 	IN  reduce 20
-	FLECHE  reduce 20
-	DSCOLON  reduce 20
+	AND  reduce 20
+	OR  reduce 20
+	SCOLON  reduce 20
 	REVAL  reduce 20
 	WITH  reduce 20
 
 
-state 97
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression SCOLON expression .  (31)
+99: shift/reduce conflict (shift 68, reduce 19) on COMMA
+state 99
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression EQ expression .  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
-	.  reduce 31
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	COMMA  shift 68
+	RPAREN  reduce 19
+	EOF  reduce 19
+	THEN  reduce 19
+	ELSE  reduce 19
+	IN  reduce 19
+	AND  reduce 19
+	OR  reduce 19
+	SCOLON  reduce 19
+	REVAL  reduce 19
+	WITH  reduce 19
 
 
-state 98
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression DSCOLON expression .  (30)
-	expression : expression . SCOLON expression  (31)
+100: shift/reduce conflict (shift 68, reduce 22) on COMMA
+state 100
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression AND expression .  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
@@ -2712,40 +2327,126 @@ state 98
 	GE  shift 61
 	NE  shift 62
 	EQ  shift 63
-	IN  shift 64
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	DSCOLON  shift 68
-	REVAL  shift 69
-	RPAREN  reduce 30
-	EOF  reduce 30
-	THEN  reduce 30
-	ELSE  reduce 30
-	FLECHE  reduce 30
-	WITH  reduce 30
+	AND  shift 64
+	COMMA  shift 68
+	RPAREN  reduce 22
+	EOF  reduce 22
+	THEN  reduce 22
+	ELSE  reduce 22
+	IN  reduce 22
+	OR  reduce 22
+	SCOLON  reduce 22
+	REVAL  reduce 22
+	WITH  reduce 22
 
 
-state 99
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+101: shift/reduce conflict (shift 68, reduce 21) on COMMA
+state 101
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression OR expression .  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	COMMA  shift 68
+	RPAREN  reduce 21
+	EOF  reduce 21
+	THEN  reduce 21
+	ELSE  reduce 21
+	IN  reduce 21
+	SCOLON  reduce 21
+	REVAL  reduce 21
+	WITH  reduce 21
+
+
+102: shift/reduce conflict (shift 68, reduce 29) on COMMA
+state 102
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression SCOLON expression .  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 29
+	EOF  reduce 29
+	THEN  reduce 29
+	ELSE  reduce 29
+	IN  reduce 29
+	SCOLON  reduce 29
+	WITH  reduce 29
+
+
+103: shift/reduce conflict (shift 68, reduce 32) on COMMA
+state 103
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
 	expression : expression REVAL expression .  (32)
+	expression : expression . COMMA expression  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
@@ -2758,79 +2459,52 @@ state 99
 	GE  shift 61
 	NE  shift 62
 	EQ  shift 63
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
+	AND  shift 64
+	OR  shift 65
+	COMMA  shift 68
 	RPAREN  reduce 32
 	EOF  reduce 32
 	THEN  reduce 32
 	ELSE  reduce 32
 	IN  reduce 32
-	FLECHE  reduce 32
-	DSCOLON  reduce 32
+	SCOLON  reduce 32
 	WITH  reduce 32
 
 
-state 100
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+104: shift/reduce conflict (shift 52, reduce 37) on PLUS
+104: shift/reduce conflict (shift 53, reduce 37) on TIMES
+104: shift/reduce conflict (shift 54, reduce 37) on MINUS
+104: shift/reduce conflict (shift 55, reduce 37) on DIV
+104: shift/reduce conflict (shift 56, reduce 37) on MOD
+104: shift/reduce conflict (shift 58, reduce 37) on L
+104: shift/reduce conflict (shift 59, reduce 37) on LE
+104: shift/reduce conflict (shift 60, reduce 37) on G
+104: shift/reduce conflict (shift 61, reduce 37) on GE
+104: shift/reduce conflict (shift 62, reduce 37) on NE
+104: shift/reduce conflict (shift 63, reduce 37) on EQ
+104: shift/reduce conflict (shift 64, reduce 37) on AND
+104: shift/reduce conflict (shift 65, reduce 37) on OR
+104: shift/reduce conflict (shift 66, reduce 37) on SCOLON
+104: shift/reduce conflict (shift 67, reduce 37) on REVAL
+104: shift/reduce conflict (shift 68, reduce 37) on COMMA
+state 104
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
-	corps_func : variable EQ expression .  (54)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	SCOLON  shift 67
-	RPAREN  reduce 54
-	EOF  reduce 54
-	THEN  reduce 54
-	ELSE  reduce 54
-	IN  reduce 54
-	AND  reduce 54
-	OR  reduce 54
-	FLECHE  reduce 54
-	DSCOLON  reduce 54
-	REVAL  reduce 54
-	WITH  reduce 54
-
-
-state 101
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-	corps_func : variable FLECHE expression .  (55)
+	expression : expression . COMMA expression  (37)
+	expression : expression COMMA expression .  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
@@ -2843,40 +2517,585 @@ state 101
 	GE  shift 61
 	NE  shift 62
 	EQ  shift 63
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	REVAL  shift 69
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 37
+	EOF  reduce 37
+	THEN  reduce 37
+	ELSE  reduce 37
+	IN  reduce 37
+	WITH  reduce 37
+
+
+105: shift/reduce conflict (shift 68, reduce 46) on COMMA
+state 105
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	func : VAR EQ expression .  (46)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	COMMA  shift 68
+	RPAREN  reduce 46
+	EOF  reduce 46
+	THEN  reduce 46
+	ELSE  reduce 46
+	IN  reduce 46
+	AND  reduce 46
+	OR  reduce 46
+	SCOLON  reduce 46
+	REVAL  reduce 46
+	WITH  reduce 46
+
+
+state 106
+	sexpr : LPAREN expression RPAREN .  (43)
+
+	.  reduce 43
+
+
+107: shift/reduce conflict (shift 68, reduce 47) on COMMA
+state 107
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	func : UNDERSCORE EQ expression .  (47)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	COMMA  shift 68
+	RPAREN  reduce 47
+	EOF  reduce 47
+	THEN  reduce 47
+	ELSE  reduce 47
+	IN  reduce 47
+	AND  reduce 47
+	OR  reduce 47
+	SCOLON  reduce 47
+	REVAL  reduce 47
+	WITH  reduce 47
+
+
+state 108
+	expression : FUN VAR FLECHE . expression  (28)
+	applic : LPAREN FUN VAR FLECHE . expression RPAREN sexpr  (50)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 123
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 109
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	condition : IF expression THEN expression . ELSE expression  (51)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	ELSE  shift 124
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	.  error
+
+
+state 110
+	declaration : LET VAR func IN . expression  (55)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 125
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 111
+	declaration : LET REC VAR EQ . expression IN expression  (57)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 126
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 112
+	declaration : LET REC VAR func . IN expression  (56)
+
+	IN  shift 127
+	.  error
+
+
+state 113
+	declaration : LET REC UNDERSCORE EQ . expression IN expression  (59)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 128
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 114
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	declaration : LET UNDERSCORE EQ expression . IN expression  (60)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	IN  shift 129
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	.  error
+
+
+state 115
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	declaration : LET motif EQ expression . IN expression  (58)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	IN  shift 130
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	.  error
+
+
+state 116
+	motif : VAR .  (52)
+
+	.  reduce 52
+
+
+state 117
+	motif : UNDERSCORE .  (53)
+
+	.  reduce 53
+
+
+118: shift/reduce conflict (shift 84, reduce 54) on COMMA
+state 118
+	motif : motif . COMMA motif  (54)
+	motif : motif COMMA motif .  (54)
+
+	COMMA  shift 84
+	EQ  reduce 54
+
+
+state 119
+	expression : PRINT LPAREN expression RPAREN .  (26)
+
+	.  reduce 26
+
+
+120: shift/reduce conflict (shift 68, reduce 28) on COMMA
+state 120
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : FUN VAR FLECHE expression .  (28)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 28
+	EOF  reduce 28
+	THEN  reduce 28
+	ELSE  reduce 28
+	IN  reduce 28
+	WITH  reduce 28
+
+
+state 121
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : RAISE LPAREN E expression . RPAREN  (33)
+	expression : expression . COMMA expression  (37)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	RPAREN  shift 131
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	.  error
+
+
+state 122
+	expression : TRY expression WITH LPAREN . E expression RPAREN FLECHE expression  (34)
+
+	E  shift 132
+	.  error
+
+
+123: shift/reduce conflict (shift 68, reduce 28) on COMMA
+state 123
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : FUN VAR FLECHE expression .  (28)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	applic : LPAREN FUN VAR FLECHE expression . RPAREN sexpr  (50)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	RPAREN  shift 133
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+
+
+state 124
+	condition : IF expression THEN expression ELSE . expression  (51)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 134
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+125: shift/reduce conflict (shift 68, reduce 55) on COMMA
+state 125
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	declaration : LET VAR func IN expression .  (55)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
 	RPAREN  reduce 55
 	EOF  reduce 55
 	THEN  reduce 55
 	ELSE  reduce 55
 	IN  reduce 55
-	FLECHE  reduce 55
-	DSCOLON  reduce 55
 	WITH  reduce 55
 
 
-state 102
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : IF expression THEN expression . ELSE expression  (23)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+state 126
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	declaration : LET REC VAR EQ expression . IN expression  (57)
 
 	PLUS  shift 52
 	TIMES  shift 53
@@ -2889,18 +3108,17 @@ state 102
 	GE  shift 61
 	NE  shift 62
 	EQ  shift 63
-	ELSE  shift 108
-	IN  shift 64
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	DSCOLON  shift 68
-	REVAL  shift 69
+	IN  shift 135
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
 	.  error
 
 
-state 103
-	expression : LET REC variable EQ . expression  (26)
+state 127
+	declaration : LET REC VAR func IN . expression  (56)
 
 	INT  shift 3
 	VAR  shift 4
@@ -2916,92 +3134,456 @@ state 103
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 109
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 136
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 104
-	expression : LET REC variable corps_func .  (25)
-
-	.  reduce 25
-
-
-state 105
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : LET variable EQ expression .  (27)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+state 128
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	declaration : LET REC UNDERSCORE EQ expression . IN expression  (59)
 
 	PLUS  shift 52
 	TIMES  shift 53
 	MINUS  shift 54
 	DIV  shift 55
 	MOD  shift 56
-	SCOLON  shift 67
-	RPAREN  reduce 27
-	EOF  reduce 27
-	THEN  reduce 27
-	ELSE  reduce 27
-	IN  reduce 27
-	AND  reduce 27
-	OR  reduce 27
-	FLECHE  reduce 27
-	DSCOLON  reduce 27
-	REVAL  reduce 27
-	WITH  reduce 27
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	IN  shift 137
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	.  error
 
 
-state 106
-	sexpr : LPAREN expression RPAREN .  (50)
+state 129
+	declaration : LET UNDERSCORE EQ expression IN . expression  (60)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 138
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 130
+	declaration : LET motif EQ expression IN . expression  (58)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 139
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 131
+	expression : RAISE LPAREN E expression RPAREN .  (33)
+
+	.  reduce 33
+
+
+state 132
+	expression : TRY expression WITH LPAREN E . expression RPAREN FLECHE expression  (34)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 140
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+state 133
+	applic : LPAREN FUN VAR FLECHE expression RPAREN . sexpr  (50)
+
+	INT  shift 25
+	VAR  shift 46
+	LPAREN  shift 27
+	TRUE  shift 28
+	FALSE  shift 29
+	UNIT  shift 30
+	.  error
+
+	sexpr  goto 141
+
+
+134: shift/reduce conflict (shift 68, reduce 51) on COMMA
+state 134
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	condition : IF expression THEN expression ELSE expression .  (51)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 51
+	EOF  reduce 51
+	THEN  reduce 51
+	ELSE  reduce 51
+	IN  reduce 51
+	WITH  reduce 51
+
+
+state 135
+	declaration : LET REC VAR EQ expression IN . expression  (57)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 142
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+136: shift/reduce conflict (shift 68, reduce 56) on COMMA
+state 136
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	declaration : LET REC VAR func IN expression .  (56)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 56
+	EOF  reduce 56
+	THEN  reduce 56
+	ELSE  reduce 56
+	IN  reduce 56
+	WITH  reduce 56
+
+
+state 137
+	declaration : LET REC UNDERSCORE EQ expression IN . expression  (59)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	LPAREN  shift 6
+	IF  shift 7
+	LET  shift 8
+	TRUE  shift 9
+	FALSE  shift 10
+	NOT  shift 11
+	PRINT  shift 12
+	FUN  shift 13
+	UNIT  shift 14
+	REF  shift 15
+	EXCL  shift 16
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
+	.  error
+
+	expression  goto 143
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
+
+
+138: shift/reduce conflict (shift 68, reduce 60) on COMMA
+state 138
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	declaration : LET UNDERSCORE EQ expression IN expression .  (60)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 60
+	EOF  reduce 60
+	THEN  reduce 60
+	ELSE  reduce 60
+	IN  reduce 60
+	WITH  reduce 60
+
+
+139: shift/reduce conflict (shift 68, reduce 58) on COMMA
+state 139
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	declaration : LET motif EQ expression IN expression .  (58)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 58
+	EOF  reduce 58
+	THEN  reduce 58
+	ELSE  reduce 58
+	IN  reduce 58
+	WITH  reduce 58
+
+
+state 140
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : TRY expression WITH LPAREN E expression . RPAREN FLECHE expression  (34)
+	expression : expression . COMMA expression  (37)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	RPAREN  shift 144
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	.  error
+
+
+state 141
+	applic : LPAREN FUN VAR FLECHE expression RPAREN sexpr .  (50)
 
 	.  reduce 50
 
 
-state 107
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+142: shift/reduce conflict (shift 68, reduce 57) on COMMA
+state 142
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
-	expression : TRY expression WITH expression . FLECHE expression  (35)
+	expression : expression . COMMA expression  (37)
+	declaration : LET REC VAR EQ expression IN expression .  (57)
 
 	PLUS  shift 52
 	TIMES  shift 53
@@ -3014,18 +3596,72 @@ state 107
 	GE  shift 61
 	NE  shift 62
 	EQ  shift 63
-	IN  shift 64
-	AND  shift 65
-	OR  shift 66
-	FLECHE  shift 110
-	SCOLON  shift 67
-	DSCOLON  shift 68
-	REVAL  shift 69
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 57
+	EOF  reduce 57
+	THEN  reduce 57
+	ELSE  reduce 57
+	IN  reduce 57
+	WITH  reduce 57
+
+
+143: shift/reduce conflict (shift 68, reduce 59) on COMMA
+state 143
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
+	expression : expression . REVAL expression  (32)
+	expression : expression . COMMA expression  (37)
+	declaration : LET REC UNDERSCORE EQ expression IN expression .  (59)
+
+	PLUS  shift 52
+	TIMES  shift 53
+	MINUS  shift 54
+	DIV  shift 55
+	MOD  shift 56
+	L  shift 58
+	LE  shift 59
+	G  shift 60
+	GE  shift 61
+	NE  shift 62
+	EQ  shift 63
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 59
+	EOF  reduce 59
+	THEN  reduce 59
+	ELSE  reduce 59
+	IN  reduce 59
+	WITH  reduce 59
+
+
+state 144
+	expression : TRY expression WITH LPAREN E expression RPAREN . FLECHE expression  (34)
+
+	FLECHE  shift 145
 	.  error
 
 
-state 108
-	expression : IF expression THEN expression ELSE . expression  (23)
+state 145
+	expression : TRY expression WITH LPAREN E expression RPAREN FLECHE . expression  (34)
 
 	INT  shift 3
 	VAR  shift 4
@@ -3041,111 +3677,36 @@ state 108
 	UNIT  shift 14
 	REF  shift 15
 	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
+	RAISE  shift 17
+	TRY  shift 18
+	INCR  shift 19
 	.  error
 
-	expression  goto 111
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
+	expression  goto 146
+	applic  goto 22
+	condition  goto 23
+	declaration  goto 24
 
 
-state 109
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : LET REC variable EQ expression .  (26)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
+146: shift/reduce conflict (shift 68, reduce 34) on COMMA
+state 146
+	expression : expression . PLUS expression  (9)
+	expression : expression . TIMES expression  (10)
+	expression : expression . MINUS expression  (11)
+	expression : expression . DIV expression  (12)
+	expression : expression . MOD expression  (13)
+	expression : expression . L expression  (15)
+	expression : expression . LE expression  (16)
+	expression : expression . G expression  (17)
+	expression : expression . GE expression  (18)
+	expression : expression . EQ expression  (19)
+	expression : expression . NE expression  (20)
+	expression : expression . OR expression  (21)
+	expression : expression . AND expression  (22)
+	expression : expression . SCOLON expression  (29)
 	expression : expression . REVAL expression  (32)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	SCOLON  shift 67
-	RPAREN  reduce 26
-	EOF  reduce 26
-	THEN  reduce 26
-	ELSE  reduce 26
-	IN  reduce 26
-	AND  reduce 26
-	OR  reduce 26
-	FLECHE  reduce 26
-	DSCOLON  reduce 26
-	REVAL  reduce 26
-	WITH  reduce 26
-
-
-state 110
-	expression : TRY expression WITH expression FLECHE . expression  (35)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	LPAREN  shift 6
-	IF  shift 7
-	LET  shift 8
-	TRUE  shift 9
-	FALSE  shift 10
-	NOT  shift 11
-	PRINT  shift 12
-	FUN  shift 13
-	UNIT  shift 14
-	REF  shift 15
-	EXCL  shift 16
-	UNDERSCORE  shift 17
-	E  shift 18
-	RAISE  shift 19
-	TRY  shift 20
-	INCR  shift 21
-	.  error
-
-	expression  goto 112
-	variable  goto 24
-	sexpr  goto 25
-	func  goto 26
-	applic  goto 27
-
-
-state 111
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : IF expression THEN expression ELSE expression .  (23)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
+	expression : TRY expression WITH LPAREN E expression RPAREN FLECHE expression .  (34)
+	expression : expression . COMMA expression  (37)
 
 	PLUS  shift 52
 	TIMES  shift 53
@@ -3158,65 +3719,54 @@ state 111
 	GE  shift 61
 	NE  shift 62
 	EQ  shift 63
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	REVAL  shift 69
-	RPAREN  reduce 23
-	EOF  reduce 23
-	THEN  reduce 23
-	ELSE  reduce 23
-	IN  reduce 23
-	FLECHE  reduce 23
-	DSCOLON  reduce 23
-	WITH  reduce 23
+	AND  shift 64
+	OR  shift 65
+	SCOLON  shift 66
+	REVAL  shift 67
+	COMMA  shift 68
+	RPAREN  reduce 34
+	EOF  reduce 34
+	THEN  reduce 34
+	ELSE  reduce 34
+	IN  reduce 34
+	WITH  reduce 34
 
 
-state 112
-	expression : expression . PLUS expression  (8)
-	expression : expression . TIMES expression  (9)
-	expression : expression . MINUS expression  (10)
-	expression : expression . DIV expression  (11)
-	expression : expression . MOD expression  (12)
-	expression : expression . L expression  (14)
-	expression : expression . LE expression  (15)
-	expression : expression . G expression  (16)
-	expression : expression . GE expression  (17)
-	expression : expression . EQ expression  (18)
-	expression : expression . NE expression  (19)
-	expression : expression . OR expression  (20)
-	expression : expression . AND expression  (21)
-	expression : expression . IN expression  (28)
-	expression : expression . DSCOLON  (29)
-	expression : expression . DSCOLON expression  (30)
-	expression : expression . SCOLON expression  (31)
-	expression : expression . REVAL expression  (32)
-	expression : TRY expression WITH expression FLECHE expression .  (35)
-
-	PLUS  shift 52
-	TIMES  shift 53
-	MINUS  shift 54
-	DIV  shift 55
-	MOD  shift 56
-	L  shift 58
-	LE  shift 59
-	G  shift 60
-	GE  shift 61
-	NE  shift 62
-	EQ  shift 63
-	AND  shift 65
-	OR  shift 66
-	SCOLON  shift 67
-	REVAL  shift 69
-	RPAREN  reduce 35
-	EOF  reduce 35
-	THEN  reduce 35
-	ELSE  reduce 35
-	IN  reduce 35
-	FLECHE  reduce 35
-	DSCOLON  reduce 35
-	WITH  reduce 35
+State 34 contains 1 shift/reduce conflict.
+State 40 contains 1 shift/reduce conflict.
+State 42 contains 1 shift/reduce conflict.
+State 48 contains 1 shift/reduce conflict.
+State 51 contains 1 shift/reduce conflict.
+State 89 contains 1 shift/reduce conflict.
+State 90 contains 1 shift/reduce conflict.
+State 91 contains 1 shift/reduce conflict.
+State 92 contains 1 shift/reduce conflict.
+State 93 contains 1 shift/reduce conflict.
+State 94 contains 1 shift/reduce conflict.
+State 95 contains 1 shift/reduce conflict.
+State 96 contains 1 shift/reduce conflict.
+State 97 contains 1 shift/reduce conflict.
+State 98 contains 1 shift/reduce conflict.
+State 99 contains 1 shift/reduce conflict.
+State 100 contains 1 shift/reduce conflict.
+State 101 contains 1 shift/reduce conflict.
+State 102 contains 1 shift/reduce conflict.
+State 103 contains 1 shift/reduce conflict.
+State 104 contains 16 shift/reduce conflicts.
+State 105 contains 1 shift/reduce conflict.
+State 107 contains 1 shift/reduce conflict.
+State 118 contains 1 shift/reduce conflict.
+State 120 contains 1 shift/reduce conflict.
+State 123 contains 1 shift/reduce conflict.
+State 125 contains 1 shift/reduce conflict.
+State 134 contains 1 shift/reduce conflict.
+State 136 contains 1 shift/reduce conflict.
+State 138 contains 1 shift/reduce conflict.
+State 139 contains 1 shift/reduce conflict.
+State 142 contains 1 shift/reduce conflict.
+State 143 contains 1 shift/reduce conflict.
+State 146 contains 1 shift/reduce conflict.
 
 
-46 terminals, 9 nonterminals
-59 grammar rules, 113 states
+46 terminals, 10 nonterminals
+62 grammar rules, 147 states

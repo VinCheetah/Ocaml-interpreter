@@ -30,7 +30,6 @@ type token =
   | FUN
   | FLECHE
   | SCOLON
-  | DSCOLON
   | UNIT
   | REF
   | EXCL
@@ -41,6 +40,7 @@ type token =
   | TRY
   | WITH
   | INCR
+  | COMMA
 
 val main :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Types.expr

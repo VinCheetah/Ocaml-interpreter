@@ -22,36 +22,39 @@ type bool_op =
   | Or
   | Not
 
+type motif =
+  | NomM of string
+  | NoneM
+  | Couple of motif*motif
+
+
 type name =
   | Nom of string 
   | None
-  | Uni
 
 
  (* définition du type pour les expressions*) 
 type expr =
   | Const   of int
   | BConst  of bool
-  | Var     of name
+  | Var     of motif
   | Unit
   | ArithOp of arith_op*expr*expr
   | CompOp  of comp_op*expr*expr
   | BoolOp  of bool_op*expr*expr
   | If      of expr*expr*expr
   | PrInt   of expr
-  | Let     of name*bool*expr
-  | In      of expr*expr
-  | Fun     of name*expr
+  | Let     of motif*bool*expr*expr
+  | Fun     of motif*expr
   | App     of expr*expr
-  | Gseq    of expr*expr
   | Seq     of expr*expr
   | Ref     of expr
   | ValRef  of expr
   | RefNew  of expr*expr
-  | Exn     of expr
   | Raise   of expr
   | TryWith of expr*expr*expr
   | Incr    of expr
+  | CoupleExpr of expr*expr
 
 (* définition du type des environnements*)
 and env = (string*valeur) list
@@ -60,15 +63,10 @@ and env = (string*valeur) list
 and valeur = 
   | VInt   of int 
   | VBool  of bool    
-  | VFun   of name*expr*env*bool
-  | VUnit
-  | VRef   of int
-  | VVal   of string*valeur
-  | VExcep of int*bool (*Le booléen permet de savoir si l'exception est levée ou juste renvoyée*)
+  | VFun   of motif*expr*env*bool
+  | VUnit  of env
+  | VRef   of valeur
+  | VExcep of int*env
+  | VTuple of valeur*valeur
 
 
-
-let empty_env = []
-let max_ref = 1234
-let ref_memory = Array.make max_ref VUnit
-let next_ref = ref 0  

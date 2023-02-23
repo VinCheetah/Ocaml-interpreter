@@ -174,6 +174,7 @@ let rec affiche_expr_tree e =
   | Raise e1           -> aff_aux1 "Raise(" e1
   | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
   | Incr e1            -> aff_aux1 "Incr" e1
+  | CoupleExpr (e1,e2) -> aff_aux2 "CoupleExpr(" e1 e2
 
 
 let rec display_env env = match env with

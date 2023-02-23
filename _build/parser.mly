@@ -32,7 +32,7 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc IF THEN ELSE 
 %left FUN FLECHE
 %left LET IN
-%left SCOLON
+%left SCOLON COMMA 
 %nonassoc UNIT REVAL
 %right OR  
 %right AND
@@ -92,6 +92,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | PRINT LPAREN expression RPAREN                            { PrInt $3 }
   | declaration                                               { $1 }
   | FUN VAR FLECHE expression                                 { Fun (NomM $2,$4) }
+  | FUN VAR funcomplement                                     { Fun (NomM $2,$3) }
   | expression SCOLON expression                              { Seq ($1,$3) }
   | REF sexpr                                                 { Ref $2 }   
   | EXCL expression                                           { ValRef $2 }
@@ -110,6 +111,14 @@ sexpr:
   | VAR                                                       { Var (NomM $1) }
   | UNIT                                                      { Unit }
   | LPAREN expression RPAREN                                  { $2 }
+
+
+funcomplement:
+  | VAR funcomplement                                        { Fun (NomM $1,$2) }
+  | UNDERSCORE funcomplement                                 { Fun (NoneM,$2) } 
+  | VAR FLECHE expression                                    { Fun (NomM $1,$3) }
+  | UNDERSCORE FLECHE expression                             { Fun (NoneM,$3) }
+
 
 func :
   | VAR func                                                  { Fun (NomM $1,$2) }

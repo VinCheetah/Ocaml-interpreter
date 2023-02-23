@@ -122,7 +122,9 @@ let rec eval e env =
   | App (e1,e2)        -> begin match eval e1 env with
         | VFun (arg,corps,env',recursif) -> eval corps ((match arg with
               | NomM nom -> modifier_env nom (eval e2 env)
-              | NoneM -> fun x -> x) (if recursif then fusion_env env' env else env'))
+              | NoneM -> fun x -> x
+              | Couple (m1,m2) -> failwith "Erreur : Couple non géré" 
+              ) (if recursif then fusion_env env' env else env'))
         | _ -> failwith "Eval : App error (fun type)"
       end
   | Seq (e1,e2)        -> begin match eval e1 env with

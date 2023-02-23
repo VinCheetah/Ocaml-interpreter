@@ -1,140 +1,50 @@
 ### Starting build.
 # Target: main.ml.depends, tags: { extension:ml, file:main.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep.opt -modules main.ml > main.ml.depends
+/usr/bin/ocamldep.opt -modules main.ml > main.ml.depends # cached
 # Target: affichage.ml.depends, tags: { extension:ml, file:affichage.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep.opt -modules affichage.ml > affichage.ml.depends
+/usr/bin/ocamldep.opt -modules affichage.ml > affichage.ml.depends # cached
 # Target: options.ml.depends, tags: { extension:ml, file:options.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep.opt -modules options.ml > options.ml.depends
-# Target: types.ml.depends, tags: { extension:ml, file:types.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep.opt -modules types.ml > types.ml.depends
+/usr/bin/ocamldep.opt -modules options.ml > options.ml.depends # cached
 # Target: options.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:options.cmo, file:options.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o options.cmo options.ml
+/usr/bin/ocamlc.opt -c -o options.cmo options.ml # cached
+# Target: types.ml.depends, tags: { extension:ml, file:types.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep.opt -modules types.ml > types.ml.depends # cached
 # Target: types.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:types.cmo, file:types.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o types.cmo types.ml
-# Target: expr.ml.depends, tags: { extension:ml, file:expr.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep.opt -modules expr.ml > expr.ml.depends
+/usr/bin/ocamlc.opt -c -o types.cmo types.ml # cached
 # Target: affichage.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:affichage.cmo, file:affichage.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o affichage.cmo affichage.ml
-+ /usr/bin/ocamlc.opt -c -o affichage.cmo affichage.ml
-File "affichage.ml", line 140, characters 2-1719:
-140 | ..match e with
-141 |   | Const k            -> print_int k
-142 |   | BConst b           -> print_string (if b then "true" else "false") 
-143 |   | Var s              -> affiche_motif s
-144 |   | Unit               -> print_string "()"
-...
-173 |   | RefNew (e1,e2)     -> aff_aux2 "RefNew(" e1 e2
-174 |   | Raise e1           -> aff_aux1 "Raise(" e1
-175 |   | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
-176 |   | Incr e1            -> aff_aux1 "Incr" e1
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-CoupleExpr (_, _)
-File "affichage.ml", line 188, characters 52-593:
-188 | ....................................................(match e with
-189 |   | Const i   -> "Const " ^ (string_of_int i)
-190 |   | BConst _  -> "BConst"
-191 |   (*| Var s     -> "Var " ^ get_var s *)
-192 |   | Unit      -> "Unit"
-...
-205 |   | Raise _   -> "Raise"
-206 |   | TryWith _ -> "TryWith"
-207 |   | Incr _    -> "Incr"
-208 | (*| _ -> "TO DO")*))
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-(Var _|CoupleExpr (_, _))
+/usr/bin/ocamlc.opt -c -o affichage.cmo affichage.ml # cached
+# Target: expr.ml.depends, tags: { extension:ml, file:expr.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep.opt -modules expr.ml > expr.ml.depends # cached
+# Target: expr.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:expr.cmo, file:expr.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc.opt -c -o expr.cmo expr.ml # cached
 # Target: lexer.mll, tags: { extension:mll, file:lexer.mll, lexer, ocaml, ocamllex, quiet }
-/usr/bin/ocamllex.opt -q lexer.mll
+/usr/bin/ocamllex.opt -q lexer.mll # cached
 # Target: lexer.ml.depends, tags: { extension:ml, file:lexer.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep.opt -modules lexer.ml > lexer.ml.depends
+/usr/bin/ocamldep.opt -modules lexer.ml > lexer.ml.depends # cached
 # Target: parser.mly, tags: { extension:mly, file:parser.mly, infer, ocaml, ocamlyacc, parser, quiet }
 /usr/bin/ocamlyacc -v parser.mly
 + /usr/bin/ocamlyacc -v parser.mly
-49 shift/reduce conflicts.
+1 shift/reduce conflict.
 # Target: parser.mli.depends, tags: { extension:mli, file:parser.mli, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep.opt -modules parser.mli > parser.mli.depends
+/usr/bin/ocamldep.opt -modules parser.mli > parser.mli.depends # cached
 # Target: parser.cmi, tags: { byte, compile, extension:mli, file:parser.mli, interf, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o parser.cmi parser.mli
-# Target: expr.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:expr.cmo, file:expr.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o expr.cmo expr.ml
-+ /usr/bin/ocamlc.opt -c -o expr.cmo expr.ml
-File "expr.ml", line 73, characters 34-138:
-73 | ..................................begin match cle with
-74 |         | NomM nom -> trouver_env nom env
-75 |         | NoneM    -> VUnit env
-76 |       end.....................................................................
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-Couple (_, _)
-File "expr.ml", line 123, characters 56-167:
-123 | ........................................................(match arg with
-124 |               | NomM nom -> modifier_env nom (eval e2 env)
-125 |               | NoneM -> fun x -> x)..................................................
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-Couple (_, _)
+/usr/bin/ocamlc.opt -c -o parser.cmi parser.mli # cached
 # Target: lexer.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:lexer.cmo, file:lexer.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o lexer.cmo lexer.ml
+/usr/bin/ocamlc.opt -c -o lexer.cmo lexer.ml # cached
 # Target: main.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:main.cmo, file:main.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o main.cmo main.ml
+/usr/bin/ocamlc.opt -c -o main.cmo main.ml # cached
 # Target: options.cmx, tags: { compile, extension:cmx, extension:ml, file:options.cmx, file:options.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o options.cmx options.ml
+/usr/bin/ocamlopt.opt -c -o options.cmx options.ml # cached
 # Target: types.cmx, tags: { compile, extension:cmx, extension:ml, file:types.cmx, file:types.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o types.cmx types.ml
+/usr/bin/ocamlopt.opt -c -o types.cmx types.ml # cached
 # Target: affichage.cmx, tags: { compile, extension:cmx, extension:ml, file:affichage.cmx, file:affichage.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o affichage.cmx affichage.ml
-+ /usr/bin/ocamlopt.opt -c -o affichage.cmx affichage.ml
-File "affichage.ml", line 140, characters 2-1719:
-140 | ..match e with
-141 |   | Const k            -> print_int k
-142 |   | BConst b           -> print_string (if b then "true" else "false") 
-143 |   | Var s              -> affiche_motif s
-144 |   | Unit               -> print_string "()"
-...
-173 |   | RefNew (e1,e2)     -> aff_aux2 "RefNew(" e1 e2
-174 |   | Raise e1           -> aff_aux1 "Raise(" e1
-175 |   | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
-176 |   | Incr e1            -> aff_aux1 "Incr" e1
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-CoupleExpr (_, _)
-File "affichage.ml", line 188, characters 52-593:
-188 | ....................................................(match e with
-189 |   | Const i   -> "Const " ^ (string_of_int i)
-190 |   | BConst _  -> "BConst"
-191 |   (*| Var s     -> "Var " ^ get_var s *)
-192 |   | Unit      -> "Unit"
-...
-205 |   | Raise _   -> "Raise"
-206 |   | TryWith _ -> "TryWith"
-207 |   | Incr _    -> "Incr"
-208 | (*| _ -> "TO DO")*))
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-(Var _|CoupleExpr (_, _))
+/usr/bin/ocamlopt.opt -c -o affichage.cmx affichage.ml # cached
+# Target: expr.cmx, tags: { compile, extension:cmx, extension:ml, file:expr.cmx, file:expr.ml, implem, native, ocaml, quiet }
+/usr/bin/ocamlopt.opt -c -o expr.cmx expr.ml # cached
 # Target: parser.ml.depends, tags: { extension:ml, file:parser.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep.opt -modules parser.ml > parser.ml.depends
 # Target: parser.cmx, tags: { compile, extension:cmx, extension:ml, file:parser.cmx, file:parser.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt.opt -c -o parser.cmx parser.ml
-# Target: expr.cmx, tags: { compile, extension:cmx, extension:ml, file:expr.cmx, file:expr.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o expr.cmx expr.ml
-+ /usr/bin/ocamlopt.opt -c -o expr.cmx expr.ml
-File "expr.ml", line 73, characters 34-138:
-73 | ..................................begin match cle with
-74 |         | NomM nom -> trouver_env nom env
-75 |         | NoneM    -> VUnit env
-76 |       end.....................................................................
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-Couple (_, _)
-File "expr.ml", line 123, characters 56-167:
-123 | ........................................................(match arg with
-124 |               | NomM nom -> modifier_env nom (eval e2 env)
-125 |               | NoneM -> fun x -> x)..................................................
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-Couple (_, _)
 # Target: lexer.cmx, tags: { compile, extension:cmx, extension:ml, file:lexer.cmx, file:lexer.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt.opt -c -o lexer.cmx lexer.ml
 # Target: main.cmx, tags: { compile, extension:cmx, extension:ml, file:main.cmx, file:main.ml, implem, native, ocaml, quiet }

@@ -45,28 +45,28 @@
   42             | func
   43             | applic
 
-  44  variable : LPAREN variable RPAREN
-  45           | variable COMMA variable
-  46           | VAR
-  47           | UNDERSCORE
+  44  sexpr : LPAREN expression RPAREN
+  45        | VAR
+  46        | INT
+  47        | TRUE
+  48        | FALSE
+  49        | EXCL sexpr
+  50        | UNIT
 
-  48  sexpr : LPAREN expression RPAREN
-  49        | VAR
-  50        | INT
-  51        | TRUE
-  52        | FALSE
-  53        | EXCL sexpr
-  54        | UNIT
+  51  func : VAR corps_func
+  52       | FUN corps_func
 
-  55  func : VAR corps_func
-  56       | FUN corps_func
+  53  corps_func : variable corps_func
+  54             | variable EQ expression
+  55             | variable FLECHE expression
 
-  57  corps_func : variable corps_func
-  58             | variable EQ expression
-  59             | variable FLECHE expression
+  56  applic : applic sexpr
+  57         | sexpr sexpr
 
-  60  applic : applic sexpr
-  61         | sexpr sexpr
+  58  variable : LPAREN variable RPAREN
+  59           | variable COMMA variable
+  60           | VAR
+  61           | UNDERSCORE
 
   62  %entry% : '\001' main
 
@@ -118,16 +118,16 @@ state 2
 
 state 3
 	expression : INT .  (2)
-	sexpr : INT .  (50)
+	sexpr : INT .  (46)
 
-	INT  reduce 50
-	VAR  reduce 50
+	INT  reduce 46
+	VAR  reduce 46
 	PLUS  reduce 2
 	TIMES  reduce 2
 	MINUS  reduce 2
 	DIV  reduce 2
 	MOD  reduce 2
-	LPAREN  reduce 50
+	LPAREN  reduce 46
 	RPAREN  reduce 2
 	END  reduce 2
 	EOF  reduce 2
@@ -140,15 +140,15 @@ state 3
 	THEN  reduce 2
 	ELSE  reduce 2
 	IN  reduce 2
-	TRUE  reduce 50
-	FALSE  reduce 50
+	TRUE  reduce 46
+	FALSE  reduce 46
 	AND  reduce 2
 	OR  reduce 2
 	FLECHE  reduce 2
 	SCOLON  reduce 2
 	DSCOLON  reduce 2
-	UNIT  reduce 50
-	EXCL  reduce 50
+	UNIT  reduce 46
+	EXCL  reduce 46
 	REVAL  reduce 2
 	WITH  reduce 2
 	COMMA  reduce 2
@@ -156,12 +156,12 @@ state 3
 
 state 4
 	expression : VAR .  (5)
-	sexpr : VAR .  (49)
-	func : VAR . corps_func  (55)
+	sexpr : VAR .  (45)
+	func : VAR . corps_func  (51)
 
 	LPAREN  shift 28
 	UNDERSCORE  shift 29
-	INT  reduce 49
+	INT  reduce 45
 	PLUS  reduce 5
 	TIMES  reduce 5
 	MINUS  reduce 5
@@ -179,15 +179,15 @@ state 4
 	THEN  reduce 5
 	ELSE  reduce 5
 	IN  reduce 5
-	TRUE  reduce 49
-	FALSE  reduce 49
+	TRUE  reduce 45
+	FALSE  reduce 45
 	AND  reduce 5
 	OR  reduce 5
 	FLECHE  reduce 5
 	SCOLON  reduce 5
 	DSCOLON  reduce 5
-	UNIT  reduce 49
-	EXCL  reduce 49
+	UNIT  reduce 45
+	EXCL  reduce 45
 	REVAL  reduce 5
 	WITH  reduce 5
 	COMMA  reduce 5
@@ -228,7 +228,7 @@ state 5
 
 state 6
 	expression : LPAREN . expression RPAREN  (7)
-	sexpr : LPAREN . expression RPAREN  (48)
+	sexpr : LPAREN . expression RPAREN  (44)
 
 	INT  shift 3
 	VAR  shift 4
@@ -334,16 +334,16 @@ state 9
 
 state 10
 	expression : TRUE .  (3)
-	sexpr : TRUE .  (51)
+	sexpr : TRUE .  (47)
 
-	INT  reduce 51
-	VAR  reduce 51
+	INT  reduce 47
+	VAR  reduce 47
 	PLUS  reduce 3
 	TIMES  reduce 3
 	MINUS  reduce 3
 	DIV  reduce 3
 	MOD  reduce 3
-	LPAREN  reduce 51
+	LPAREN  reduce 47
 	RPAREN  reduce 3
 	END  reduce 3
 	EOF  reduce 3
@@ -356,15 +356,15 @@ state 10
 	THEN  reduce 3
 	ELSE  reduce 3
 	IN  reduce 3
-	TRUE  reduce 51
-	FALSE  reduce 51
+	TRUE  reduce 47
+	FALSE  reduce 47
 	AND  reduce 3
 	OR  reduce 3
 	FLECHE  reduce 3
 	SCOLON  reduce 3
 	DSCOLON  reduce 3
-	UNIT  reduce 51
-	EXCL  reduce 51
+	UNIT  reduce 47
+	EXCL  reduce 47
 	REVAL  reduce 3
 	WITH  reduce 3
 	COMMA  reduce 3
@@ -372,16 +372,16 @@ state 10
 
 state 11
 	expression : FALSE .  (4)
-	sexpr : FALSE .  (52)
+	sexpr : FALSE .  (48)
 
-	INT  reduce 52
-	VAR  reduce 52
+	INT  reduce 48
+	VAR  reduce 48
 	PLUS  reduce 4
 	TIMES  reduce 4
 	MINUS  reduce 4
 	DIV  reduce 4
 	MOD  reduce 4
-	LPAREN  reduce 52
+	LPAREN  reduce 48
 	RPAREN  reduce 4
 	END  reduce 4
 	EOF  reduce 4
@@ -394,15 +394,15 @@ state 11
 	THEN  reduce 4
 	ELSE  reduce 4
 	IN  reduce 4
-	TRUE  reduce 52
-	FALSE  reduce 52
+	TRUE  reduce 48
+	FALSE  reduce 48
 	AND  reduce 4
 	OR  reduce 4
 	FLECHE  reduce 4
 	SCOLON  reduce 4
 	DSCOLON  reduce 4
-	UNIT  reduce 52
-	EXCL  reduce 52
+	UNIT  reduce 48
+	EXCL  reduce 48
 	REVAL  reduce 4
 	WITH  reduce 4
 	COMMA  reduce 4
@@ -454,7 +454,7 @@ state 13
 
 
 state 14
-	func : FUN . corps_func  (56)
+	func : FUN . corps_func  (52)
 
 	VAR  shift 27
 	LPAREN  shift 28
@@ -467,16 +467,16 @@ state 14
 
 state 15
 	expression : UNIT .  (6)
-	sexpr : UNIT .  (54)
+	sexpr : UNIT .  (50)
 
-	INT  reduce 54
-	VAR  reduce 54
+	INT  reduce 50
+	VAR  reduce 50
 	PLUS  reduce 6
 	TIMES  reduce 6
 	MINUS  reduce 6
 	DIV  reduce 6
 	MOD  reduce 6
-	LPAREN  reduce 54
+	LPAREN  reduce 50
 	RPAREN  reduce 6
 	END  reduce 6
 	EOF  reduce 6
@@ -489,15 +489,15 @@ state 15
 	THEN  reduce 6
 	ELSE  reduce 6
 	IN  reduce 6
-	TRUE  reduce 54
-	FALSE  reduce 54
+	TRUE  reduce 50
+	FALSE  reduce 50
 	AND  reduce 6
 	OR  reduce 6
 	FLECHE  reduce 6
 	SCOLON  reduce 6
 	DSCOLON  reduce 6
-	UNIT  reduce 54
-	EXCL  reduce 54
+	UNIT  reduce 50
+	EXCL  reduce 50
 	REVAL  reduce 6
 	WITH  reduce 6
 	COMMA  reduce 6
@@ -520,7 +520,7 @@ state 16
 
 state 17
 	expression : EXCL . sexpr  (38)
-	sexpr : EXCL . sexpr  (53)
+	sexpr : EXCL . sexpr  (49)
 
 	INT  shift 39
 	VAR  shift 40
@@ -690,7 +690,7 @@ state 23
 
 
 state 24
-	applic : sexpr . sexpr  (61)
+	applic : sexpr . sexpr  (57)
 
 	INT  shift 39
 	VAR  shift 40
@@ -712,7 +712,7 @@ state 25
 
 state 26
 	expression : applic .  (43)
-	applic : applic . sexpr  (60)
+	applic : applic . sexpr  (56)
 
 	INT  shift 39
 	VAR  shift 40
@@ -751,13 +751,13 @@ state 26
 
 
 state 27
-	variable : VAR .  (46)
+	variable : VAR .  (60)
 
-	.  reduce 46
+	.  reduce 60
 
 
 state 28
-	variable : LPAREN . variable RPAREN  (44)
+	variable : LPAREN . variable RPAREN  (58)
 
 	VAR  shift 27
 	LPAREN  shift 28
@@ -768,16 +768,16 @@ state 28
 
 
 state 29
-	variable : UNDERSCORE .  (47)
+	variable : UNDERSCORE .  (61)
 
-	.  reduce 47
+	.  reduce 61
 
 
 state 30
-	variable : variable . COMMA variable  (45)
-	corps_func : variable . corps_func  (57)
-	corps_func : variable . EQ expression  (58)
-	corps_func : variable . FLECHE expression  (59)
+	corps_func : variable . corps_func  (53)
+	corps_func : variable . EQ expression  (54)
+	corps_func : variable . FLECHE expression  (55)
+	variable : variable . COMMA variable  (59)
 
 	VAR  shift 27
 	LPAREN  shift 28
@@ -792,9 +792,9 @@ state 30
 
 
 state 31
-	func : VAR corps_func .  (55)
+	func : VAR corps_func .  (51)
 
-	.  reduce 55
+	.  reduce 51
 
 
 state 32
@@ -867,7 +867,7 @@ state 33
 	expression : expression . SCOLON expression  (32)
 	expression : expression . REVAL expression  (33)
 	expression : expression . COMMA expression  (34)
-	sexpr : LPAREN expression . RPAREN  (48)
+	sexpr : LPAREN expression . RPAREN  (44)
 
 	PLUS  shift 54
 	TIMES  shift 55
@@ -994,7 +994,7 @@ state 36
 state 37
 	expression : LET variable . corps_func  (25)
 	expression : LET variable . EQ expression  (28)
-	variable : variable . COMMA variable  (45)
+	variable : variable . COMMA variable  (59)
 
 	VAR  shift 27
 	LPAREN  shift 28
@@ -1057,19 +1057,19 @@ state 38
 
 
 state 39
-	sexpr : INT .  (50)
+	sexpr : INT .  (46)
 
-	.  reduce 50
+	.  reduce 46
 
 
 state 40
-	sexpr : VAR .  (49)
+	sexpr : VAR .  (45)
 
-	.  reduce 49
+	.  reduce 45
 
 
 state 41
-	sexpr : LPAREN . expression RPAREN  (48)
+	sexpr : LPAREN . expression RPAREN  (44)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1099,25 +1099,25 @@ state 41
 
 
 state 42
-	sexpr : TRUE .  (51)
+	sexpr : TRUE .  (47)
 
-	.  reduce 51
+	.  reduce 47
 
 
 state 43
-	sexpr : FALSE .  (52)
+	sexpr : FALSE .  (48)
 
-	.  reduce 52
+	.  reduce 48
 
 
 state 44
-	sexpr : UNIT .  (54)
+	sexpr : UNIT .  (50)
 
-	.  reduce 54
+	.  reduce 50
 
 
 state 45
-	sexpr : EXCL . sexpr  (53)
+	sexpr : EXCL . sexpr  (49)
 
 	INT  shift 39
 	VAR  shift 40
@@ -1138,9 +1138,9 @@ state 46
 
 
 state 47
-	func : FUN corps_func .  (56)
+	func : FUN corps_func .  (52)
 
-	.  reduce 56
+	.  reduce 52
 
 
 state 48
@@ -1151,16 +1151,16 @@ state 48
 
 state 49
 	expression : EXCL sexpr .  (38)
-	sexpr : EXCL sexpr .  (53)
+	sexpr : EXCL sexpr .  (49)
 
-	INT  reduce 53
-	VAR  reduce 53
+	INT  reduce 49
+	VAR  reduce 49
 	PLUS  reduce 38
 	TIMES  reduce 38
 	MINUS  reduce 38
 	DIV  reduce 38
 	MOD  reduce 38
-	LPAREN  reduce 53
+	LPAREN  reduce 49
 	RPAREN  reduce 38
 	END  reduce 38
 	EOF  reduce 38
@@ -1173,15 +1173,15 @@ state 49
 	THEN  reduce 38
 	ELSE  reduce 38
 	IN  reduce 38
-	TRUE  reduce 53
-	FALSE  reduce 53
+	TRUE  reduce 49
+	FALSE  reduce 49
 	AND  reduce 38
 	OR  reduce 38
 	FLECHE  reduce 38
 	SCOLON  reduce 38
 	DSCOLON  reduce 38
-	UNIT  reduce 53
-	EXCL  reduce 53
+	UNIT  reduce 49
+	EXCL  reduce 49
 	REVAL  reduce 38
 	WITH  reduce 38
 	COMMA  reduce 38
@@ -1906,20 +1906,20 @@ state 72
 
 
 state 73
-	applic : sexpr sexpr .  (61)
+	applic : sexpr sexpr .  (57)
 
-	.  reduce 61
+	.  reduce 57
 
 
 state 74
-	applic : applic sexpr .  (60)
+	applic : applic sexpr .  (56)
 
-	.  reduce 60
+	.  reduce 56
 
 
 state 75
-	variable : LPAREN variable . RPAREN  (44)
-	variable : variable . COMMA variable  (45)
+	variable : LPAREN variable . RPAREN  (58)
+	variable : variable . COMMA variable  (59)
 
 	RPAREN  shift 107
 	COMMA  shift 78
@@ -1927,7 +1927,7 @@ state 75
 
 
 state 76
-	corps_func : variable EQ . expression  (58)
+	corps_func : variable EQ . expression  (54)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1957,7 +1957,7 @@ state 76
 
 
 state 77
-	corps_func : variable FLECHE . expression  (59)
+	corps_func : variable FLECHE . expression  (55)
 
 	INT  shift 3
 	VAR  shift 4
@@ -1987,7 +1987,7 @@ state 77
 
 
 state 78
-	variable : variable COMMA . variable  (45)
+	variable : variable COMMA . variable  (59)
 
 	VAR  shift 27
 	LPAREN  shift 28
@@ -1998,23 +1998,23 @@ state 78
 
 
 state 79
-	corps_func : variable corps_func .  (57)
+	corps_func : variable corps_func .  (53)
 
-	.  reduce 57
+	.  reduce 53
 
 
 state 80
 	expression : LPAREN expression RPAREN .  (7)
-	sexpr : LPAREN expression RPAREN .  (48)
+	sexpr : LPAREN expression RPAREN .  (44)
 
-	INT  reduce 48
-	VAR  reduce 48
+	INT  reduce 44
+	VAR  reduce 44
 	PLUS  reduce 7
 	TIMES  reduce 7
 	MINUS  reduce 7
 	DIV  reduce 7
 	MOD  reduce 7
-	LPAREN  reduce 48
+	LPAREN  reduce 44
 	RPAREN  reduce 7
 	END  reduce 7
 	EOF  reduce 7
@@ -2027,15 +2027,15 @@ state 80
 	THEN  reduce 7
 	ELSE  reduce 7
 	IN  reduce 7
-	TRUE  reduce 48
-	FALSE  reduce 48
+	TRUE  reduce 44
+	FALSE  reduce 44
 	AND  reduce 7
 	OR  reduce 7
 	FLECHE  reduce 7
 	SCOLON  reduce 7
 	DSCOLON  reduce 7
-	UNIT  reduce 48
-	EXCL  reduce 48
+	UNIT  reduce 44
+	EXCL  reduce 44
 	REVAL  reduce 7
 	WITH  reduce 7
 	COMMA  reduce 7
@@ -2080,7 +2080,7 @@ state 82
 state 83
 	expression : LET REC variable . corps_func  (26)
 	expression : LET REC variable . EQ expression  (27)
-	variable : variable . COMMA variable  (45)
+	variable : variable . COMMA variable  (59)
 
 	VAR  shift 27
 	LPAREN  shift 28
@@ -2149,7 +2149,7 @@ state 86
 	expression : expression . SCOLON expression  (32)
 	expression : expression . REVAL expression  (33)
 	expression : expression . COMMA expression  (34)
-	sexpr : LPAREN expression . RPAREN  (48)
+	sexpr : LPAREN expression . RPAREN  (44)
 
 	PLUS  shift 54
 	TIMES  shift 55
@@ -2174,9 +2174,9 @@ state 86
 
 
 state 87
-	sexpr : EXCL sexpr .  (53)
+	sexpr : EXCL sexpr .  (49)
 
-	.  reduce 53
+	.  reduce 49
 
 
 state 88
@@ -3030,9 +3030,9 @@ state 106
 
 
 state 107
-	variable : LPAREN variable RPAREN .  (44)
+	variable : LPAREN variable RPAREN .  (58)
 
-	.  reduce 44
+	.  reduce 58
 
 
 state 108
@@ -3055,7 +3055,7 @@ state 108
 	expression : expression . SCOLON expression  (32)
 	expression : expression . REVAL expression  (33)
 	expression : expression . COMMA expression  (34)
-	corps_func : variable EQ expression .  (58)
+	corps_func : variable EQ expression .  (54)
 
 	PLUS  shift 54
 	TIMES  shift 55
@@ -3063,19 +3063,19 @@ state 108
 	DIV  shift 57
 	MOD  shift 58
 	COMMA  shift 72
-	RPAREN  reduce 58
-	END  reduce 58
-	EOF  reduce 58
-	THEN  reduce 58
-	ELSE  reduce 58
-	IN  reduce 58
-	AND  reduce 58
-	OR  reduce 58
-	FLECHE  reduce 58
-	SCOLON  reduce 58
-	DSCOLON  reduce 58
-	REVAL  reduce 58
-	WITH  reduce 58
+	RPAREN  reduce 54
+	END  reduce 54
+	EOF  reduce 54
+	THEN  reduce 54
+	ELSE  reduce 54
+	IN  reduce 54
+	AND  reduce 54
+	OR  reduce 54
+	FLECHE  reduce 54
+	SCOLON  reduce 54
+	DSCOLON  reduce 54
+	REVAL  reduce 54
+	WITH  reduce 54
 
 
 state 109
@@ -3098,7 +3098,7 @@ state 109
 	expression : expression . SCOLON expression  (32)
 	expression : expression . REVAL expression  (33)
 	expression : expression . COMMA expression  (34)
-	corps_func : variable FLECHE expression .  (59)
+	corps_func : variable FLECHE expression .  (55)
 
 	PLUS  shift 54
 	TIMES  shift 55
@@ -3115,23 +3115,23 @@ state 109
 	OR  shift 68
 	REVAL  shift 71
 	COMMA  shift 72
-	RPAREN  reduce 59
-	END  reduce 59
-	EOF  reduce 59
-	THEN  reduce 59
-	ELSE  reduce 59
-	IN  reduce 59
-	FLECHE  reduce 59
-	SCOLON  reduce 59
-	DSCOLON  reduce 59
-	WITH  reduce 59
+	RPAREN  reduce 55
+	END  reduce 55
+	EOF  reduce 55
+	THEN  reduce 55
+	ELSE  reduce 55
+	IN  reduce 55
+	FLECHE  reduce 55
+	SCOLON  reduce 55
+	DSCOLON  reduce 55
+	WITH  reduce 55
 
 
 state 110
-	variable : variable . COMMA variable  (45)
-	variable : variable COMMA variable .  (45)
+	variable : variable . COMMA variable  (59)
+	variable : variable COMMA variable .  (59)
 
-	.  reduce 45
+	.  reduce 59
 
 
 state 111
@@ -3258,9 +3258,9 @@ state 114
 
 
 state 115
-	sexpr : LPAREN expression RPAREN .  (48)
+	sexpr : LPAREN expression RPAREN .  (44)
 
-	.  reduce 48
+	.  reduce 44
 
 
 state 116

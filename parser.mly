@@ -115,7 +115,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | applic                                             { $1 }
 
 variable :
-  | LPAREN variable RPAREN                             { $2 }
+/*| LPAREN variable RPAREN                             { $2 }    bug wtf */
   | variable COMMA variable                            { MCouple ($1,$3) }
   | VAR                                                { MNom $1 }
   | UNDERSCORE                                         { MNone }

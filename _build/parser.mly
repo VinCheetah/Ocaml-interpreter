@@ -114,12 +114,6 @@ expression:			    /* règles de grammaire pour les expressions */
   | func                                               { $1 }
   | applic                                             { $1 }
 
-variable :
-  | LPAREN variable RPAREN                             { $2 }
-  | variable COMMA variable                            { MCouple ($1,$3) }
-  | VAR                                                { MNom $1 }
-  | UNDERSCORE                                         { MNone }
-
 
 sexpr:
   | LPAREN expression RPAREN                           { $2 }
@@ -145,5 +139,11 @@ applic:
   | applic sexpr                                       { App ($1,$2) }
   | sexpr sexpr                                        { App ($1,$2) }
 
+
+variable :
+  | LPAREN variable RPAREN                             { $2 }
+  | variable COMMA variable                            { MCouple ($1,$3) }
+  | VAR                                                { MNom $1 }
+  | UNDERSCORE                                         { MNone }
 
 

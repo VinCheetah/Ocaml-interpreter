@@ -50,7 +50,7 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc E RAISE TRY WITH 
 %nonassoc INCR
 %nonassoc PRINT
-%nonassoc VAR
+%nonassoc VAR INT
 %left COMMA
 %nonassoc EXCL
 %nonassoc REC
@@ -122,13 +122,13 @@ variable :
 
 
 sexpr:
+  | LPAREN expression RPAREN                           { $2 }
   | VAR                                                { Var (MNom $1) }
   | INT                                                { Const $1 }
   | TRUE                                               { BConst true}
   | FALSE                                              { BConst false }
   | EXCL sexpr                                         { ValRef ($2) }
   | UNIT                                               { Unit }
-  | LPAREN expression RPAREN                           { $2 }
 
 func :
   | VAR corps_func                                     { $2 }

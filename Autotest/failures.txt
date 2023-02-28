@@ -1,14 +1,4 @@
-Beginner/all-arith.ml
-Beginner/all-comparison.ml
-Beginner/alter_let.ml
-Beginner/begend.ml
-Beginner/ite.ml
-Beginner/let2.ml
-Beginner/let3.ml
-Beginner/let4.ml
-Beginner/let-anonymous.ml
-Beginner/printletin.ml
-Beginner/print.ml
-Beginner/ManualOutput/let1.ml
-Beginner/ManualOutput/notype.ml
 Beginner/ShouldFail/alter_let_wrong.ml
+Intermediate/letrec_inarg.ml
+Intermediate/rec-fibo.ml
+Intermediate/ShouldFail/fun-fvar.ml

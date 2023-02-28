@@ -4,7 +4,6 @@ exception Eof
 }
 
 rule token = parse    (* la "fonction" aussi s'appelle token .. *)
-  | "\n\n"                                   { EOF } (* fin du fichier *)
   | [' ' '\t' '\n']                          { token lexbuf }    (* on saute les blancs et les tabulations *)
  	     	   	           (* token: appel récursif *)
                                    (* lexbuf: argument implicite
@@ -54,5 +53,6 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "E"                                      { E }
   | "incr"                                   { INCR }
   | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9']* as s { VAR (s) }
+  | eof                                      { EOF } (* fin du fichier *)
  
 

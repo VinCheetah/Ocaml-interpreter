@@ -115,9 +115,9 @@ and eval e env =
               | _ -> fun x -> x) (if recursif then fusion_env env env' else env'))
         | _ -> failwith "Eval : App error (fun type)"
       end
-  | Gseq (e1,e2)       -> let v1 = eval e1 env in affiche_val v1; print_newline (); eval e2 (match eval e1 env with
+  | Gseq (e1,e2)       -> eval e2 (match eval e1 env with
         | VVar l -> let rec aux env' = function
-              | (s,v) :: l' -> aux l' (modifier_env s v env')
+              | (s,v) :: l' -> aux (modifier_env s v env') l'
               | [] -> env'
             in aux env l 
         | _ -> env)

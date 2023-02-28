@@ -1,4 +1,5 @@
 open Expr
+open Types
 open Affichage
 open Options
 
@@ -35,8 +36,8 @@ let execute e =
     if !Options.tree || !Options.debug then (affiche_expr_tree e; print_newline ());
     if !Options.showsrc || !Options.debug then (affiche_expr e; print_string ";;\n");
     if not !Options.showsrc then begin
-      let v =  Expr.eval e Expr.empty_env in
-      print_string "\nout : ";affiche_val v;
+      let v =  Expr.eval e Types.empty_env in
+      print_string "\nout :\n";affiche_val v;
       print_newline()
     end
   end

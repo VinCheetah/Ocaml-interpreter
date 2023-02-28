@@ -8,6 +8,8 @@ type token =
   | MOD
   | LPAREN
   | RPAREN
+  | BEGIN
+  | END
   | EOF
   | L
   | LE
@@ -30,6 +32,7 @@ type token =
   | FUN
   | FLECHE
   | SCOLON
+  | DSCOLON
   | UNIT
   | REF
   | EXCL

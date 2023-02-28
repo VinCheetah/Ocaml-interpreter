@@ -25,17 +25,13 @@ let affiche_bool = function
   | Not -> "not "
 
 
-let get_var = function
-  | Nom s -> s
-  | None -> "'a"
+let rec get_var = function
+  | MNom s -> s
+  | MCouple (m1,m2) -> "(" ^ (get_var m1) ^ ", " ^ (get_var m2) ^ ")"
+  | MNone  -> "'a"
+  | MUnit  -> "()"
 
-
-(*let  v = print_string (get_var v)*)
-
-let  rec affiche_motif m = match m with
-  | NomM s -> print_string s
-  | NoneM -> print_string "_"
-  |Couple (m1,m2) -> print_string "("; affiche_motif m1; print_string ","; affiche_motif m2; print_string ")"
+let affiche_var v = print_string (get_var v)
 
 
 let rec affiche_expr e =
@@ -43,7 +39,7 @@ let rec affiche_expr e =
   match e with
   | Const n            -> print_int n
   | BConst b           -> print_string (if b then "true" else "false")
-  | Var x              -> affiche_motif x
+  | Var x              -> affiche_var x
   | Unit               -> print_string "()"
   | ArithOp (op,e1,e2) -> (match e1 with
             | If _ -> print_parenthese
@@ -90,9 +86,9 @@ let rec affiche_expr e =
   | PrInt (e1)         -> print_string "prInt "; (match e1 with
             | Const _  -> affiche_expr
             | _ -> print_parenthese) e1  
-  | Let (x,recursif,e1,e2)      -> print_string ("let " ^ if recursif then "rec "else "") ; affiche_motif x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2
+  | Let (x,recursif,e1)-> print_string ("let " ^ if recursif then "rec "else "") ; affiche_var x; print_string " = "; affiche_expr e1
  (* | LetRec (x,e1,e2)   -> print_string "let rec "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2*)
-  | Fun (arg,e1)       -> print_string "fun "; affiche_motif arg; print_string" -> "; affiche_expr e1 
+  | Fun (arg,e1)       -> print_string "fun "; affiche_var arg; print_string" -> "; affiche_expr e1 
   | App (e1,e2)        -> affiche_expr e1; print_string " "; (match e2 with
             | Const _
             | BConst _
@@ -104,13 +100,17 @@ let rec affiche_expr e =
 
 
 let rec affiche_val v = match v with
-  | VInt k            -> print_int k
-  | VBool b           -> print_string (if b then "true" else "false")
-  | VFun (arg,e1,_,b) -> if b then print_string "(rec) "; print_string "fun "; affiche_motif arg; print_string" -> "; affiche_expr e1 
-  | VUnit _           -> print_string "()"
-  | VRef v            -> print_string "ref : {content : "; affiche_val v; print_string "}"
-  | VExcep (n,_)      -> print_string "E "; print_int n 
-  | VTuple (v1,v2)    -> print_string "("; affiche_val v1; print_string ","; affiche_val v2; print_string ")"
+  | VInt k            -> print_string "int = "; print_int k
+  | VBool b           -> print_string "bool = "; print_string (if b then "true" else "false")
+  | VFun (arg,e1,_,b) -> print_string "<fun> = "; if b then print_string "(rec) "; affiche_var arg; print_string" -> "; affiche_expr e1 
+  | VUnit             -> print_string "unit = ()"
+  | VRef k            -> print_string "ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
+  | VVar l            -> let rec aux = function
+                            | (name,v) :: l' -> print_string ("val "^name^" : "); affiche_val v; print_newline(); aux l'
+                            | [] -> ()
+                          in aux l
+  | VTuple (v1,v2)    -> print_string "tuple = "; affiche_val v1; print_string ", "; affiche_val v2
+  | VExcep (n,b)      -> if b then print_string "[ERROR] "; print_string "exn = E "; print_int n 
                       
 
 
@@ -120,7 +120,7 @@ let rec affiche_expr_tree e =
     print_string s;
     affiche_expr_tree a;
     print_string ")"
-  and aff_aux2 s a b = 
+  and aff_aux2 s a b =  
       begin
   print_string s;
   affiche_expr_tree a;
@@ -140,8 +140,9 @@ let rec affiche_expr_tree e =
   match e with
   | Const k            -> print_int k
   | BConst b           -> print_string (if b then "true" else "false") 
-  | Var s              -> affiche_motif s
+  | Var s              -> affiche_var s
   | Unit               -> print_string "()"
+  | CoupleExpr (e1,e2) -> aff_aux2 "CoupleExpr(" e1 e2
   | ArithOp (op,e1,e2) -> begin match op with
       | Add            -> aff_aux2 "Add(" e1 e2
       | Mul            -> aff_aux2 "Mul(" e1 e2
@@ -164,17 +165,19 @@ let rec affiche_expr_tree e =
                          end
   | If (e1,e2,e3)      -> aff_aux3 "If(" e1 e2 e3
   | PrInt e1           -> aff_aux1 "prInt(" e1
-  | Let (s,b,e1,e2)    -> aff_aux3 ("Let"^(if b then "Rec(" else "(")) (Var s) e1 e2
+  | Let (s,b,e1)       -> aff_aux2 ("Let"^(if b then "Rec(" else "(")) (Var s) e1
+  | In (e1,e2)         -> aff_aux2 "In(" e1 e2
   | Fun (s,e1)         -> aff_aux2 "Fun(" (Var s) e1
   | App (e1,e2)        -> aff_aux2 "App(" e1 e2
+  | Gseq (e1,e2)       -> aff_aux2 "Gseq(" e1 e2
   | Seq (e1,e2)        -> aff_aux2 "Seq(" e1 e2
   | Ref e1             -> aff_aux1 "Ref(" e1
   | ValRef e1          -> aff_aux1 "ValRef(" e1
   | RefNew (e1,e2)     -> aff_aux2 "RefNew(" e1 e2
+  | Exn (e1)           -> aff_aux1 "Exn(" e1
   | Raise e1           -> aff_aux1 "Raise(" e1
   | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
-  | Incr e1            -> aff_aux1 "Incr" e1
-  | CoupleExpr (e1,e2) -> aff_aux2 "CoupleExpr(" e1 e2
+  | Incr e1            -> aff_aux1 "Incr(" e1
 
 
 let rec display_env env = match env with
@@ -189,7 +192,7 @@ let print_env env = print_newline (); print_string "Environnement -> " ; display
 let print_debug e = print_string ("Je suis dans " ^ (match e with
   | Const i   -> "Const " ^ (string_of_int i)
   | BConst _  -> "BConst"
-  (*| Var s     -> "Var " ^ get_var s *)
+  | Var s     -> "Var " ^ get_var s
   | Unit      -> "Unit"
   | ArithOp _ -> "ArithOp"
   | CompOp _  -> "CompOp"
@@ -199,12 +202,15 @@ let print_debug e = print_string ("Je suis dans " ^ (match e with
   | Fun _     -> "Fun"
   | App _     -> "App"
   | Let _     -> "Let"
+  | In _      -> "In"
+  | Gseq _    -> "Gseq"
   | Seq _     -> "Seq" 
   | Ref _     -> "Ref"
   | ValRef _  -> "ValRef"
   | RefNew _  -> "RefNew"
+  | Exn _     -> "Exn"
   | Raise _   -> "Raise"
   | TryWith _ -> "TryWith"
   | Incr _    -> "Incr"
-(*| _ -> "TO DO")*))
+  | _ -> "TO DO")
   ^ (if not !Options.slow then "\n" else ""))

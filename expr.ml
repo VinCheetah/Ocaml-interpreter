@@ -43,15 +43,79 @@ let bool_op_eval op a b = match op with
   | Not -> not a 
 
 
+
+
+(*
+let rec check_corps e env arg = 
+  match e with
+  | Const k            -> ()
+  | BConst b           -> ()
+  | Var cle            -> begin match cle with
+        | MNom nom when nom <> arg -> let _ = trouver_env nom env in ()
+        | _       -> ()
+          end
+  | Unit               -> ()
+  | CoupleExpr (e1,e2) -> check_corps e1 env arg; check_corps e2 env arg
+  | ArithOp (op,e1,e2) -> check_corps e1 env arg; check_corps e2 env arg
+  | CompOp (op,e1,e2)  -> check_corps e1 env arg; check_corps e2 env arg
+  | BoolOp (op,e1,e2)  -> check_corps e1 env arg; check_corps e2 env arg
+  | If (c,e1,e2)       -> check_corps c env arg ; check_corps e1 env arg; check_corps e2 env arg
+  | PrInt e1           -> check_corps e1 env arg
+  | Let (var,recursif,e1) -> check_corps e1 env arg;
+  | In (e1,e2)         -> check_corps e1 env arg; check_corps e2 (match e1 with
+        | Let (motif,recursif,e1) -> let rec aux = function
+                | MNom nom -> [nom,VUnit]
+                | MCouple (m1,m2) -> (aux m1) @ (aux m2)
+                | _ -> []
+          in env @ (aux motif)
+        | _ -> env) arg
+  | Fun (motif,e1)      -> begin match motif with 
+        | MNom arg'-> check_corps e1 (modifier_env arg VUnit env)  arg'
+        | _ -> check_corps e1 env arg
+        end
+  | App (e1,e2)        -> check_corps e1 env arg; check_corps e2 env arg
+  | Gseq (e1,e2)       -> failwith "Check Corps : Gseq error"
+  | Seq (e1,e2)        -> check_corps e1 env arg; check_corps e2 env arg
+  | Ref e1             -> check_corps e1 env arg
+  | ValRef e1          -> check_corps e1 env arg
+  | RefNew (e1,e2)     -> check_corps e1 env arg; check_corps e2 env arg
+  | Exn e1             -> check_corps e1 env arg
+  | Raise e1           -> check_corps e1 env arg
+  | TryWith (e1,e2,e3) -> check_corps e1 env arg ; check_corps e2 env arg; check_corps e3 env arg
+  | Incr e1            -> check_corps e1 env arg
+
+
+
+
+
+
+
 let rec filtre expr recursif env = function
   | MNom nom -> [nom, begin match expr with
-        | Fun (arg,e1) -> VFun (arg,e1,(modifier_env nom (VFun(arg,e1,env,recursif)) env),recursif)
+        | Fun (arg,e1) -> (match arg with 
+              | MNom nom -> check_corps e1 env nom 
+              | _ -> check_corps e1 ((if recursif then [nom,VUnit] else []) @ env) ""); VFun (arg,e1,(modifier_env nom (VFun(arg,e1,env,recursif)) env),recursif)
+        | _ -> eval expr env end]
+  | MCouple (m1,m2) -> begin match expr with
+        | CoupleExpr (e1,e2) -> filtre e1 recursif env m1 @ filtre e2 recursif env m2 
+        | _ -> failwith "motif impossible"
+        end
+  | _ -> []*)
+
+let rec filtre expr recursif env = function
+  | MNom nom -> [nom, begin match expr with
+        | Fun (arg,e1) -> VFun (arg,e1,(if recursif then modifier_env nom (VFun(arg,e1,env,recursif)) env else env),recursif)
         | _ -> eval expr env end]
   | MCouple (m1,m2) -> begin match expr with
         | CoupleExpr (e1,e2) -> filtre e1 recursif env m1 @ filtre e2 recursif env m2 
         | _ -> failwith "motif impossible"
         end
   | _ -> []
+
+
+
+
+
 
 (* évaluation à grands pas *)
 and eval e env = 
@@ -98,7 +162,7 @@ and eval e env =
         | _ -> failwith "Eval : PrInt error (arg type)"
       end 
   | Let (var,recursif,e1) -> VVar (filtre e1 recursif env var)
-  | In (e1,e2)         -> eval e2 (match eval e1 env with
+  | In (e1,e2)         -> if !Options.in_dscolon then failwith "Eval : in et ;; ne peuvent se suivre"; eval e2 (match eval e1 env with
         | VVar l -> let rec aux env' = function
               | (s,v) :: l' -> aux (modifier_env s v env') l'
               | [] -> env'
@@ -106,16 +170,15 @@ and eval e env =
         | _ -> env)
   | Fun (arg,e1)       -> VFun (arg,e1,env,false)
   | App (e1,e2)        -> begin match eval e1 env with
-        | VFun (MUnit,corps,env',recursif) -> begin match eval e2 env with
-              | VUnit -> eval corps env' 
-              | _ -> failwith "Eval : App error (arg should have type Unit)" 
-            end
-        | VFun (arg,corps,env',recursif) -> eval corps ((match arg with
-              | MNom nom -> modifier_env nom (eval e2 env)
-              | _ -> fun x -> x) (if recursif then fusion_env env env' else env'))
+        | VFun (MUnit,corps,env',recursif) -> (match eval e2 env with
+              | VUnit -> eval corps (if recursif then fusion_env env env' else env')
+              | _ -> failwith "Eval : App error (arg should have type Unit)")
+        | VFun (MNom nom,corps,env',recursif) -> eval corps (modifier_env nom (eval e2 env) (if recursif then fusion_env env env' else env'))
+        | VFun (MNone,corps,env',recursif) -> eval corps (if recursif then fusion_env env env' else env')
         | _ -> failwith "Eval : App error (fun type)"
       end
-  | Gseq (e1,e2)       -> eval e2 (match eval e1 env with
+      
+  | Gseq (e1,e2)       -> Options.in_dscolon := true; let v1 = eval e1 env in Options.in_dscolon := false; eval e2 (match v1 with
         | VVar l -> let rec aux env' = function
               | (s,v) :: l' -> aux (modifier_env s v env') l'
               | [] -> env'
@@ -165,3 +228,13 @@ and eval e env =
             end
         | _ -> failwith "Eval : Incr error (arg should have type ref)"
       end
+
+
+
+
+
+
+
+
+
+

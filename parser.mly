@@ -50,11 +50,14 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc E RAISE TRY WITH 
 %nonassoc INCR
 %nonassoc PRINT
-%nonassoc VAR INT
+%nonassoc VAR
+%nonassoc PRIOSEXPR
 %left COMMA
 %nonassoc EXCL
 %nonassoc REC
 %nonassoc LPAREN RPAREN BEGIN END
+/*%nonassoc PRIOPAREN*/
+
 
 %start main             /* "start" signale le point d'entrée: */
                         /* c'est ici main, qui est défini plus bas */
@@ -99,7 +102,6 @@ expression:			    /* règles de grammaire pour les expressions */
   | LET REC variable EQ expression                     { Let ($3,true,$5) }
   | LET variable EQ expression                         { Let ($2,false,$4) }
   | expression IN expression                           { In ($1,$3) }
-  | expression DSCOLON                                 { $1 }
   | expression DSCOLON expression                      { Gseq ($1,$3) }
   | expression SCOLON expression                       { Seq ($1,$3) }
   | expression REVAL expression                        { RefNew ($1,$3) }
@@ -115,15 +117,16 @@ expression:			    /* règles de grammaire pour les expressions */
   | applic                                             { $1 }
 
 variable :
-/*| LPAREN variable RPAREN                             { $2 }    bug wtf */
+/*| LPAREN variable RPAREN                             { $2 }*/
   | variable COMMA variable                            { MCouple ($1,$3) }
   | VAR                                                { MNom $1 }
   | UNDERSCORE                                         { MNone }
+  | UNIT                                               { MUnit }
 
 
 sexpr:
-  | LPAREN expression RPAREN                           { $2 }
-  | VAR                                                { Var (MNom $1) }
+  | LPAREN expression RPAREN     /*%prec PRIOPAREN*/   { $2 } 
+  | VAR %prec PRIOSEXPR                                { Var (MNom $1) }
   | INT                                                { Const $1 }
   | TRUE                                               { BConst true}
   | FALSE                                              { BConst false }

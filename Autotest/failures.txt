@@ -1,4 +1,1 @@
-Beginner/ShouldFail/alter_let_wrong.ml
-Intermediate/letrec_inarg.ml
-Intermediate/rec-fibo.ml
 Intermediate/ShouldFail/fun-fvar.ml

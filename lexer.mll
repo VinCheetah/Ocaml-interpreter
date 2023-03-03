@@ -52,6 +52,10 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "with"                                   { WITH }
   | "E"                                      { E }
   | "incr"                                   { INCR }
+  | "[]"                                     { EMPTYLIST }
+  | "::"                                     { CONS }
+  | "["                                      { LLIST }
+  | "]"                                      { RLIST }
   | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9']* as s { VAR (s) }
   | eof                                      { EOF } (* fin du fichier *)
  

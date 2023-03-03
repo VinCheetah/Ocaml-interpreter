@@ -53,6 +53,8 @@ type expr =
   | Raise   of expr
   | TryWith of expr*expr*expr
   | Incr    of expr
+  | EmptyList
+  | Cons    of expr*expr
 
 (* définition du type des environnements*)
 and env = (string*valeur) list
@@ -65,6 +67,7 @@ and valeur =
   | VUnit
   | VRef   of int
   | VTuple of valeur*valeur
+  | VList  of valeur list
   | VExcep of int*bool (*Le booléen permet de savoir si l'exception est levée ou juste renvoyée*)
 
 

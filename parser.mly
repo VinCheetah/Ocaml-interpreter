@@ -27,15 +27,20 @@ open Types   (* rappel: dans Types.ml:
 %token TRY WITH
 %token INCR
 %token COMMA
+%token LLIST RLIST EMPTYLIST CONS
+
 
 
 
 %right DSCOLON
-%left SCOLON
+%nonassoc SCOLONLIST
 %right LET IN
 %nonassoc IF THEN ELSE
+%nonassoc UNDER
 %left FUN
 %left FLECHE
+%nonassoc LLIST RLIST
+%right CONS
 %nonassoc UNIT REVAL
 %right OR  
 %right AND
@@ -56,6 +61,7 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc EXCL
 %nonassoc REC
 %nonassoc LPAREN RPAREN BEGIN END
+%left SCOLON
 /*%nonassoc PRIOPAREN*/
 
 
@@ -69,9 +75,17 @@ open Types   (* rappel: dans Types.ml:
 
 
 main:                       /* <- le point d'entrée (cf. + haut, "start") */
-expression EOF                          { $1 }  /* on veut reconnaître une expression */
+top_expr EOF                          { $1 }  /* on veut reconnaître une expression */
   ;
   
+top_expr : expr_seq { $1 }
+
+
+expr_seq:
+  | expression %prec UNDER{ $1 }
+  | expr_seq SCOLON expr_seq { Seq ($1,$3) }
+
+
 
 expression:			    /* règles de grammaire pour les expressions */
   | INT                                                { Const $1 }
@@ -79,8 +93,8 @@ expression:			    /* règles de grammaire pour les expressions */
   | FALSE                                              { BConst false }
   | VAR                                                { Var (MNom $1) }
   | UNIT                                               { Unit }
-  | LPAREN expression RPAREN                           { $2 }
-  | BEGIN expression END                               { $2 }
+  | LPAREN expr_seq RPAREN                           { $2 }
+  | BEGIN expr_seq END                               { $2 }
   | expression PLUS expression                         { ArithOp (Add,$1,$3) }
   | expression TIMES expression                        { ArithOp (Mul,$1,$3) }
   | expression MINUS expression                        { ArithOp (Min,$1,$3) }
@@ -97,16 +111,8 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression AND expression                          { BoolOp (And,$1,$3) }
   | NOT expression                                     { BoolOp (Not,$2, BConst true) }    /* On ajoute un troisième élément pour qu'elle s'intègre dans le type BoolOp */
   | IF expression THEN expression ELSE expression      { If ($2,$4,$6) }
-  
-/*| LET variable corps_func                            { Let ($2,false,$3) }
-  | LET REC variable corps_func                        { Let ($3,true,$4) }
-  | LET REC variable EQ expression                     { Let ($3,true,$5) }
-  | LET variable EQ expression                         { Let ($2,false,$4) }*/
-
-  | LET declaration groupe_decla expression            { Let (false,fst($2),snd($2),$3,$4) }
-  | LET REC declaration groupe_decla expression        { Let (true,fst($3),snd($3),$4,$5) }
-
-  | expression SCOLON expression                       { Seq ($1,$3) }
+  | LET declaration groupe_decla expr_seq            { Let (false,fst($2),snd($2),$3,$4) }
+  | LET REC declaration groupe_decla expr_seq        { Let (true,fst($3),snd($3),$4,$5) }
   | expression REVAL expression                        { RefNew ($1,$3) }
   | expression COMMA expression                        { CoupleExpr ($1,$3) }
   | E expression                                       { Exn $2 }
@@ -119,9 +125,14 @@ expression:			    /* règles de grammaire pour les expressions */
   | func                                               { $1 }
   | applic                                             { $1 }
 
-variable :
-/*| LPAREN variable RPAREN                             { $2 }*/
-  | variable COMMA variable                            { MCouple ($1,$3) }
+
+  | expression CONS expression                         { Cons ($1,$3) }
+  | EMPTYLIST                                          { EmptyList }
+  | LLIST liste                                        { $2 }                       
+
+motif :
+/*| LPAREN motif RPAREN                             { $2 }*/
+  | motif COMMA motif                            { MCouple ($1,$3) }
   | VAR                                                { MNom $1 }
   | UNDERSCORE                                         { MNone }
   | UNIT                                               { MUnit }
@@ -142,9 +153,9 @@ func :
 
 
 corps_func :
-  | variable corps_func                                { Fun ($1,$2) }
-  | variable EQ expression                             { Fun ($1,$3) }
-  | variable FLECHE expression                         { Fun ($1,$3) }
+  | motif corps_func                                { Fun ($1,$2) }
+  | motif EQ expr_seq                             { Fun ($1,$3) }
+  | motif FLECHE expr_seq                         { Fun ($1,$3) }
 
 
 applic:
@@ -158,5 +169,10 @@ groupe_decla:
 
 
 declaration:
-  | variable corps_func      { ($1,$2) }                    
-  | variable EQ expression   { ($1,$3) }
+  | motif corps_func      { ($1,$2) }                    
+  | motif EQ expression   { ($1,$3) }
+
+
+liste:
+  | expression SCOLON liste  { Cons ($1,$3) }
+  | expression RLIST         { Cons ($1,EmptyList) }

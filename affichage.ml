@@ -106,6 +106,7 @@ let rec affiche_val v = match v with
   | VUnit             -> print_string "unit = ()"
   | VRef k            -> print_string "ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
   | VTuple (v1,v2)    -> print_string "tuple = "; affiche_val v1; print_string ", "; affiche_val v2
+  | VList _ -> ()
   | VExcep (n,b)      -> if b then print_string "[ERROR] "; print_string "exn = E "; print_int n 
                       
 
@@ -172,6 +173,8 @@ let rec affiche_expr_tree e =
   | Raise e1           -> aff_aux1 "Raise(" e1
   | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
   | Incr e1            -> aff_aux1 "Incr(" e1
+  | Cons (e1,e2)       -> aff_aux2 "Cons(" e1 e2
+  | EmptyList          -> print_string "[]"
 
 
 let rec display_env env = match env with

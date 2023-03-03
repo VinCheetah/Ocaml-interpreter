@@ -230,7 +230,10 @@ and eval e env =
             end
         | _ -> failwith "Eval : Incr error (arg should have type ref)"
       end
-
+  | EmptyList -> VList []
+  | Cons (e1,e2) -> match eval e2 env with
+        | VList l -> VList (eval e1 env :: l)
+        | _ -> failwith "Eval : Cons error (second argument should be list)"
 
 
 

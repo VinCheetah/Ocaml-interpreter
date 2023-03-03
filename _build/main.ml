@@ -11,7 +11,7 @@ let nom_fichier = ref ""
 let recupere_entree () =
   let speclist = [("-showsrc",Arg.Set Options.showsrc,"Print an ocaml code of the input");("-debug",Arg.Set Options.debug,"Debug activated");
                   ("-slow",Arg.Set Options.slow,"Eval function works step by step");("-tree",Arg.Set Options.tree,"Tree activated");
-                  ("-trace",Arg.Set Options.trace,"Trace activated")] in 
+                  ("-trace",Arg.Set Options.trace,"Trace activated");("-warnings",Arg.Set Options.warnings,"Warnings activated")] in 
   Arg.parse speclist (fun s -> nom_fichier := s) "Bienvenue sur Fouine 1.0";
   let _ = Stdlib.Parsing.set_trace !Options.trace in
   try

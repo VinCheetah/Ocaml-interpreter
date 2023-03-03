@@ -35,7 +35,6 @@ open Types   (* rappel: dans Types.ml:
 
 %right DSCOLON
 %nonassoc SCOLONLIST
-%left SCOLON
 %nonassoc UNDER
 %right LET IN
 %nonassoc IF THEN ELSE
@@ -59,10 +58,11 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc FST SND
 %nonassoc PRINT
 %nonassoc VAR
-%nonassoc PRIOSEXPR
+%nonassoc PRIOVAR
 %left COMMA
 %nonassoc EXCL
-%nonassoc REC
+%nonassoc REC PIPE
+%left SCOLON
 %nonassoc LPAREN RPAREN BEGIN END
 /*%nonassoc PRIOPAREN*/
 
@@ -77,26 +77,26 @@ open Types   (* rappel: dans Types.ml:
 
 
 main:                       /* <- le point d'entrée (cf. + haut, "start") */
-top_expr EOF                          { $1 }  /* on veut reconnaître une expression */
+top_expr EOF                                           { $1 }  /* on veut reconnaître une expression */
   ;
   
-top_expr : expr_seq { $1 }
+top_expr : expr_seq                                    { $1 }
 
 
 expr_seq:
-  | expression %prec UNDER{ $1 }
-  | expr_seq SCOLON expr_seq { Seq ($1,$3) }
+  | expression %prec UNDER                             { $1 }
+  | expr_seq SCOLON expr_seq                           { Seq ($1,$3) }
 
 
 
 expression:			    /* règles de grammaire pour les expressions */
   | INT                                                { Const $1 }
-  | TRUE                                               { BConst true}
+  | TRUE                                               { BConst true }
   | FALSE                                              { BConst false }
   | VAR                                                { Var (MNom $1) }
   | UNIT                                               { Unit }
-  | LPAREN expr_seq RPAREN                           { $2 }
-  | BEGIN expr_seq END                               { $2 }
+  | LPAREN expr_seq RPAREN                             { $2 }
+  | BEGIN expr_seq END                                 { $2 }
   | expression PLUS expression                         { ArithOp (Add,$1,$3) }
   | expression TIMES expression                        { ArithOp (Mul,$1,$3) }
   | expression MINUS expression                        { ArithOp (Min,$1,$3) }
@@ -113,13 +113,14 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression AND expression                          { BoolOp (And,$1,$3) }
   | NOT expression                                     { BoolOp (Not,$2, BConst true) }    /* On ajoute un troisième élément pour qu'elle s'intègre dans le type BoolOp */
   | IF expression THEN expression ELSE expression      { If ($2,$4,$6) }
-  | LET declaration groupe_decla expr_seq            { Let (false,fst($2),snd($2),$3,$4) }
-  | LET REC declaration groupe_decla expr_seq        { Let (true,fst($3),snd($3),$4,$5) }
+  | LET declaration groupe_decla expr_seq              { Let (false,fst($2),snd($2),$3,$4) }
+  | LET REC declaration groupe_decla expr_seq          { Let (true,fst($3),snd($3),$4,$5) }
   | expression REVAL expression                        { RefNew ($1,$3) }
   | expression COMMA expression                        { CoupleExpr ($1,$3) }
   | E expression                                       { Exn $2 }
   | RAISE expression                                   { Raise $2 }
-  | TRY expr_seq WITH expression FLECHE expr_seq   { TryWith ($2,$4,$6) }
+  | TRY expr_seq WITH expression FLECHE expr_seq       { TryWith ($2,$4,$6) }
+  | TRY expr_seq WITH PIPE expression FLECHE expr_seq  { TryWith ($2,$5,$7) }
   | EXCL sexpr                                         { ValRef ($2) }
   | REF sexpr                                          { Ref $2 }   
   | INCR sexpr                                         { InDecr ($2,true) }
@@ -131,7 +132,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | applic                                             { $1 }
   | expression CONS expression                         { Cons ($1,$3) }
   | EMPTYLIST                                          { EmptyList }
-  | LLIST liste                                        { $2 }          
+  | LLIST liste RLIST                                  { $2 }          
   | MATCH expression WITH pattern                      { MatchWith ($2,$4) }             
 
 motif :
@@ -142,11 +143,12 @@ motif :
   | UNIT                                               { MUnit }
   | motif CONS motif                                   { MCons ($1,$3) }
   | EMPTYLIST                                          { MEmptyList }
+/*| sexpr                                              { MExpr $1 }*/
 
 
 sexpr:
-  | LPAREN expr_seq RPAREN     /*%prec PRIOPAREN*/   { $2 } 
-  | VAR %prec PRIOSEXPR                                { Var (MNom $1) }
+  | LPAREN expr_seq RPAREN       /*%prec PRIOPAREN*/   { $2 } 
+  | VAR     %prec PRIOVAR                              { Var (MNom $1) }
   | INT                                                { Const $1 }
   | TRUE                                               { BConst true}
   | FALSE                                              { BConst false }
@@ -159,9 +161,9 @@ func :
 
 
 corps_func :
-  | motif corps_func                                { Fun ($1,$2) }
-  | motif EQ expr_seq                             { Fun ($1,$3) }
-  | motif FLECHE expr_seq                         { Fun ($1,$3) }
+  | motif corps_func                                   { Fun ($1,$2) }
+  | motif EQ expr_seq                                  { Fun ($1,$3) }
+  | motif FLECHE expr_seq                              { Fun ($1,$3) }
 
 
 applic:
@@ -170,21 +172,21 @@ applic:
 
 
 groupe_decla:
-  | IN      { false }
-  | DSCOLON { true }
+  | IN                                                 { false }
+  | DSCOLON                                            { true }
 
 
 declaration:
-  | motif corps_func      { ($1,$2) }                    
-  | motif EQ expression   { ($1,$3) }
+  | motif corps_func                                   { ($1,$2) }                    
+  | motif EQ expression                                { ($1,$3) }
 
 
 liste:
-  | expression SCOLON liste  { Cons ($1,$3) }
-  | expression RLIST         { Cons ($1,EmptyList) }
+  | expression SCOLON liste                            { Cons ($1,$3) }
+  | expression                                         { Cons ($1,EmptyList) }
 
 
 pattern:
-  | PIPE pattern { $2 }
-  | motif FLECHE expr_seq PIPE pattern { ($1,$3)::$5 }
-  | motif FLECHE expr_seq { [($1,$3)] }
+  | PIPE pattern                                       { $2 }
+  | motif FLECHE expr_seq PIPE pattern                 { ($1,$3)::$5 }
+  | motif FLECHE expr_seq                              { [($1,$3)] }

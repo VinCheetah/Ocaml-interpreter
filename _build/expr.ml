@@ -84,71 +84,67 @@ let rec check_corps e env arg =
   | TryWith (e1,e2,e3) -> check_corps e1 env arg ; check_corps e2 env arg; check_corps e3 env arg
   | Incr e1            -> check_corps e1 env arg
 
+*)
 
 
-
-
-
-
-let rec filtre expr recursif env = function
-  | MNom nom -> [nom, begin match expr with
-        | Fun (arg,e1) -> (match arg with 
-              | MNom nom -> check_corps e1 env nom 
-              | _ -> check_corps e1 ((if recursif then [nom,VUnit] else []) @ env) ""); VFun (arg,e1,(modifier_env nom (VFun(arg,e1,env,recursif)) env),recursif)
-        | _ -> eval expr env end]
-  | MCouple (m1,m2) -> begin match expr with
-        | CoupleExpr (e1,e2) -> filtre e1 recursif env m1 @ filtre e2 recursif env m2 
-        | _ -> failwith "motif impossible"
-        end
-  | _ -> []*)
-
-
-let rec filtre_val v = function
+let rec filtre_val env v = function
   | MNom nom -> [nom,v]
   | MCouple (m1,m2) -> begin match v with
-        | VTuple (v1,v2) -> fusion_env (filtre_val v1 m1) (filtre_val v2 m2)
+        | VTuple (v1,v2) -> fusion_env (filtre_val env v1 m1) (filtre_val env v2 m2)
         | _ -> failwith "Filtre val : MCouple error (tuple expected)"
       end
   | MCons (m1,m2) -> begin match v with
-        | VList (v1::v2) -> fusion_env (filtre_val v1 m1) (filtre_val (VList v2) m2)
+        | VList (v1::v2) -> fusion_env (filtre_val env v1 m1) (filtre_val env (VList v2) m2)
         | _ -> failwith "Filtre val : MCons error (list expected)"
       end
   | MEmptyList -> begin match v with
         | VList [] -> []
         | _ -> failwith "Filtre val : MEmptyList error"
       end
+  | MUnit -> begin match v with
+        | VUnit -> []
+        | _ -> failwith "Filtre val : MUnit error"
+      end
+  | MExpr e1 -> if v = (eval e1 env) then [] else failwith "Filtre val : MVal error"
   | _ -> []
 
-let rec is_matching expr env motif = try true, filtre expr false env motif with _ -> false,[] 
+and is_matching expr env motif = try true, filtre expr false env motif with _ -> false,[] 
 
 
 and filtre expr recursif env motif = fusion_env env (match motif with
   | MNom nom -> [nom, begin match expr with
         | Fun (arg,e1) -> VFun (arg,e1,(if recursif then modifier_env nom (VFun(arg,e1,env,recursif)) env else env),recursif)
         | _ -> eval expr env end]
-  | MCouple (m1,m2) as m -> begin match expr with
+  | MCouple (m1,m2) -> begin match expr with
         | Var (MNom v) -> begin match trouver_env v env with 
-              | VList (_) as t -> filtre_val t m
-              | VTuple (_) as t -> filtre_val t m
+              | VTuple (_) as t -> filtre_val env t motif
               | _ -> failwith "Filtre : MCouple error (tuple expected)"
             end
         | CoupleExpr (e1,e2) -> fusion_env (filtre e1 recursif env m1) (filtre e2 recursif env m2) 
         | _ -> failwith "motif impossible"
       end
-  | MCons (m1,m2) as m -> begin match expr with
+  | MCons (m1,m2) -> begin match expr with
         | Var (MNom v) -> begin match trouver_env v env with 
-              | VList (_) as t -> filtre_val t m
-              | VTuple (_) as t -> filtre_val t m
+              | VList (_) as t -> filtre_val env t motif
               | _ -> failwith "Filtre : MCouple error (tuple expected)"
             end
         | Cons (e1,e2) -> fusion_env (filtre e1 recursif env m1) (filtre e2 recursif env m2)
         | _ -> failwith "motif impossible"
       end
   | MEmptyList -> begin match expr with
+        | Var (MNom v) -> begin match trouver_env v env with
+              | VList [] -> []
+              | _ -> failwith "motif impossible"
+            end
         | EmptyList -> []
         | _ -> failwith "motif impossible"
       end
-  | _ -> [])
+  | MUnit -> begin match eval expr env with
+        | VUnit -> []
+        | _ -> failwith "motif impossible"
+      end
+  | MExpr _ -> filtre_val env (eval expr env) motif
+  | MNone -> let _ = eval expr env in [])
 
 
 
@@ -199,21 +195,16 @@ and eval e env =
         | VInt x -> print_int x ; print_newline () ; VInt x
         | _ -> failwith "Eval : PrInt error (arg type)"
       end 
-  | Let (recursif,var,e1,global,e2) -> if not global then Options.in_dscolon := true; if global && !Options.in_dscolon then failwith "Eval : Let error (in_dscolon)" else
-                                       
+  | Let (recursif,var,e1,global,e2) -> if not global then Options.in_dscolon := true; if global && !Options.in_dscolon then failwith "Eval : Let error (in_dscolon)" else 
                                       eval e2 (filtre e1 recursif env var)
   | Fun (arg,e1)       -> VFun (arg,e1,env,false)
-  | App (e1,e2)        -> begin match eval e1 env with
-        | VFun (MUnit,corps,env',recursif) -> (match eval e2 env with
-              | VUnit -> eval corps (if recursif then fusion_env env env' else env')
-              | _ -> failwith "Eval : App error (arg should have type Unit)")
-        | VFun (MNom nom,corps,env',recursif) -> eval corps (modifier_env nom (eval e2 env) (if recursif then fusion_env env env' else env'))
-        | VFun (MNone,corps,env',recursif) -> eval corps (if recursif then fusion_env env env' else env')
+  | App (e1,e2) -> begin match eval e1 env with
+        | VFun (motif,corps,env',recursif) -> eval corps (filtre e2 false (if recursif then fusion_env env env' else env') motif)
         | _ -> failwith "Eval : App error (fun type)"
       end
   | Seq (e1,e2)        -> begin match eval e1 env with
         | VUnit -> ()
-        | _ -> print_string "[WARNING] : Seq (first expression should have type unit)" end; eval e2 env
+        | _ -> if !Options.warnings then print_string "[WARNING] : Seq (first expression should have type unit)" end; eval e2 env
   | Ref e1             -> incr next_ref ; let my_ref = !next_ref in
                           if my_ref < max_ref 
                             then (ref_memory.(my_ref) <- eval e1 env; VRef my_ref)

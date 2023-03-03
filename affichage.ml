@@ -32,8 +32,80 @@ let rec get_var = function
   | MUnit  -> "()"
   | MCons (m1,m2) ->  "(" ^ (get_var m1) ^ "::" ^ (get_var m2) ^ ")"
   | MEmptyList -> "[]"
+  | MExpr e1 -> affiche_expr_tree e1; "" 
 
-let affiche_var v = print_string (get_var v)
+and affiche_var v = print_string (get_var v)
+
+and affiche_expr_tree e =
+  let aff_aux1 s a =
+    begin
+    print_string s;
+    affiche_expr_tree a;
+    print_string ")"
+    end
+  and aff_aux2 s a b =  
+      begin
+  print_string s;
+  affiche_expr_tree a;
+  print_string ", ";
+  affiche_expr_tree b;
+  print_string ")"
+      end
+  and aff_aux3 s a b c =
+    begin
+  print_string s;
+  affiche_expr_tree a;
+  print_string ", ";
+  affiche_expr_tree b;
+  print_string ", ";
+  affiche_expr_tree c;
+  print_string ")";
+    end
+  in
+  match e with
+  | Const k            -> print_int k
+  | BConst b           -> print_string (if b then "true" else "false") 
+  | Var s              -> affiche_var s
+  | Unit               -> print_string "()"
+  | CoupleExpr (e1,e2) -> aff_aux2 "CoupleExpr(" e1 e2
+  | ArithOp (op,e1,e2) -> begin match op with
+      | Add            -> aff_aux2 "Add(" e1 e2
+      | Mul            -> aff_aux2 "Mul(" e1 e2
+      | Min            -> aff_aux2 "Min(" e1 e2
+      | Div            -> aff_aux2 "Div(" e1 e2
+      | Mod            -> aff_aux2 "Mod(" e1 e2
+                          end
+  | BoolOp (op,e1,e2)  -> begin match op with
+      | Or             -> aff_aux2 "Or(" e1 e2
+      | And            -> aff_aux2 "And(" e1 e2
+      | Not            -> aff_aux1 "Not(" e1
+                          end
+  | CompOp (op,e1,e2)  -> begin match op with
+      | G              -> aff_aux2 "G(" e1 e2
+      | Ge             -> aff_aux2 "Ge(" e1 e2
+      | L              -> aff_aux2 "L(" e1 e2
+      | Le             -> aff_aux2 "Le(" e1 e2
+      | Eq             -> aff_aux2 "Eq(" e1 e2
+      | Ne             -> aff_aux2 "Ne(" e1 e2
+                         end
+  | If (e1,e2,e3)      -> aff_aux3 "If(" e1 e2 e3
+  | PrInt e1           -> aff_aux1 "prInt(" e1
+  | Let (b1,s,e1,b2,e2)-> aff_aux3 ("Let"^(if b1 then "Rec(" else "(")) (Var s) e1 e2
+  | Fun (s,e1)         -> aff_aux2 "Fun(" (Var s) e1
+  | App (e1,e2)        -> aff_aux2 "App(" e1 e2
+  | Seq (e1,e2)        -> aff_aux2 "Seq(" e1 e2
+  | Ref e1             -> aff_aux1 "Ref(" e1
+  | ValRef e1          -> aff_aux1 "ValRef(" e1
+  | RefNew (e1,e2)     -> aff_aux2 "RefNew(" e1 e2
+  | Exn (e1)           -> aff_aux1 "Exn(" e1
+  | Raise e1           -> aff_aux1 "Raise(" e1
+  | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
+  | InDecr (e1,b)            -> aff_aux1 (if b then "Incr(" else "Decr(") e1
+  | Fsd (e1,b)            -> aff_aux1 (if b then "Fst(" else "Snd(") e1
+  | Cons (e1,e2)       -> aff_aux2 "Cons(" e1 e2
+  | EmptyList          -> print_string "[]"
+  | MatchWith (e1,l)   -> aff_aux1 "MatchWith(" e1 ; List.iter (fun (motif,expr) -> affiche_var motif ; print_string ", "; affiche_expr_tree expr) l
+
 
 
 let rec affiche_expr e =
@@ -111,74 +183,6 @@ let rec affiche_val v = match v with
   | VList _ -> ()
   | VExcep (n,b)      -> if b then print_string "[ERROR] "; print_string "exn = E "; print_int n 
                       
-
-
-
-let rec affiche_expr_tree e =
-  let aff_aux1 s a =
-    print_string s;
-    affiche_expr_tree a;
-    print_string ")"
-  and aff_aux2 s a b =  
-      begin
-  print_string s;
-  affiche_expr_tree a;
-  print_string ", ";
-  affiche_expr_tree b;
-  print_string ")"
-      end
-  and aff_aux3 s a b c =
-  print_string s;
-  affiche_expr_tree a;
-  print_string ", ";
-  affiche_expr_tree b;
-  print_string ", ";
-  affiche_expr_tree c;
-  print_string ")";
-  in
-  match e with
-  | Const k            -> print_int k
-  | BConst b           -> print_string (if b then "true" else "false") 
-  | Var s              -> affiche_var s
-  | Unit               -> print_string "()"
-  | CoupleExpr (e1,e2) -> aff_aux2 "CoupleExpr(" e1 e2
-  | ArithOp (op,e1,e2) -> begin match op with
-      | Add            -> aff_aux2 "Add(" e1 e2
-      | Mul            -> aff_aux2 "Mul(" e1 e2
-      | Min            -> aff_aux2 "Min(" e1 e2
-      | Div            -> aff_aux2 "Div(" e1 e2
-      | Mod            -> aff_aux2 "Mod(" e1 e2
-                          end
-  | BoolOp (op,e1,e2)  -> begin match op with
-      | Or             -> aff_aux2 "Or(" e1 e2
-      | And            -> aff_aux2 "And(" e1 e2
-      | Not            -> aff_aux1 "Not(" e1
-                          end
-  | CompOp (op,e1,e2)  -> begin match op with
-      | G              -> aff_aux2 "G(" e1 e2
-      | Ge             -> aff_aux2 "Ge(" e1 e2
-      | L              -> aff_aux2 "L(" e1 e2
-      | Le             -> aff_aux2 "Le(" e1 e2
-      | Eq             -> aff_aux2 "Eq(" e1 e2
-      | Ne             -> aff_aux2 "Ne(" e1 e2
-                         end
-  | If (e1,e2,e3)      -> aff_aux3 "If(" e1 e2 e3
-  | PrInt e1           -> aff_aux1 "prInt(" e1
-  | Let (b1,s,e1,b2,e2)-> aff_aux3 ("Let"^(if b1 then "Rec(" else "(")) (Var s) e1 e2
-  | Fun (s,e1)         -> aff_aux2 "Fun(" (Var s) e1
-  | App (e1,e2)        -> aff_aux2 "App(" e1 e2
-  | Seq (e1,e2)        -> aff_aux2 "Seq(" e1 e2
-  | Ref e1             -> aff_aux1 "Ref(" e1
-  | ValRef e1          -> aff_aux1 "ValRef(" e1
-  | RefNew (e1,e2)     -> aff_aux2 "RefNew(" e1 e2
-  | Exn (e1)           -> aff_aux1 "Exn(" e1
-  | Raise e1           -> aff_aux1 "Raise(" e1
-  | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
-  | InDecr (e1,b)            -> aff_aux1 (if b then "Incr(" else "Decr(") e1
-  | Fsd (e1,b)            -> aff_aux1 (if b then "Fst(" else "Snd(") e1
-  | Cons (e1,e2)       -> aff_aux2 "Cons(" e1 e2
-  | EmptyList          -> print_string "[]"
-  | MatchWith (e1,l)   -> aff_aux1 "MatchWith(" e1 ; List.iter (fun (motif,expr) -> affiche_var motif ; print_string ", "; affiche_expr_tree expr) l
 
 
 

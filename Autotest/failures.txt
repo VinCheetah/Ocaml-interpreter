@@ -1,10 +1,4 @@
-Advanced/basic-chaining.ml
-Advanced/basic-refs.ml
-Advanced/lists.ml
 Advanced/nm2.ml
-Advanced/raise.ml
-Advanced/refs-basic.ml
-Advanced/seq-basic.ml
 Advanced/tuple-arg.ml
 Advanced/tuples-arg.ml
 Advanced/tuples_fun.ml

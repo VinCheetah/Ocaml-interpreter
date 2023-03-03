@@ -21,8 +21,6 @@
 /usr/bin/ocamldep.opt -modules lexer.ml > lexer.ml.depends
 # Target: parser.mly, tags: { extension:mly, file:parser.mly, infer, ocaml, ocamlyacc, parser, quiet }
 /usr/bin/ocamlyacc -v parser.mly
-+ /usr/bin/ocamlyacc -v parser.mly
-1 shift/reduce conflict.
 # Target: parser.mli.depends, tags: { extension:mli, file:parser.mli, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep.opt -modules parser.mli > parser.mli.depends
 # Target: parser.cmi, tags: { byte, compile, extension:mli, file:parser.mli, interf, ocaml, quiet }

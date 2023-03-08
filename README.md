@@ -1,16 +1,20 @@
-# README
+# README  
 
-J'ai éssayé de compléter jusqu'à l'étape 4 du rendu 0  (je n'ai pas eu beaucoup de temps pour aller plus loin à cause du GALA qui a eu lieu vendredi et dont la mise en place et le rangement se sont étalés sur la semaine et le week-end puisque je faisais parti du comité, j'espère que vous serez compréhensif)
+## Description :
 
-Problèmes rencontrés  : 
-- Essai de synthétiser les règles dans le parser en regroupant les opérateurs  booléens cependant cela me créait de nouveaux conflits que je n'arrivais pas à esquiver j'ai donc opté pour l'écriture de chacune des règles concernants les opérateurs booléens (la structure de l'essai est en commentaire dans le fichier parser.mly )
+- Notre fouine couvre tous les points des tests débutants et intermédiaires, et nous avons pu traiter l'ajout des motifs, des couples, des listes et du pattern matching. 
+- Nous n'avons pas rencontré de bugs sur les points que nous avons traités et nous avons pu tester notre code sur les tests fournis. Nous avons globalement avancé à deux en travaillant sur les mêmes fichiers, et nous avons pu nous aider mutuellement pour résoudre les problèmes rencontrés.
+- Nous avons rajouté certaines options comme -tree qui nous affiche l'évaluation sous forme d'arbre du code par fouine. 
+- Une option -slow qui correspond à un debug étape par étape de l'évaluation.
+- L'option -trace qui permet de suivre les états de l'automate durant l'évaluation.
 
-A perfectionner faute de manque de temps : 
-- Gérer les cas de matching qui ne sont pas gérés (notamment concernant les valeurs)
-- Faire en sorte que les opérateurs && et || fonctionne (je me suis rendu compte trop tard que la version implémentée en commentaire ne convenait pas)
+## Moulinette de tests : 
+- Nous avons utilisé la moulinette de tests fournie et elle ne renvoie pas d'erreur pour les tests débutants et intermédiaires, ainsi que pour les tests avancés qui concernent les motifs, les couples, les listes et le pattern matching et ce que nous avions déjà traité. 
 
----
-## Concernant les tests : 
-- il me semble si j'ai bien compris que ce qui est attendu en question 1 et 3 en terme d'affichage est incompatible, il y a donc deux lignes qui sont en commentaires dans le fichier main.ml (<font color = "red" > ligne 30 et 31 ) </font> qu'il faut décommenter afin de pouvoir voir en sorti le code caml qui est généré par le programme, il faut ensuite les recommenter pour le test3_1.ml qui vérifie que la fonction prInt n'affiche bien que ce qu'on lui demande. 
 
-test artichaud
+
+## Améliorations possibles : 
+- Notre option -showsrc renvoie un code Caml fonctionnel mais surparenthésé, nous n'avons pas eu le temps de corriger ce problème.
+
+- Nous nous sommmes rendu compte que nous traitons nous expressions Match .. With et Try .. With de manière complètement autonome et différente alors qu'il pourrait être intéressant de les traiter de la même manière. 
+  

@@ -25,7 +25,7 @@ let affiche_bool = function
   | Not -> "not "
 
 
-let rec get_var = function
+let rec get_var = function (* Fonction d'affichage des motifs*)
   | MNom s -> s
   | MCouple (m1,m2) -> "(" ^ (get_var m1) ^ ", " ^ (get_var m2) ^ ")"
   | MNone  -> "'a"
@@ -36,7 +36,7 @@ let rec get_var = function
 
 and affiche_var v = print_string (get_var v)
 
-and affiche_expr_tree e =
+and affiche_expr_tree e = (* Fonction permettant d'afficher les expressions sous forme d'arbres*)
   let aff_aux1 s a =
     begin
     print_string s;
@@ -108,7 +108,7 @@ and affiche_expr_tree e =
 
 
 
-let rec affiche_expr e =
+let rec affiche_expr e = (* Fonction d'affichage des expressions *)
   let print_parenthese e = print_string "("; affiche_expr e ; print_string ")" in
   match e with
   | Const n            -> print_int n

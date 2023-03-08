@@ -144,6 +144,10 @@ and filtre expr recursif env motif = fusion_env env (match motif with
         | _ -> failwith "motif impossible"
       end
   | MExpr _ -> filtre_val env (eval expr env) motif
+  | MExcp motif -> begin match eval expr env with
+        | VExcep (m,false) -> filtre_val env (VInt m) motif
+        | _ -> failwith "Filtre : excep problem"
+      end
   | MNone -> let _ = eval expr env in [])
 
 
@@ -182,12 +186,7 @@ and eval e env =
       end
   | If (c,e1,e2)       -> begin 
       match eval c env with 
-        | VBool b -> (*begin
-              match eval e1 env, eval e2 env with
-                | VInt x, VInt y   -> if b then VInt x else VInt y  
-                | VBool c, VBool d -> if b then VBool c else VBool d
-                | _ -> failwith "Eval : If error (mismatch type)"
-              end*) if b then eval e1 env else eval e2 env
+        | VBool b -> if b then eval e1 env else eval e2 env
         | _ -> failwith "Eval : If error (condition type)" 
       end
   | PrInt e1           -> begin
@@ -228,7 +227,7 @@ and eval e env =
         | VExcep (k,_) -> VExcep (k,true)
         | _ -> failwith "Eval : Raise error (arg should have type exn)"
       end
-  | TryWith (e1,e2,e3) -> begin match e2 with
+(*| TryWith (e1,e2,e3) -> begin match e2 with
         | Exn arg -> begin match eval e1 env with
               | VExcep (m,true) -> begin match arg with
                     | Var var -> eval (App(Fun(var,e3),Const m)) env 
@@ -238,6 +237,15 @@ and eval e env =
               | v -> v
             end
         | _ -> failwith "Eval : TryWith error (with arg should be an exn)"
+      end*)
+  | TryWith (e1,l) -> begin match eval e1 env with
+        | VExcep (m,true) -> let rec aux = function
+              | (MExcp (MExpr (Const n)),e2) :: l'  -> if n = m then eval e2 env else aux l' 
+              | (MExcp motif,e2) :: l'-> let b,env' = is_matching (Const m) env motif in if b then eval e2 env' else aux l'
+              | []                        -> VExcep (m,true)
+              | _ -> failwith "Eval : TryWith error (case do not match an exception)"
+            in aux l 
+        | v -> v
       end
   | InDecr (e1,b)            -> begin match eval e1 env with
         | VRef k -> begin match ref_memory.(k) with

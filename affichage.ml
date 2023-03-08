@@ -26,13 +26,14 @@ let affiche_bool = function
 
 
 let rec get_var = function
-  | MNom s -> s
+  | MNom s          -> s
   | MCouple (m1,m2) -> "(" ^ (get_var m1) ^ ", " ^ (get_var m2) ^ ")"
-  | MNone  -> "'a"
-  | MUnit  -> "()"
-  | MCons (m1,m2) ->  "(" ^ (get_var m1) ^ "::" ^ (get_var m2) ^ ")"
-  | MEmptyList -> "[]"
-  | MExpr e1 -> affiche_expr_tree e1; "" 
+  | MNone           -> "'a"
+  | MUnit           -> "()"
+  | MCons (m1,m2)   ->  "(" ^ (get_var m1) ^ "::" ^ (get_var m2) ^ ")"
+  | MEmptyList      -> "[]"
+  | MExpr e1        -> affiche_expr_tree e1; "" 
+  | MExcp m1        -> "E "^(get_var m1)
 
 and affiche_var v = print_string (get_var v)
 
@@ -99,12 +100,12 @@ and affiche_expr_tree e =
   | RefNew (e1,e2)     -> aff_aux2 "RefNew(" e1 e2
   | Exn (e1)           -> aff_aux1 "Exn(" e1
   | Raise e1           -> aff_aux1 "Raise(" e1
-  | TryWith (e1,e2,e3) -> aff_aux3 "TryWith(" e1 e2 e3
-  | InDecr (e1,b)            -> aff_aux1 (if b then "Incr(" else "Decr(") e1
-  | Fsd (e1,b)            -> aff_aux1 (if b then "Fst(" else "Snd(") e1
+  | TryWith (e1,l)     -> print_string "TryWith(" ; affiche_expr_tree e1 ; List.iter (fun (motif,expr) -> print_string (", "^(get_var motif)^" -> "); affiche_expr_tree expr) l; print_string ")"
+  | InDecr (e1,b)      -> aff_aux1 (if b then "Incr(" else "Decr(") e1
+  | Fsd (e1,b)         -> aff_aux1 (if b then "Fst(" else "Snd(") e1
   | Cons (e1,e2)       -> aff_aux2 "Cons(" e1 e2
   | EmptyList          -> print_string "[]"
-  | MatchWith (e1,l)   -> aff_aux1 "MatchWith(" e1 ; List.iter (fun (motif,expr) -> affiche_var motif ; print_string ", "; affiche_expr_tree expr) l
+  | MatchWith (e1,l)   -> print_string "MatchWith("; affiche_expr_tree e1 ; List.iter (fun (motif,expr) -> print_string (", "^(get_var motif)^" -> "); affiche_expr_tree expr) l; print_string ")"
 
 
 
@@ -180,7 +181,12 @@ let rec affiche_val v = match v with
   | VUnit             -> print_string "unit = ()"
   | VRef k            -> print_string "ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
   | VTuple (v1,v2)    -> print_string "tuple = "; affiche_val v1; print_string ", "; affiche_val v2
-  | VList _ -> ()
+  | VList l           -> begin let rec aux = function
+                            | a :: b :: l' -> affiche_val a; print_string "; "; aux (b::l')
+                            | a :: l' -> affiche_val a; aux l'
+                            | [] -> print_string "]"
+                          in  print_string "["; aux l
+                          end
   | VExcep (n,b)      -> if b then print_string "[ERROR] "; print_string "exn = E "; print_int n 
                       
 
@@ -196,25 +202,25 @@ let print_env env = print_newline (); print_string "Environnement -> " ; display
 
 
 let print_debug e = print_string ("Je suis dans " ^ (match e with
-  | Const i   -> "Const " ^ (string_of_int i)
-  | BConst _  -> "BConst"
-  | Var s     -> "Var " ^ get_var s
-  | Unit      -> "Unit"
-  | ArithOp _ -> "ArithOp"
-  | CompOp _  -> "CompOp"
-  | BoolOp _  -> "BoolOp"
-  | If _      -> "If"
-  | PrInt _   -> "PrInt"
-  | Fun _     -> "Fun"
-  | App _     -> "App"
-  | Let _     -> "Let"
-  | Seq _     -> "Seq" 
-  | Ref _     -> "Ref"
-  | ValRef _  -> "ValRef"
-  | RefNew _  -> "RefNew"
-  | Exn _     -> "Exn"
-  | Raise _   -> "Raise"
-  | TryWith _ -> "TryWith"
+  | Const i     -> "Const " ^ (string_of_int i)
+  | BConst _    -> "BConst"
+  | Var s       -> "Var " ^ get_var s
+  | Unit        -> "Unit"
+  | ArithOp _   -> "ArithOp"
+  | CompOp _    -> "CompOp"
+  | BoolOp _    -> "BoolOp"
+  | If _        -> "If"
+  | PrInt _     -> "PrInt"
+  | Fun _       -> "Fun"
+  | App _       -> "App"
+  | Let _       -> "Let"
+  | Seq _       -> "Seq" 
+  | Ref _       -> "Ref"
+  | ValRef _    -> "ValRef"
+  | RefNew _    -> "RefNew"
+  | Exn _       -> "Exn"
+  | Raise _     -> "Raise"
+  | TryWith _   -> "TryWith"
   | InDecr _    -> "Incr"
   | _ -> "TO DO")
   ^ (if not !Options.slow then "\n" else ""))

@@ -57,11 +57,12 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "with"                                   { WITH }
   | "|"                                      { PIPE }
   | "prInt"                                  { PRINT }
-  | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9']* as s { VAR (s) }
   | "incr"                                   { INCR }
   | "decr"                                   { DECR }
-  | "fst"                                    { FST }
-  | "snd"                                    { SND }
+  | "function"                               { FUNCTION }
+(*| "fst"                                    { FST }
+  | "snd"                                    { SND }*)
+  | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9' ''']* as s { VAR (s) }
   | eof                                      { EOF } (* fin du fichier *)
  
 

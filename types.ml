@@ -30,6 +30,7 @@ type motif =
   | MCons      of motif*motif
   | MEmptyList 
   | MExpr      of expr
+  | MExcp      of motif
 
 
 
@@ -55,7 +56,7 @@ and expr =
   | RefNew     of expr*expr
   | Exn        of expr
   | Raise      of expr
-  | TryWith    of expr*expr*expr
+  | TryWith    of expr* (motif*expr) list
   | InDecr     of expr*bool
   | EmptyList
   | Cons       of expr*expr

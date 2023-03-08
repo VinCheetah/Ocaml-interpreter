@@ -19,7 +19,7 @@ open Types   (* rappel: dans Types.ml:
 %token TRUE FALSE
 %token AND OR NOT
 %token PRINT
-%token FUN FLECHE
+%token FUN FLECHE FUNCTION
 %token SCOLON DSCOLON
 %token UNIT REF EXCL REVAL
 %token UNDERSCORE
@@ -38,8 +38,7 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc UNDER
 %right LET IN
 %nonassoc IF THEN ELSE
-%left FUN
-%left FLECHE
+%left FUN FLECHE
 %nonassoc LLIST RLIST
 %right CONS
 %nonassoc UNIT REVAL
@@ -64,7 +63,7 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc REC PIPE
 %left SCOLON
 %nonassoc LPAREN RPAREN BEGIN END
-/*%nonassoc PRIOPAREN*/
+%nonassoc PRIOPAREN
 
 
 %start main             /* "start" signale le point d'entrée: */
@@ -113,14 +112,13 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression AND expression                          { BoolOp (And,$1,$3) }
   | NOT expression                                     { BoolOp (Not,$2, BConst true) }    /* On ajoute un troisième élément pour qu'elle s'intègre dans le type BoolOp */
   | IF expression THEN expression ELSE expression      { If ($2,$4,$6) }
-  | LET declaration groupe_decla expr_seq              { Let (false,fst($2),snd($2),$3,$4) }
-  | LET REC declaration groupe_decla expr_seq          { Let (true,fst($3),snd($3),$4,$5) }
+  | LET motif corps_func groupe_decla expr_seq         { Let (false,$2,$3,$4,$5) }
+  | LET REC motif corps_func groupe_decla expr_seq     { Let (true,$3,$4,$5,$6) }
   | expression REVAL expression                        { RefNew ($1,$3) }
   | expression COMMA expression                        { CoupleExpr ($1,$3) }
   | E expression                                       { Exn $2 }
   | RAISE expression                                   { Raise $2 }
-  | TRY expr_seq WITH expression FLECHE expr_seq       { TryWith ($2,$4,$6) }
-  | TRY expr_seq WITH PIPE expression FLECHE expr_seq  { TryWith ($2,$5,$7) }
+  | TRY expr_seq WITH pattern                          { TryWith ($2,$4) }
   | EXCL sexpr                                         { ValRef ($2) }
   | REF sexpr                                          { Ref $2 }   
   | INCR sexpr                                         { InDecr ($2,true) }
@@ -128,7 +126,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | FST sexpr                                          { Fsd ($2,true) }
   | SND sexpr                                          { Fsd ($2,false) }
   | PRINT sexpr                                        { PrInt ($2) }
-  | func                                               { $1 }
+  | FUN motif corps_func                               { Fun ($2,$3) }
   | applic                                             { $1 }
   | expression CONS expression                         { Cons ($1,$3) }
   | EMPTYLIST                                          { EmptyList }
@@ -136,34 +134,36 @@ expression:			    /* règles de grammaire pour les expressions */
   | MATCH expression WITH pattern                      { MatchWith ($2,$4) }             
 
 motif :
-/*| LPAREN motif RPAREN                             { $2 }*/
+  | LPAREN motif RPAREN                                { $2 }
   | motif COMMA motif                                  { MCouple ($1,$3) }
   | VAR                                                { MNom $1 }
   | UNDERSCORE                                         { MNone }
   | UNIT                                               { MUnit }
   | motif CONS motif                                   { MCons ($1,$3) }
   | EMPTYLIST                                          { MEmptyList }
-/*| sexpr                                              { MExpr $1 }*/
-
+  | E motif                                            { MExcp ($2) }
+  /*| INT                                                { MExpr (Const $1)}
+  | TRUE                                               { MExpr (BConst true)}                                              
+  | FALSE                                              { MExpr (BConst false)}     
+*/
 
 sexpr:
-  | LPAREN expr_seq RPAREN       /*%prec PRIOPAREN*/   { $2 } 
+  | LPAREN expr_seq RPAREN       /*%prec PRIOPAREN*/       { $2 } 
   | VAR     %prec PRIOVAR                              { Var (MNom $1) }
   | INT                                                { Const $1 }
   | TRUE                                               { BConst true}
   | FALSE                                              { BConst false }
   | EXCL sexpr                                         { ValRef ($2) }
   | UNIT                                               { Unit }
-
-func :
-  | VAR corps_func                                     { $2 }
-  | FUN corps_func                                     { $2 }
+  | LLIST liste RLIST                                  { $2 }
 
 
 corps_func :
   | motif corps_func                                   { Fun ($1,$2) }
-  | motif EQ expr_seq                                  { Fun ($1,$3) }
-  | motif FLECHE expr_seq                              { Fun ($1,$3) }
+  | EQ expr_seq                                        { $2 }
+  | FLECHE expr_seq                                    { $2 }
+  | EQ FUNCTION pattern                                { Fun (MNom "_",MatchWith(Var (MNom "_"),$3)) } /* On utilise un caractère interdit pour ne jamais avoir de conflits*/
+  | FLECHE FUNCTION pattern                            { Fun (MNom "_",MatchWith(Var (MNom "_"),$3)) } 
 
 
 applic:
@@ -174,11 +174,6 @@ applic:
 groupe_decla:
   | IN                                                 { false }
   | DSCOLON                                            { true }
-
-
-declaration:
-  | motif corps_func                                   { ($1,$2) }                    
-  | motif EQ expression                                { ($1,$3) }
 
 
 liste:

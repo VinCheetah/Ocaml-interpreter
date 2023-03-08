@@ -1,4 +1,2 @@
 Advanced/nm2.ml
-Advanced/tuple-arg.ml
-Advanced/tuples-arg.ml
 Advanced/tuples_fun.ml

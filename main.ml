@@ -11,7 +11,8 @@ let nom_fichier = ref ""
 let recupere_entree () =
   let speclist = [("-showsrc",Arg.Set Options.showsrc,"Print an ocaml code of the input");("-debug",Arg.Set Options.debug,"Debug activated");
                   ("-slow",Arg.Set Options.slow,"Eval function works step by step");("-tree",Arg.Set Options.tree,"Tree activated");
-                  ("-trace",Arg.Set Options.trace,"Trace activated");("-warnings",Arg.Set Options.warnings,"Warnings activated")] in 
+                  ("-trace",Arg.Set Options.trace,"Trace activated");("-warnings",Arg.Set Options.warnings,"Warnings activated");
+                  ("-output",Arg.Set Options.output,"Show Output")] in 
   Arg.parse speclist (fun s -> nom_fichier := s) "Bienvenue sur Fouine 1.0";
   let _ = Stdlib.Parsing.set_trace !Options.trace in
   try
@@ -36,7 +37,7 @@ let execute e =
     if !Options.tree || !Options.debug then (affiche_expr_tree e; print_newline ());
     if !Options.showsrc || !Options.debug then (affiche_expr e; print_string ";;\n");
     if not !Options.showsrc then begin
-      let _ =  Expr.eval e Types.empty_env in ()
+      let v =  Expr.eval e Types.empty_env in if !Options.output then (print_string "\nout : "; affiche_val v; print_newline ())
     end
   end
 (* la boucle principale *)

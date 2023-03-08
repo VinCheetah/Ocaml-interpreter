@@ -82,7 +82,7 @@ top_expr EOF                                           { $1 }  /* on veut reconn
 top_expr : expr_seq                                    { $1 }
 
 
-expr_seq:
+expr_seq: /* règles de grammaire pour les expressions afin de différencier les ; des listes des ; des séquences */
   | expression %prec UNDER                             { $1 }
   | expr_seq SCOLON expr_seq                           { Seq ($1,$3) }
 
@@ -126,12 +126,13 @@ expression:			    /* règles de grammaire pour les expressions */
   | FST sexpr                                          { Fsd ($2,true) }
   | SND sexpr                                          { Fsd ($2,false) }
   | PRINT sexpr                                        { PrInt ($2) }
-  | FUN motif corps_func                               { Fun ($2,$3) }
+  | FUN motif corps_func                               { Fun ($2,$3) }                        
   | applic                                             { $1 }
   | expression CONS expression                         { Cons ($1,$3) }
   | EMPTYLIST                                          { EmptyList }
   | LLIST liste RLIST                                  { $2 }          
   | MATCH expression WITH pattern                      { MatchWith ($2,$4) }             
+
 
 motif :
   | LPAREN motif RPAREN                                { $2 }
@@ -147,8 +148,9 @@ motif :
   | FALSE                                              { MExpr (BConst false)}     
 */
 
-sexpr:
-  | LPAREN expr_seq RPAREN       /*%prec PRIOPAREN*/       { $2 } 
+
+sexpr: /* règles de grammaire pour les suites d'expressions */
+  | LPAREN expr_seq RPAREN       /*%prec PRIOPAREN*/   { $2 } 
   | VAR     %prec PRIOVAR                              { Var (MNom $1) }
   | INT                                                { Const $1 }
   | TRUE                                               { BConst true}
@@ -166,7 +168,7 @@ corps_func :
   | FLECHE FUNCTION pattern                            { Fun (MNom "_",MatchWith(Var (MNom "_"),$3)) } 
 
 
-applic:
+applic: /* règles de grammaire pour les applications */
   | applic sexpr                                       { App ($1,$2) }
   | sexpr sexpr                                        { App ($1,$2) }
 
@@ -176,12 +178,12 @@ groupe_decla:
   | DSCOLON                                            { true }
 
 
-liste:
+liste: /* règles de grammaire pour les listes */  
   | expression SCOLON liste                            { Cons ($1,$3) }
   | expression                                         { Cons ($1,EmptyList) }
 
 
-pattern:
+pattern: /* règles de grammaire pour les pattern matching */
   | PIPE pattern                                       { $2 }
   | motif FLECHE expr_seq PIPE pattern                 { ($1,$3)::$5 }
   | motif FLECHE expr_seq                              { [($1,$3)] }

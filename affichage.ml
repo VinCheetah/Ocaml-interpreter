@@ -88,7 +88,7 @@ and affiche_expr_tree e = (* Fonction permettant d'afficher les expressions sous
       | Le             -> aff_aux2 "Le(" e1 e2
       | Eq             -> aff_aux2 "Eq(" e1 e2
       | Ne             -> aff_aux2 "Ne(" e1 e2
-                         end
+                          end
   | If (e1,e2,e3)      -> aff_aux3 "If(" e1 e2 e3
   | PrInt e1           -> aff_aux1 "prInt(" e1
   | Let (b1,s,e1,b2,e2)-> aff_aux3 ("Let"^(if b1 then "Rec(" else "(")) (Var s) e1 e2

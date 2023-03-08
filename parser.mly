@@ -137,10 +137,10 @@ motif :
   | motif CONS motif                                   { MCons ($1,$3) }
   | EMPTYLIST                                          { MEmptyList }
   | E motif                                            { MExcp ($2) }
-/*| INT                                                { MExpr (Const $1)}
+  | INT                                                { MExpr (Const $1)}
   | TRUE                                               { MExpr (BConst true)}                                              
   | FALSE                                              { MExpr (BConst false)}     
-*/
+
 
 
 sexpr: /* règles de grammaire pour les suites d'expressions */

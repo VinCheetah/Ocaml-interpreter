@@ -15,6 +15,7 @@ let rec trouver_env nom env = match env with
   | [] -> failwith ("Trouver_env : Variable absente : " ^ nom) 
 
 
+(* Effectue la fusion de deux environnements, si une variable est commune au deux alors celle de l'environnement ancien est écrasée *)
 let rec fusion_env env_anc = function
   | (cle,valeur) :: env_act' -> fusion_env (modifier_env cle valeur env_anc) env_act'
   | [] -> env_anc
@@ -65,7 +66,9 @@ let rec filtre_val env v = function (* Fonction qui permet de filtrer les motifs
   | MExpr e1 -> if v = (eval e1 env) then [] else failwith "Filtre val : MVal error"
   | _ -> []
 
-and is_matching expr env motif = try true, filtre expr false env motif with _ -> false,[]  (* Fonction qui permet de regarder si une expression correspond à un cas de matching *)
+
+  (* Fonction qui permet de regarder si une expression correspond à un cas de matching *)
+and is_matching expr env motif = try true, filtre expr false env motif with _ -> false,[]  
 
 
 and filtre expr recursif env motif = fusion_env env (match motif with
@@ -97,6 +100,10 @@ and filtre expr recursif env motif = fusion_env env (match motif with
         | _ -> failwith "motif impossible"
       end
   | MUnit -> begin match eval expr env with
+        | Var (MNom v) -> begin match trouver_env v env with 
+              | VUnit -> []
+              | _ -> failwith "Filtre : MCouple error (tuple expected)"
+            end
         | VUnit -> []
         | _ -> failwith "motif impossible"
       end
@@ -152,7 +159,7 @@ and eval e env =
         | _ -> failwith "Eval : PrInt error (arg type)"
       end 
   | Let (recursif,var,e1,global,e2) -> if not global then Options.in_dscolon := true; if global && !Options.in_dscolon then failwith "Eval : Let error (in_dscolon)" else 
-                                      eval e2 (filtre e1 recursif env var) (* Evaluation des expressions du type let, elle prend un booléen récursif pour savoir si la fonction définie est récursive, et un argument booléen global pour savoir si on définit avec des ;; ou avec un in*)
+                                       eval e2 (filtre e1 recursif env var) 
   | Fun (arg,e1)       -> VFun (arg,e1,env,false)
   | App (e1,e2) -> begin match eval e1 env with (* Traitement de l'application d'une expressions à une autre*)
         | VFun (motif,corps,env',recursif) -> eval corps (filtre e2 false (if recursif then fusion_env env env' else env') motif)
@@ -184,7 +191,7 @@ and eval e env =
         | VExcep (k,_) -> VExcep (k,true)
         | _ -> failwith "Eval : Raise error (arg should have type exn)"
       end
-  | TryWith (e1,l) -> begin match eval e1 env with
+  | TryWith (e1,l)     -> begin match eval e1 env with
         | VExcep (m,true) -> let rec aux = function
               | (MExcp (MExpr (Const n)),e2) :: l'  -> if n = m then eval e2 env else aux l' 
               | (MExcp motif,e2) :: l'-> let b,env' = is_matching (Const m) env motif in if b then eval e2 env' else aux l'
@@ -193,7 +200,7 @@ and eval e env =
             in aux l 
         | v -> v
       end
-  | InDecr (e1,b)            -> begin match eval e1 env with (* Evaluation des expressions du type incr et decr sur des références*)
+  | InDecr (e1,b)      -> begin match eval e1 env with (* Evaluation des expressions du type incr et decr sur des références*)
         | VRef k -> begin match ref_memory.(k) with
               | VInt n -> ref_memory.(k) <- VInt (n + if b then 1 else -1); VUnit
               | _ -> failwith "Eval : Incr error (ref should have type int)" 
@@ -204,12 +211,12 @@ and eval e env =
         | VTuple (v1,v2) -> if b then v1 else v2
         | _ -> failwith "Eval : Fsd error (expected tuple)"
       end*)
-  | EmptyList -> VList []
-  | Cons (e1,e2) -> begin match eval e2 env with (* Evaluations des expressions du type expr::expr au sein d'une liste*)
+  | EmptyList          -> VList []
+  | Cons (e1,e2)       -> begin match eval e2 env with (* Evaluations des expressions du type expr::expr au sein d'une liste*)
         | VList l -> VList (eval e1 env :: l)
         | _ -> failwith "Eval : Cons error (second argument should be list)"
       end
-  | MatchWith (e1,l) -> let rec aux = function (* Evaluation des expressions contennant un match with *)
+  | MatchWith (e1,l)   -> let rec aux = function (* Evaluation des expressions contennant un match with *)
         | (motif,e2) :: l' -> let b,env' = is_matching e1 env motif in if b then eval e2 env' else aux l'
         | [] -> failwith "Eval : Match failure"
       in aux l 

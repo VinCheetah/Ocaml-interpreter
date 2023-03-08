@@ -44,49 +44,6 @@ let bool_op_eval op a b = match op with
 
 
 
-
-(*  
-let rec check_corps e env arg = 
-  match e with
-  | Const k            -> ()
-  | BConst b           -> ()
-  | Var cle            -> begin match cle with
-        | MNom nom when nom <> arg -> let _ = trouver_env nom env in ()
-        | _       -> ()
-          end
-  | Unit               -> ()
-  | CoupleExpr (e1,e2) -> check_corps e1 env arg; check_corps e2 env arg
-  | ArithOp (op,e1,e2) -> check_corps e1 env arg; check_corps e2 env arg
-  | CompOp (op,e1,e2)  -> check_corps e1 env arg; check_corps e2 env arg
-  | BoolOp (op,e1,e2)  -> check_corps e1 env arg; check_corps e2 env arg
-  | If (c,e1,e2)       -> check_corps c env arg ; check_corps e1 env arg; check_corps e2 env arg
-  | PrInt e1           -> check_corps e1 env arg
-  | Let (var,recursif,e1) -> check_corps e1 env arg;
-  | In (e1,e2)         -> check_corps e1 env arg; check_corps e2 (match e1 with
-        | Let (motif,recursif,e1) -> let rec aux = function
-                | MNom nom -> [nom,VUnit]
-                | MCouple (m1,m2) -> (aux m1) @ (aux m2)
-                | _ -> []
-          in env @ (aux motif)
-        | _ -> env) arg
-  | Fun (motif,e1)      -> begin match motif with 
-        | MNom arg'-> check_corps e1 (modifier_env arg VUnit env)  arg'
-        | _ -> check_corps e1 env arg
-        end
-  | App (e1,e2)        -> check_corps e1 env arg; check_corps e2 env arg
-  | Gseq (e1,e2)       -> failwith "Check Corps : Gseq error"
-  | Seq (e1,e2)        -> check_corps e1 env arg; check_corps e2 env arg
-  | Ref e1             -> check_corps e1 env arg
-  | ValRef e1          -> check_corps e1 env arg
-  | RefNew (e1,e2)     -> check_corps e1 env arg; check_corps e2 env arg
-  | Exn e1             -> check_corps e1 env arg
-  | Raise e1           -> check_corps e1 env arg
-  | TryWith (e1,e2,e3) -> check_corps e1 env arg ; check_corps e2 env arg; check_corps e3 env arg
-  | Incr e1            -> check_corps e1 env arg
-
-*)
-
-
 let rec filtre_val env v = function (* Fonction qui permet de filtrer les motifs et de renvoyer un environnement modifié*)
   | MNom nom -> [nom,v]
   | MCouple (m1,m2) -> begin match v with
@@ -243,10 +200,10 @@ and eval e env =
             end
         | _ -> failwith "Eval : Incr error (arg should have type ref)"
       end
-  | Fsd (e1,b) -> begin match eval e1 env with   (* Evaluation des expressions du type fst couple / snd couple*)
+(*| Fsd (e1,b) -> begin match eval e1 env with   (* Evaluation des expressions du type fst couple / snd couple*)
         | VTuple (v1,v2) -> if b then v1 else v2
         | _ -> failwith "Eval : Fsd error (expected tuple)"
-      end
+      end*)
   | EmptyList -> VList []
   | Cons (e1,e2) -> begin match eval e2 env with (* Evaluations des expressions du type expr::expr au sein d'une liste*)
         | VList l -> VList (eval e1 env :: l)

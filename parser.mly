@@ -26,7 +26,6 @@ open Types   (* rappel: dans Types.ml:
 %token E RAISE
 %token TRY MATCH WITH PIPE
 %token INCR DECR
-%token FST SND
 %token COMMA
 %token LLIST RLIST EMPTYLIST CONS
 
@@ -54,16 +53,13 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc REF
 %nonassoc E RAISE TRY WITH 
 %nonassoc INCR DECR
-%nonassoc FST SND
 %nonassoc PRINT
 %nonassoc VAR
-%nonassoc PRIOVAR
 %left COMMA
-%nonassoc EXCL
+%right EXCL
 %nonassoc REC PIPE
 %left SCOLON
 %nonassoc LPAREN RPAREN BEGIN END
-%nonassoc PRIOPAREN
 
 
 %start main             /* "start" signale le point d'entrée: */
@@ -123,8 +119,6 @@ expression:			    /* règles de grammaire pour les expressions */
   | REF sexpr                                          { Ref $2 }   
   | INCR sexpr                                         { InDecr ($2,true) }
   | DECR sexpr                                         { InDecr ($2,false) }
-  | FST sexpr                                          { Fsd ($2,true) }
-  | SND sexpr                                          { Fsd ($2,false) }
   | PRINT sexpr                                        { PrInt ($2) }
   | FUN motif corps_func                               { Fun ($2,$3) }                        
   | applic                                             { $1 }
@@ -143,21 +137,22 @@ motif :
   | motif CONS motif                                   { MCons ($1,$3) }
   | EMPTYLIST                                          { MEmptyList }
   | E motif                                            { MExcp ($2) }
-  /*| INT                                                { MExpr (Const $1)}
+/*| INT                                                { MExpr (Const $1)}
   | TRUE                                               { MExpr (BConst true)}                                              
   | FALSE                                              { MExpr (BConst false)}     
 */
 
 
 sexpr: /* règles de grammaire pour les suites d'expressions */
-  | LPAREN expr_seq RPAREN       /*%prec PRIOPAREN*/   { $2 } 
-  | VAR     %prec PRIOVAR                              { Var (MNom $1) }
+  | LPAREN expr_seq RPAREN                             { $2 } 
+  | VAR                                                { Var (MNom $1) }
   | INT                                                { Const $1 }
   | TRUE                                               { BConst true}
   | FALSE                                              { BConst false }
   | EXCL sexpr                                         { ValRef ($2) }
   | UNIT                                               { Unit }
   | LLIST liste RLIST                                  { $2 }
+  | EMPTYLIST                                          { EmptyList }
 
 
 corps_func :

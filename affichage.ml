@@ -26,9 +26,9 @@ let affiche_bool = function
 
 
 let rec get_var = function (* Fonction d'affichage des motifs*)
-  | MNom s -> s
+  | MNom s -> if s = "_" then "zdaudziojdoqjzijdoqidzqdqiodjqdjiqzdj" else s (* nom de variable peu utilisé :) *)
   | MCouple (m1,m2) -> "(" ^ (get_var m1) ^ ", " ^ (get_var m2) ^ ")"
-  | MNone           -> "'a"
+  | MNone           -> "_"
   | MUnit           -> "()"
   | MCons (m1,m2)   ->  "(" ^ (get_var m1) ^ "::" ^ (get_var m2) ^ ")"
   | MEmptyList      -> "[]"
@@ -102,7 +102,6 @@ and affiche_expr_tree e = (* Fonction permettant d'afficher les expressions sous
   | Raise e1           -> aff_aux1 "Raise(" e1
   | TryWith (e1,l)     -> print_string "TryWith(" ; affiche_expr_tree e1 ; List.iter (fun (motif,expr) -> print_string (", "^(get_var motif)^" -> "); affiche_expr_tree expr) l; print_string ")"
   | InDecr (e1,b)      -> aff_aux1 (if b then "Incr(" else "Decr(") e1
-  | Fsd (e1,b)         -> aff_aux1 (if b then "Fst(" else "Snd(") e1
   | Cons (e1,e2)       -> aff_aux2 "Cons(" e1 e2
   | EmptyList          -> print_string "[]"
   | MatchWith (e1,l)   -> print_string "MatchWith("; affiche_expr_tree e1 ; List.iter (fun (motif,expr) -> print_string (", "^(get_var motif)^" -> "); affiche_expr_tree expr) l; print_string ")"
@@ -161,7 +160,7 @@ let rec affiche_expr e = (* Fonction d'affichage des expressions *)
   | PrInt (e1)         -> print_string "prInt "; (match e1 with
             | Const _  -> affiche_expr
             | _ -> print_parenthese) e1  
-  | Let (recursif,x,e1,b,e2)-> print_string ("let " ^ if recursif then "rec "else "") ; affiche_var x; print_string " = "; affiche_expr e1
+  | Let (recursif,x,e1,b,e2)-> print_string ("let " ^ if recursif then "rec "else "") ; affiche_var x; print_string " = "; affiche_expr e1; print_string (if not b then " in " else ";;\n"); print_parenthese e2
  (* | LetRec (x,e1,e2)   -> print_string "let rec "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2*)
   | Fun (arg,e1)       -> print_string "fun "; affiche_var arg; print_string" -> "; affiche_expr e1 
   | App (e1,e2)        -> affiche_expr e1; print_string " "; (match e2 with
@@ -169,15 +168,25 @@ let rec affiche_expr e = (* Fonction d'affichage des expressions *)
             | BConst _
             | Var _ -> affiche_expr
             | _ -> print_parenthese) e2
-  | Seq (e1,e2)        -> affiche_expr e1; print_string ";\n"; affiche_expr e2
+  | Seq (e1,e2)        ->print_parenthese ( e1); print_string ";\n";print_parenthese ( e2)
+  | Ref e1 -> print_string "ref "; print_parenthese ( e1) 
+  | ValRef e1 -> print_string "!"; print_parenthese ( e1)
+  | RefNew (e1,e2) -> affiche_expr e1; print_string " := "; print_parenthese ( e2)
+  | Exn e1 -> print_string "E "; print_parenthese ( e1)
+  | Raise e1 -> print_string "raise "; print_parenthese ( e1) 
+  | TryWith (e1,l) -> print_string "try " ; affiche_expr e1 ; print_string " with\n"; List.iter (fun (motif,expr) -> print_string ("| "^(get_var motif)^" -> "); affiche_expr expr; print_newline ()) l
+  | InDecr (e1,b) -> print_string (if b then "incr " else "decr "); print_parenthese ( e1)  
+  | EmptyList  -> print_string "[]"
+  | Cons (e1,e2) -> print_parenthese ( e1); print_string " :: "; print_parenthese ( e2)
+  | MatchWith (e1,l) -> print_string "match " ; affiche_expr e1 ; print_string " with\n"; List.iter (fun (motif,expr) -> print_string ("| "^(get_var motif)^" -> "); affiche_expr expr; print_newline ()) l
+  | CoupleExpr (e1,e2) -> print_string "("; print_parenthese e1; print_string ", "; print_parenthese e2; print_string ")"
 
-  | _ -> print_string "later"
-
+let affiche_expr_final e = print_string "exception E of int;;\nlet prInt x = print_int x; print_newline ();x;;\n"; affiche_expr e
 
 let rec affiche_val v = match v with
   | VInt k            -> print_string "int = "; print_int k
   | VBool b           -> print_string "bool = "; print_string (if b then "true" else "false")
-  | VFun (arg,e1,_,b) -> print_string "<fun> = "; if b then print_string "(rec) "; affiche_var arg; print_string" -> "; affiche_expr e1 
+  | VFun (arg,e1,e,b) -> print_string "<fun> = "; if b then print_string "(rec) "; affiche_var arg; print_string "\nMon env : "; display_env e; print_string" -> "; affiche_expr e1
   | VUnit             -> print_string "unit = ()"
   | VRef k            -> print_string "ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
   | VTuple (v1,v2)    -> print_string "tuple = "; affiche_val v1; print_string ", "; affiche_val v2
@@ -192,7 +201,7 @@ let rec affiche_val v = match v with
 
 
 
-let rec display_env env = match env with
+and display_env env = match env with
   | (cle,valeur) :: env' -> display_env env'; print_string cle; print_string " : "; affiche_val valeur; print_string "   /   "
   | [] -> ()
 

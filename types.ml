@@ -41,7 +41,7 @@ and expr =
   | Var        of motif
   | Unit
   | CoupleExpr of expr*expr
-  | Fsd        of expr*bool
+(*| Fsd        of expr*bool*)
   | ArithOp    of arith_op*expr*expr
   | CompOp     of comp_op*expr*expr
   | BoolOp     of bool_op*expr*expr

@@ -1,5 +1,5 @@
 let r = ref 3 in
-let f g x =
+let f g x = prInt 100;
   let res = g x in
   r:= x;
   res

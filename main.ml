@@ -35,10 +35,8 @@ let _ = Stdlib.Parsing.set_trace !trace
 let execute e =
   begin
     if !Options.tree || !Options.debug then (affiche_expr_tree e; print_newline ());
-    if !Options.showsrc || !Options.debug then (affiche_expr e; print_string ";;\n");
-    if not !Options.showsrc then begin
-      let v =  Expr.eval e Types.empty_env in if !Options.output then (print_string "\nout : "; affiche_val v; print_newline ())
-    end
+    if !Options.showsrc || !Options.debug then (affiche_expr_final e; print_string ";;\n");
+    let v =  Expr.eval e Types.empty_env in if !Options.output then (print_string "\nout : "; affiche_val v; print_newline ())
   end
 (* la boucle principale *)
 let calc () =

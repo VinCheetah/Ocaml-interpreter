@@ -62,7 +62,7 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "function"                               { FUNCTION }
 (*| "fst"                                    { FST }
   | "snd"                                    { SND }*)
-  | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9' ''']* as s { VAR (s) }
+  | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9' ''' '_']* as s { VAR (s) }
   | eof                                      { EOF } (* fin du fichier *)
  
 

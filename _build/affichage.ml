@@ -186,7 +186,7 @@ let affiche_expr_final e = print_string "exception E of int;;\nlet prInt x = pri
 let rec affiche_val v = match v with
   | VInt k            -> print_string "int = "; print_int k
   | VBool b           -> print_string "bool = "; print_string (if b then "true" else "false")
-  | VFun (arg,e1,e,b) -> print_string "<fun> = "; if b then print_string "(rec) "; affiche_var arg; print_string "\nMon env : "; display_env e; print_string" -> "; affiche_expr e1
+  | VFun (arg,e1,e,b) -> print_string "<fun> = "; if b then print_string "(rec) "; affiche_var arg; print_string " / Mon env : "; display_env e; print_string" / Corps : "; affiche_expr e1
   | VUnit             -> print_string "unit = ()"
   | VRef k            -> print_string "ref = {contents = "; affiche_val ref_memory.(k); print_string "}"
   | VTuple (v1,v2)    -> print_string "tuple = "; affiche_val v1; print_string ", "; affiche_val v2

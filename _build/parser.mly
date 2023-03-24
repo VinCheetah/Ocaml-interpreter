@@ -40,7 +40,8 @@ open Types   (* rappel: dans Types.ml:
 %left FUN FLECHE
 %nonassoc LLIST RLIST
 %right CONS
-%nonassoc UNIT REVAL
+%nonassoc UNIT
+%right REVAL
 %right OR  
 %right AND
 %nonassoc L LE G GE NE EQ
@@ -48,14 +49,14 @@ open Types   (* rappel: dans Types.ml:
 %nonassoc MOD
 %left PLUS MINUS  /* associativité gauche: a+b+c, c'est (a+b)+c */
 %left TIMES DIV /* associativité gauche: a*b*c, c'est (a*b)*c */
-%nonassoc UMINUS  /* un "faux token", correspondant au "-" unaire */
-                  /* cf. son usage plus bas : il sert à "marquer" une règle pour lui donner la précédence maximale */
-%nonassoc REF
+%right REF
 %nonassoc E RAISE TRY WITH 
 %nonassoc INCR DECR
 %nonassoc PRINT
 %nonassoc VAR
 %left COMMA
+%nonassoc UMINUS  /* un "faux token", correspondant au "-" unaire */
+                  /* cf. son usage plus bas : il sert à "marquer" une règle pour lui donner la précédence maximale */
 %right EXCL
 %nonassoc REC PIPE
 %left SCOLON

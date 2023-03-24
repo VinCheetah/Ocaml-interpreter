@@ -1002,33 +1002,7 @@ state 32
 	expression : expression . COMMA expression  (31)
 	expression : expression . CONS expression  (42)
 
-	COMMA  shift 85
-	PLUS  reduce 17
-	TIMES  reduce 17
-	MINUS  reduce 17
-	DIV  reduce 17
-	MOD  reduce 17
-	RPAREN  reduce 17
-	END  reduce 17
-	EOF  reduce 17
-	L  reduce 17
-	LE  reduce 17
-	G  reduce 17
-	GE  reduce 17
-	NE  reduce 17
-	EQ  reduce 17
-	THEN  reduce 17
-	ELSE  reduce 17
-	IN  reduce 17
-	AND  reduce 17
-	OR  reduce 17
-	SCOLON  reduce 17
-	DSCOLON  reduce 17
-	REVAL  reduce 17
-	WITH  reduce 17
-	PIPE  reduce 17
-	RLIST  reduce 17
-	CONS  reduce 17
+	.  reduce 17
 
 
 state 33
@@ -3282,6 +3256,7 @@ state 123
 	EQ  shift 81
 	AND  shift 82
 	OR  shift 83
+	REVAL  shift 84
 	COMMA  shift 85
 	RPAREN  reduce 30
 	END  reduce 30

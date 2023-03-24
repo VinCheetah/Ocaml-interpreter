@@ -11,6 +11,7 @@ let rec modifier_env cle valeur = function
 
 (* permet de récupérer la valeur d'une variable dans un environnement*)
 let rec trouver_env nom env = match env with
+  | (cle,(VFun(arg,corps,fun_env,true) as f_rec)) :: _ when cle = nom -> VFun (arg,corps,modifier_env cle f_rec fun_env,true)
   | (cle,valeur) :: env' -> if nom = cle then valeur else  trouver_env nom env'
   | [] -> failwith ("Trouver_env : Variable absente : " ^ nom) 
 
@@ -45,7 +46,7 @@ let bool_op_eval op a b = match op with
 
 
 
-let rec filtre_val env v = function (* Fonction qui permet de filtrer les motifs et de renvoyer un environnement modifié*)
+let rec filtre_val env v motif = fusion_env env (match motif with (* Fonction qui permet de filtrer les motifs et de renvoyer un environnement modifié*)
   | MNom nom -> [nom,v]
   | MCouple (m1,m2) -> begin match v with
         | VTuple (v1,v2) -> fusion_env (filtre_val env v1 m1) (filtre_val env v2 m2)
@@ -64,7 +65,7 @@ let rec filtre_val env v = function (* Fonction qui permet de filtrer les motifs
         | _ -> failwith "Filtre val : MUnit error"
       end
   | MExpr e1 -> if v = (eval e1 env) then [] else failwith "Filtre val : MVal error"
-  | _ -> []
+  | _ -> [])
 
 
   (* Fonction qui permet de regarder si une expression correspond à un cas de matching *)
@@ -73,7 +74,7 @@ and is_matching expr env motif = try true, filtre expr false env motif with _ ->
 
 and filtre expr recursif env motif = fusion_env env (match motif with
   | MNom nom -> [nom, begin match expr with
-        | Fun (arg,e1) -> VFun (arg,e1,(if recursif then modifier_env nom (VFun(arg,e1,env,recursif)) env else env),recursif)
+        | Fun (arg,e1) -> VFun (arg,e1,env,recursif)
         | _ -> eval expr env end]
   | MCouple (m1,m2) -> begin match expr with
         | Var (MNom v) -> begin match trouver_env v env with 
@@ -129,19 +130,19 @@ and eval e env =
   | Unit               -> VUnit
   | CoupleExpr (e1,e2) -> VTuple (eval e1 env, eval e2 env) (* Traitement des couples *)
   | ArithOp (op,e1,e2) -> begin 
-      match eval e1 env, eval e2 env with
-        | VInt x, VInt y -> VInt (arith_op_eval op x y)
+      match eval e2 env, eval e1 env with
+        | VInt y, VInt x -> VInt (arith_op_eval op x y)
         | _ -> failwith "Eval : Arith error (mismatch type)"
       end
   | CompOp (op,e1,e2)  -> begin
-      match eval e1 env, eval e2 env with
-        | VInt x, VInt y -> VBool (comp_op_eval op x y) 
-        | VBool a, VBool b -> VBool (comp_op_eval op a b)
+      match eval e2 env, eval e1 env with
+        | VInt y, VInt x -> VBool (comp_op_eval op x y) 
+        | VBool b, VBool a -> VBool (comp_op_eval op a b)
         | _ -> failwith "Eval : Comp error (mismatch type)"
       end
   | BoolOp (op,e1,e2)  -> begin
-      match eval e1 env, eval e2 env with
-        | VBool a, VBool b -> VBool (bool_op_eval op a b)
+      match eval e2 env, eval e1 env with
+        | VBool b, VBool a -> VBool (bool_op_eval op a b)
         | _ -> failwith "Eval : BoolOp (mismatch type)"
       end
   | If (c,e1,e2)       -> begin (* Traitement des expressions if expr then expr else expr*)
@@ -157,8 +158,8 @@ and eval e env =
   | Let (recursif,var,e1,global,e2) -> if not global then Options.in_dscolon := true; if global && !Options.in_dscolon then failwith "Eval : Let error (in_dscolon)" else 
                                        eval e2 (filtre e1 recursif env var) 
   | Fun (arg,e1)       -> VFun (arg,e1,env,false)
-  | App (e1,e2) -> begin match eval e1 env with (* Traitement de l'application d'une expressions à une autre*)
-        | VFun (motif,corps,env',recursif) -> eval corps (filtre e2 false (if recursif then fusion_env env env' else env') motif)
+  | App (e1,e2) -> let arg = eval e2 env in  begin match eval e1 env with (* Traitement de l'application d'une expressions à une autre*)
+        | VFun (motif,corps,fun_env,recursif) -> eval corps (filtre_val fun_env arg motif)
         | _ -> failwith "Eval : App error (fun type)"
       end
   | Seq (e1,e2)        -> begin match eval e1 env with (* Evaluation des séquences d'expressions*)
@@ -172,11 +173,8 @@ and eval e env =
         | VRef k -> ref_memory.(k)
         | _ -> failwith "Eval : ValRef error (arg should have type ref)"
       end
-  | RefNew (e1,e2)     -> begin match e1 with
-        | Var (MNom s) -> begin match trouver_env s env with 
-              | VRef k -> ref_memory.(k) <- eval e2 env; VUnit
-              | _ -> failwith "Eval : RefNew error (should have type ref)"
-            end
+  | RefNew (e1,e2)     -> begin match eval e1 env with
+        | VRef k -> ref_memory.(k) <- eval e2 env; VUnit
         | _ -> failwith "Eval : RefNew error (should have type var)"
       end
   | Exn e1             -> begin match eval e1 env with
@@ -203,10 +201,6 @@ and eval e env =
             end
         | _ -> failwith "Eval : Incr error (arg should have type ref)"
       end
-(*| Fsd (e1,b) -> begin match eval e1 env with   (* Evaluation des expressions du type fst couple / snd couple*)
-        | VTuple (v1,v2) -> if b then v1 else v2
-        | _ -> failwith "Eval : Fsd error (expected tuple)"
-      end*)
   | EmptyList          -> VList []
   | Cons (e1,e2)       -> begin match eval e2 env with (* Evaluations des expressions du type expr::expr au sein d'une liste*)
         | VList l -> VList (eval e1 env :: l)

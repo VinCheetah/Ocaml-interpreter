@@ -38,5 +38,17 @@ Fouine de Dziki Yanis et Gardies Vincent (Niveau intermédiaire):
 
 - Les fonctions récursives diffèrent des fonctions non récursives grâce à un booléen qui est présent lors de la déclaration de la fonction et qui est mis à true si le mot clé `rec` est présent. Les environnements sont alors gérés différemment pour les fonctions récursives pour lesquelles on modifie d'abord l'environnement propre de la fonction pour intégrer le fait que la fonction puisse s'appeler elle même et les fonctions non récursives.
   
+  
+## <font color = "red"> Corrections suite au pré-rendu : </font>
+
+- Suite aux remarques du pré-rendu, nous avons remarqué et facilement corrigé des erreurs dans l'ordre d'éxecution des expressions dans le cas d'une application, ou lors de l'usage d'un opérateur (booléen, arithmétique,...).
+
+- Nous avons apporté une correction à la priorité du token UMINUS pour résoudre un problème avec un entier négatif dans un couple. De plus nous avons passé notre token REVAL (qui correspond à ":=") de %nonassoc à %right.
+
+- Nous avons aussi ajouté la possibilité de mettre le symbole '_' dans les noms de variables. En effet c'est la raison de l'échec d'un des tests que vous nous avez fait remonté.
+
+- Des modifications ont été apportées au traitement des fonctions et des applications, particulièrement lorsque celles ci sont récursives. Cela a permis de résoudre les problèmes de "perte d'environnement" qui pouvait avoir lieu dans certaines expressions. Ainsi tout les tests de la moulinette (B,I,A) sont correctement effectués par notre fouine.   
+
+- Comme il nous a été demandé dans le pré-rendu, nous avons effectué quelques tests sur les environnements des fonctions appliquées partiellement et nous n'avons pas relevé de problème.
 
 

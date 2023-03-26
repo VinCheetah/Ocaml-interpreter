@@ -26,7 +26,7 @@ let affiche_bool = function
 
 
 let rec get_var = function (* Fonction d'affichage des motifs*)
-  | MNom s -> if s = "_" then "zdaudziojdoqjzijdoqidzqdqiodjqdjiqzdj" else s (* nom de variable peu utilisé :) *)
+  | MNom s -> if s = "_" then "_" else s (* nom de variable peu utilisé :) *)
   | MCouple (m1,m2) -> "(" ^ (get_var m1) ^ ", " ^ (get_var m2) ^ ")"
   | MNone           -> "_"
   | MUnit           -> "()"

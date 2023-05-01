@@ -82,3 +82,24 @@ let empty_env = []
 let max_ref = 1234
 let ref_memory = Array.make max_ref VUnit
 let next_ref = ref 0  
+
+
+
+type types =
+  | TInt
+  | TBool
+  | TFun of t*t
+  | TUnit
+  | TRef of types
+  | TTuple of types*types
+  | TList of types
+  | TExcep
+
+
+type t =
+  | Var of string
+  | Fun of string*t list
+  | T of types 
+  | None
+
+type problem = (t * t) list

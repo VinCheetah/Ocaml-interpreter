@@ -6,3 +6,5 @@ and trace = ref false
 and warnings = ref false
 and in_dscolon = ref false
 and output = ref false
+and notypes = ref false
+and showtypes = ref false

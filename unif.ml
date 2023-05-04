@@ -20,18 +20,21 @@ let rec replace (x, new_x) term =
   | T (TTuple (a,b)) as tuple -> if tuple = x then new_x else T (TTuple (replace (x, new_x) a, replace (x, new_x) b))  
   | a -> a
 
+let compt = ref 0;;
+
+let rec type_fixed = function
+  | T TInt
+  | T TBool
+  | T TUnit -> true
+  | T TRef t -> type_fixed t
+  | T (TFun (a,b)) 
+  | T (TTuple (a,b))-> type_fixed a && type_fixed b
+  | _ -> false
+
 
 
 (*Implémente l'unification de deux termes*)
-let rec unify pb =
-  (* let rec aux l1 l2 =
-    match l1, l2 with
-    | [], [] -> []
-    | x1 :: l1', x2 :: l2' -> (x1,x2) :: (aux l1' l2')
-    | _ -> failwith "Different length"
-  in *)
-
-
+let rec unify pb = incr compt;
   match pb with
   | [] -> []
   | x :: pb' -> begin
@@ -39,14 +42,12 @@ let rec unify pb =
     | None, _ 
     | _, None -> unify pb'
     | T (TTuple (a,b)), T (TTuple (c,d)) -> unify ((a,c)::(b,d)::pb') 
-  (*| T TFun (arg, corps), T TFun (arg', corps') -> unify ((arg, arg'))     
-    | Fun (s,l), Fun (s',l') -> if s = s' then unify ((aux l l') @ pb')
-                                else raise Not_unifyable*)
+    | T (TFun (a,b)), T (TFun (c,d)) -> unify ((a,c)::(b,d)::pb'@(if !compt <= 1000 then [x] else []))
     | T a, T b when a != b-> raise Not_unifyable
     | T a, T b -> unify pb'
     | Var v, Var v' when v = v' -> unify pb'
-    | Var v, t
-    | t, Var v -> if appear v t then raise Not_unifyable else (Var v, t) :: (unify (List.map (fun (t1,t2) -> (replace (Var v, t) t1), replace (Var v, t) t2) pb'))
-                              end
+    | Var v, t when type_fixed t || !compt >= 1000 -> if appear v t then raise Not_unifyable else (Var v, t) :: (unify (List.map (fun (t1,t2) -> (replace (Var v, t) t1), replace (Var v, t) t2) pb'))
+    | t, Var v when type_fixed t || !compt >= 1000 -> if appear v t then raise Not_unifyable else (Var v, t) :: (unify (List.map (fun (t1,t2) -> (replace (Var v, t) t1), replace (Var v, t) t2) pb'))
+    | _ -> unify (pb' @ [x]) end
 
 

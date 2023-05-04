@@ -84,6 +84,7 @@ let empty_env = []
 let max_ref = 1234
 let ref_memory = Array.make max_ref VUnit
 let next_ref = ref 0  
+let next_var = ref 0
 
 
 

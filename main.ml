@@ -37,7 +37,9 @@ let _ = Stdlib.Parsing.set_trace !trace
 (* le traitement d'une expression en entr�e *)   
 let execute e =
   begin
-    if not !Options.notypes then (let prob = inf e in print_prob prob; print_prob (try unify prob with Not_unifyable -> failwith "ERROR UNIF"));
+    let _ = inf e in 
+    if !Options.debug then (print_prob !inference);
+    if not !Options.notypes then (print_string "solutions :\n"; print_prob (try unify !inference with Not_unifyable -> failwith "ERROR UNIF"));
     if !Options.tree || !Options.debug then (affiche_expr_tree e; print_newline ());
     if !Options.showsrc || !Options.debug then (affiche_expr_final e; print_string ";;\n");
     let v =  Expr.eval e Types.empty_env in if !Options.output then (print_string "\nout : "; affiche_val v; print_newline ())

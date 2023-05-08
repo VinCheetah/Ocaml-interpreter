@@ -4,19 +4,17 @@
 # Target: affichage.ml.depends, tags: { extension:ml, file:affichage.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep.opt -modules affichage.ml > affichage.ml.depends # cached
 # Target: options.ml.depends, tags: { extension:ml, file:options.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep.opt -modules options.ml > options.ml.depends # cached
-# Target: options.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:options.cmo, file:options.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o options.cmo options.ml # cached
+/usr/bin/ocamldep.opt -modules options.ml > options.ml.depends
 # Target: types.ml.depends, tags: { extension:ml, file:types.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep.opt -modules types.ml > types.ml.depends # cached
 # Target: types.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:types.cmo, file:types.ml, implem, ocaml, quiet }
 /usr/bin/ocamlc.opt -c -o types.cmo types.ml # cached
-# Target: affichage.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:affichage.cmo, file:affichage.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o affichage.cmo affichage.ml # cached
+# Target: options.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:options.cmo, file:options.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc.opt -c -o options.cmo options.ml
 # Target: expr.ml.depends, tags: { extension:ml, file:expr.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep.opt -modules expr.ml > expr.ml.depends # cached
-# Target: expr.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:expr.cmo, file:expr.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o expr.cmo expr.ml # cached
+# Target: affichage.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:affichage.cmo, file:affichage.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc.opt -c -o affichage.cmo affichage.ml
 # Target: inference.ml.depends, tags: { extension:ml, file:inference.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep.opt -modules inference.ml > inference.ml.depends # cached
 # Target: inference.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:inference.cmo, file:inference.ml, implem, ocaml, quiet }
@@ -34,19 +32,19 @@
 # Target: lexer.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:lexer.cmo, file:lexer.ml, implem, ocaml, quiet }
 /usr/bin/ocamlc.opt -c -o lexer.cmo lexer.ml # cached
 # Target: unif.ml.depends, tags: { extension:ml, file:unif.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep.opt -modules unif.ml > unif.ml.depends
+/usr/bin/ocamldep.opt -modules unif.ml > unif.ml.depends # cached
 # Target: unif.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:unif.cmo, file:unif.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o unif.cmo unif.ml
+/usr/bin/ocamlc.opt -c -o unif.cmo unif.ml # cached
+# Target: expr.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:expr.cmo, file:expr.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc.opt -c -o expr.cmo expr.ml
 # Target: main.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:main.cmo, file:main.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc.opt -c -o main.cmo main.ml # cached
-# Target: options.cmx, tags: { compile, extension:cmx, extension:ml, file:options.cmx, file:options.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o options.cmx options.ml # cached
+/usr/bin/ocamlc.opt -c -o main.cmo main.ml
 # Target: types.cmx, tags: { compile, extension:cmx, extension:ml, file:types.cmx, file:types.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt.opt -c -o types.cmx types.ml # cached
+# Target: options.cmx, tags: { compile, extension:cmx, extension:ml, file:options.cmx, file:options.ml, implem, native, ocaml, quiet }
+/usr/bin/ocamlopt.opt -c -o options.cmx options.ml
 # Target: affichage.cmx, tags: { compile, extension:cmx, extension:ml, file:affichage.cmx, file:affichage.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o affichage.cmx affichage.ml # cached
-# Target: expr.cmx, tags: { compile, extension:cmx, extension:ml, file:expr.cmx, file:expr.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o expr.cmx expr.ml # cached
+/usr/bin/ocamlopt.opt -c -o affichage.cmx affichage.ml
 # Target: inference.cmx, tags: { compile, extension:cmx, extension:ml, file:inference.cmx, file:inference.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt.opt -c -o inference.cmx inference.ml # cached
 # Target: parser.ml.depends, tags: { extension:ml, file:parser.ml, ocaml, ocamldep, quiet }
@@ -56,9 +54,11 @@
 # Target: lexer.cmx, tags: { compile, extension:cmx, extension:ml, file:lexer.cmx, file:lexer.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt.opt -c -o lexer.cmx lexer.ml # cached
 # Target: unif.cmx, tags: { compile, extension:cmx, extension:ml, file:unif.cmx, file:unif.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o unif.cmx unif.ml
+/usr/bin/ocamlopt.opt -c -o unif.cmx unif.ml # cached
+# Target: expr.cmx, tags: { compile, extension:cmx, extension:ml, file:expr.cmx, file:expr.ml, implem, native, ocaml, quiet }
+/usr/bin/ocamlopt.opt -c -o expr.cmx expr.ml
 # Target: main.cmx, tags: { compile, extension:cmx, extension:ml, file:main.cmx, file:main.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt.opt -c -o main.cmx main.ml # cached
+/usr/bin/ocamlopt.opt -c -o main.cmx main.ml
 # Target: main.native, tags: { dont_link_with, extension:native, file:main.native, link, native, ocaml, program, quiet }
 /usr/bin/ocamlopt.opt unix.cmxa options.cmx types.cmx affichage.cmx expr.cmx inference.cmx parser.cmx lexer.cmx unif.cmx main.cmx -o main.native
 # Compilation successful.

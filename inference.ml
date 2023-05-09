@@ -13,7 +13,7 @@ let rec (filtre_me : Types.problem) motif expr = match motif with
 
 
 
-let give_next_var () = incr next_var; Var (MNom (string_of_int !next_var))
+let give_next_var () = incr next_var; Var (MNom (string_of_int !next_var), None, false)
 
 
 let inference = ref []
@@ -21,21 +21,20 @@ let inference = ref []
 let add_inf x = inference := x :: !inference
 
 
-let rec filtre_m = function
-  | MNom s -> Var (MNom s)
-  | MNone -> None
-  | MCouple (m1,m2) -> T (TTuple (filtre_m m1, filtre_m m2))
-  | MUnit -> T TUnit
-(*| MCons (m1, m2) -> let t = filtre m1 in TList t *)
-  | MExpr e1 -> find_type e1
-  | _ -> T TBool
+let rec filtre_m e m global = match m with
+  | MNom s -> add_inf (Var (MNom s, find_type e, global), None)
+  | MNone -> ()
+  | MCouple (m1,m2) -> begin match e with CoupleExpr (e1, e2) ->  filtre_m e1 m1 global; filtre_m e2 m2 global | Var a -> add_inf (Var (m, Var (a,None,false), global), None) end
+  | MUnit -> add_inf (find_type e, T TUnit)
+  | MExpr e1 -> add_inf (find_type e, find_type e1)
+  | _ -> ()
 
 
 
 and find_type = function
 | Const _ -> T TInt
 | BConst _ -> T TBool
-| Var motif -> filtre_m motif
+| Var motif -> Var (motif, None, false)
 | Unit -> T TUnit
 | CoupleExpr (e1, e2) -> T (TTuple(find_type e1, find_type e2))
 | ArithOp _ -> T TInt
@@ -44,13 +43,13 @@ and find_type = function
 | If (_, e1, _) -> find_type e1
 | PrInt _ -> T TInt
 | Let (_,_,_,_,e2) -> find_type e2
-| Fun (motif,e1) -> T (TFun (Var motif, find_type e1))
-| App (e1,e2) -> begin match find_type e1 with T TFun (_,t) -> t | Var func -> let alpha = give_next_var() in add_inf (Var func, T (TFun (None, alpha))); alpha | _ -> None end
+| Fun (motif,e1) -> T (TFun (Var (motif,None,false), find_type e1))
+| App (e1,e2) -> begin match find_type e1 with T TFun (_,t) -> t | Var (func,t1,b1) -> let alpha = give_next_var() in add_inf (Var (func,t1,b1), T (TFun (None, alpha))); alpha | _ -> None end
 | Seq (e1,e2) -> find_type e2 
 | Ref e1 -> T (TRef (find_type e1)) 
 | ValRef e1 -> begin match find_type e1 with T (TRef t) -> t | _ -> None end
 | RefNew _ -> T TUnit
-| _ -> print_string "hello\n";None
+| _ -> None
 
 
 
@@ -61,11 +60,11 @@ let rec inf = function
 | BoolOp (op, e1, e2) -> add_inf (find_type e1, T TBool); add_inf (find_type e2, T TBool); inf e1; inf e2
 | If (e1, e2, e3) -> add_inf (find_type e1, T TBool); add_inf (find_type e2, find_type e3); inf e1; inf e2; inf e3
 | PrInt e1 -> add_inf (find_type e1, T TInt); inf e1
-| Let (recursif,motif,e1,global,e2) -> add_inf (filtre_m motif, find_type e1); inf e1; inf e2 
+| Let (recursif,motif,e1,global,e2) -> filtre_m e1 motif global; inf e1; inf e2 
 | Fun (motif, e1) -> inf e1
 | App (e1, e2) -> add_inf (find_type e1, T (TFun (None, None))); (match e1 with 
-  | Fun (motif, e3) -> add_inf (find_type e2, filtre_m motif)
-  | Var func -> let alpha = give_next_var () in add_inf (Var func, T (TFun (alpha, None))); add_inf (alpha, find_type e2)
+  | Fun (motif, e3) -> filtre_m e1 motif false
+  | Var func -> let alpha = give_next_var () in add_inf (Var (func, T (TFun (alpha, None)), false), None); add_inf (alpha, find_type e2)
   | _  -> ()); inf e1; inf e2
 | Seq (e1, e2) -> add_inf (find_type e1, T TUnit); inf e1; inf e2
 | Ref e1 -> inf e1
@@ -77,28 +76,6 @@ let rec inf = function
 
 
 
-
-
-let rec print_type = function
-  | Var s -> begin match s with 
-    | MNom s -> s 
-    | _ -> "motif" end
-  | None -> "None"
-  | T c -> begin match c with
-    | TInt -> "Int"
-    | TBool -> "Bool"
-    | TFun (arg,corps) -> (print_type arg) ^ " -> " ^ (print_type corps)
-    | TUnit -> "Unit"
-    | TRef r -> "Ref : " ^ (print_type r)
-    | TTuple (a,b) -> (print_type a) ^ " * " ^ (print_type b) 
-    | TList _ -> "List" end
-
-let rec print_prob = function
-| [] -> ()
-| (a,b):: l' -> print_string (print_type a);
-    print_string " ----- "; 
-    print_string (print_type b); print_string "\n"; print_prob l' 
-;;
 
 
 

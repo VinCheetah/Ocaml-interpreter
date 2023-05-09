@@ -99,8 +99,34 @@ type types =
 
 
 and t =
-  | Var of motif
+  | Var of motif*t*bool
   | T of types 
   | None
 
 type problem = (t * t) list
+
+
+
+
+let rec print_type = function
+  | Var (s,t,_) -> begin match s with 
+    | MNom s -> s ^ "(" ^ print_type t ^ ") "
+    | _ -> "motif" end
+  | None -> "None"
+  | T c -> begin match c with
+    | TInt -> "Int"
+    | TBool -> "Bool"
+    | TFun (arg,corps) -> (print_type arg) ^ " -> " ^ (print_type corps)
+    | TUnit -> "Unit"
+    | TRef r -> "Ref : " ^ (print_type r)
+    | TTuple (a,b) -> (print_type a) ^ " * " ^ (print_type b) 
+    | TList _ -> "List" end
+
+
+
+let rec print_prob = function
+| [] -> print_newline ()
+| (a,b):: l' -> print_string (print_type a);
+    print_string " ----- "; 
+    print_string (print_type b); print_string "\n"; print_prob l' 
+;;

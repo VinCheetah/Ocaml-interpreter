@@ -15,7 +15,7 @@ let recupere_entree () =
                   ("-slow",Arg.Set Options.slow,"Eval function works step by step");("-tree",Arg.Set Options.tree,"Tree activated");
                   ("-trace",Arg.Set Options.trace,"Trace activated");("-warnings",Arg.Set Options.warnings,"Warnings activated");
                   ("-output",Arg.Set Options.output,"Show Output");  ("-showtypes",Arg.Set Options.showtypes, "Show Types");
-                  ("-notypes",Arg.Set Options.notypes,"No Types")] in 
+                  ("-notypes",Arg.Set Options.notypes,"No Types"); ("-showinf", Arg.Set Options.showinf, "Show inference progression")] in 
   Arg.parse speclist (fun s -> nom_fichier := s) "Bienvenue sur Fouine 1.0";
   let _ = Stdlib.Parsing.set_trace !Options.trace in
   try
@@ -39,7 +39,7 @@ let execute e =
   begin
     let _ = inf e in 
     if !Options.debug then (print_prob !inference);
-    if not !Options.notypes then (print_string "solutions :\n"; print_prob (try unify !inference with Not_unifyable -> failwith "ERROR UNIF"));
+    if not !Options.notypes then (print_string "solutions :\n"; print_prob (try unify ((Var(MNom "output : ", find_type e, false), None) :: !inference) with Not_unifyable -> failwith "ERROR UNIF"));
     if !Options.tree || !Options.debug then (affiche_expr_tree e; print_newline ());
     if !Options.showsrc || !Options.debug then (affiche_expr_final e; print_string ";;\n");
     let v =  Expr.eval e Types.empty_env in if !Options.output then (print_string "\nout : "; affiche_val v; print_newline ())

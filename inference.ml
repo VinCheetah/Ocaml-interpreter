@@ -50,6 +50,9 @@ and find_type = function
         | Var (a,b,c,d)      -> let alpha = give_next_var () in add_inf (Var (a,b,c,d), T (TRef alpha)); alpha
         | _ -> None end
     | RefNew _                  -> T TUnit
+    | Cons (expr1,expr2)        -> T (TList (find_type expr1))
+    | EmptyList                 -> T (TList None)
+    | InDecr _                  -> T TUnit
     | _                         -> None
 
 
@@ -78,5 +81,11 @@ let rec inf expr =
         | Var motif -> add_inf (T (TRef (find_type expr2)), decompose_motif motif) 
         | _         -> ()
       end; inf expr1; inf expr2
+    | Cons (expr1, expr2)                     -> let alpha = give_next_var () in add_inf (find_type expr1, alpha); add_inf (T (TList alpha), find_type expr2); inf expr1; inf expr2;
+    | InDecr (expr1,_)                        -> add_inf (find_type expr1, T (TRef (T TInt)))
+    | Exn expr1                               -> add_inf (find_type expr1, T TInt)
+    | Raise expr1                             -> add_inf (find_type expr1, T TExn)
+    | TryWith (expr1, liste)                  -> ()
+    | MatchWith (expr1, liste)                -> ()
     | _                                       -> ()
 

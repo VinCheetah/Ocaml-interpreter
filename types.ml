@@ -96,7 +96,7 @@ type types =
   | TRef of t
   | TTuple of t*t
   | TList of t
-
+  | TExn
 
 and t =
   | Var of string * int * t * bool
@@ -156,7 +156,7 @@ let rec erase_var x global l = match l with
 
 
 let rec identify_var x t = function
-  | [] -> if !Options.showinf || !Options.debug then print_string ("Unindexed : "^x^"\n"); Var (x, 0, t, false) 
+  | [] -> if !Options.showinf then print_string ("Unindexed : "^x^"\n"); Var (x, 0, t, false) 
   | (a, r, g) :: l' when a = x -> Var (a, !r, t, g)
   | _ :: l' -> identify_var x t l'
 

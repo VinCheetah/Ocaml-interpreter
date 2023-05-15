@@ -51,21 +51,21 @@ let rec filtre_val env v motif = fusion_env env (match motif with (* Fonction qu
   | MNom nom -> [nom,v]
   | MCouple (m1,m2) -> begin match v with
         | VTuple (v1,v2) -> fusion_env (filtre_val env v1 m1) (filtre_val env v2 m2)
-        | _ -> failwith "Filtre val : MCouple error (tuple expected)"
+        | _ -> raise (EvalError "Filtre val : MCouple error (tuple expected)")
       end
   | MCons (m1,m2) -> begin match v with
         | VList (v1::v2) -> fusion_env (filtre_val env v1 m1) (filtre_val env (VList v2) m2)
-        | _ -> failwith "Filtre val : MCons error (list expected)"
+        | _ -> raise (EvalError "Filtre val : MCons error (list expected)")
       end
   | MEmptyList -> begin match v with
         | VList [] -> []
-        | _ -> failwith "Filtre val : MEmptyList error"
+        | _ -> raise (EvalError "Filtre val : MEmptyList error")
       end
   | MUnit -> begin match v with
         | VUnit -> []
-        | _ -> failwith "Filtre val : MUnit error"
+        | _ -> raise (EvalError "Filtre val : MUnit error")
       end
-  | MExpr e1 -> if v = (eval e1 env) then [] else failwith "Filtre val : MVal error"
+  | MExpr e1 -> if v = (eval e1 env) then [] else raise (EvalError "Filtre val : MVal error")
   | _ -> [])
 
 
@@ -80,35 +80,35 @@ and filtre expr recursif env motif = fusion_env env (match motif with
   | MCouple (m1,m2) -> begin match expr with
         | Var (MNom v) -> begin match trouver_env v env with 
               | VTuple (_) as t -> filtre_val env t motif
-              | _ -> failwith "Filtre : MCouple error (tuple expected)"
+              | _ -> raise (EvalError "Filtre : MCouple error (tuple expected)")
             end
         | CoupleExpr (e1,e2) -> fusion_env (filtre e1 recursif env m1) (filtre e2 recursif env m2) 
-        | _ -> failwith "motif impossible"
+        | _ -> raise (EvalError "Filtre : motif impossible")
       end
   | MCons (m1,m2) -> begin match expr with
         | Var (MNom v) -> begin match trouver_env v env with 
               | VList (_) as t -> filtre_val env t motif
-              | _ -> failwith "Filtre : MCouple error (tuple expected)"
+              | _ -> raise (EvalError "Filtre : MCouple error (tuple expected)")
             end
         | Cons (e1,e2) -> fusion_env (filtre e1 recursif env m1) (filtre e2 recursif env m2)
-        | _ -> failwith "motif impossible"
+        | _ -> raise (EvalError "Filtre : motif impossible")
       end
   | MEmptyList -> begin match expr with
         | Var (MNom v) -> begin match trouver_env v env with
               | VList [] -> []
-              | _ -> failwith "motif impossible"
+              | _ -> raise (EvalError "Filtre : motif impossible")
             end
         | EmptyList -> []
-        | _ -> failwith "motif impossible"
+        | _ -> raise (EvalError "Filtre : motif impossible")
       end
   | MUnit -> begin match eval expr env with
         | VUnit -> []
-        | _ -> failwith "motif impossible"
+        | _ -> raise (EvalError "Filtre : motif impossible")
       end
   | MExpr _ -> filtre_val env (eval expr env) motif
   | MExcp motif -> begin match eval expr env with
         | VExcep (m,false) -> filtre_val env (VInt m) motif
-        | _ -> failwith "Filtre : excep problem"
+        | _ -> raise (EvalError "Filtre : excep problem")
       end
   | MNone -> let _ = eval expr env in [])
 

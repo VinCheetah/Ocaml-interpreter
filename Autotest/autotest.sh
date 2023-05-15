@@ -42,19 +42,13 @@ A) Folders=("Beginner" "Intermediate" "Advanced" );;
 *) echo "ERROR: Wrong first argument: $1 should be [BIA]";exit 1;;
 esac
 
-if [[ -x "$2" ]]
-then
-    Exe=$2
-else
-    echo "ERROR: Second argument '$2' is not executable or found"; exit 1
-fi
 
 
 
 function check_output(){
     log "process file: $i";
     
-    ./$Exe  $i > /tmp/out.txt;
+    .././fouine -notypes $i > /tmp/out.txt;
     
     if !(cmp -s /tmp/ref.txt /tmp/out.txt)
     then
@@ -97,7 +91,7 @@ for fold in ${Folders[*]}; do
         
         log "process file: $i";
         rm -f /tmp/out.txt;
-        ./$Exe  $i > /tmp/out.txt 2>&1;
+        .././fouine -notypes $i > /tmp/out.txt 2>&1;
         if !(grep --quiet "rror" /tmp/out.txt)
         then 
             echo -e "\tNo error in bug file: $i"; echo $i >> failures.txt;

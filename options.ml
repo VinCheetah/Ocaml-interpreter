@@ -9,4 +9,9 @@ and output = ref false
 and notypes = ref false
 and showtypes = ref false
 and showinf = ref false
-and resultinf = ref false
+
+
+
+let actu_options () =
+  if !debug then (showsrc := true; tree := true; trace := true; warnings := true; output := true; showinf := true)
+  else if !showinf then showtypes := true;

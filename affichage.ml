@@ -26,7 +26,7 @@ let affiche_bool = function
 
 
 let rec get_var = function (* Fonction d'affichage des motifs*)
-  | MNom s -> if s = "_" then "_" else s (* nom de variable peu utilisé :) *)
+  | MNom s          -> if s = "_" then "_" else s (* nom de variable peu utilisé :) *)
   | MCouple (m1,m2) -> "(" ^ (get_var m1) ^ ", " ^ (get_var m2) ^ ")"
   | MNone           -> "_"
   | MUnit           -> "()"
@@ -161,24 +161,23 @@ let rec affiche_expr e = (* Fonction d'affichage des expressions *)
             | Const _  -> affiche_expr
             | _ -> print_parenthese) e1  
   | Let (recursif,x,e1,b,e2)-> print_string ("let " ^ if recursif then "rec "else "") ; affiche_var x; print_string " = "; affiche_expr e1; print_string (if not b then " in " else ";;\n"); print_parenthese e2
- (* | LetRec (x,e1,e2)   -> print_string "let rec "; print_string x; print_string " = "; affiche_expr e1; print_string " in "; affiche_expr e2*)
   | Fun (arg,e1)       -> print_string "fun "; affiche_var arg; print_string" -> "; affiche_expr e1 
   | App (e1,e2)        -> affiche_expr e1; print_string " "; (match e2 with
             | Const _
             | BConst _
             | Var _ -> affiche_expr
             | _ -> print_parenthese) e2
-  | Seq (e1,e2)        ->print_parenthese ( e1); print_string ";\n";print_parenthese ( e2)
-  | Ref e1 -> print_string "ref "; print_parenthese ( e1) 
-  | ValRef e1 -> print_string "!"; print_parenthese ( e1)
-  | RefNew (e1,e2) -> affiche_expr e1; print_string " := "; print_parenthese ( e2)
-  | Exn e1 -> print_string "E "; print_parenthese ( e1)
-  | Raise e1 -> print_string "raise "; print_parenthese ( e1) 
-  | TryWith (e1,l) -> print_string "try " ; affiche_expr e1 ; print_string " with\n"; List.iter (fun (motif,expr) -> print_string ("| "^(get_var motif)^" -> "); affiche_expr expr; print_newline ()) l
-  | InDecr (e1,b) -> print_string (if b then "incr " else "decr "); print_parenthese ( e1)  
-  | EmptyList  -> print_string "[]"
-  | Cons (e1,e2) -> print_parenthese ( e1); print_string " :: "; print_parenthese ( e2)
-  | MatchWith (e1,l) -> print_string "match " ; affiche_expr e1 ; print_string " with\n"; List.iter (fun (motif,expr) -> print_string ("| "^(get_var motif)^" -> "); affiche_expr expr; print_newline ()) l
+  | Seq (e1,e2)        -> print_parenthese ( e1); print_string ";\n";print_parenthese ( e2)
+  | Ref e1             -> print_string "ref "; print_parenthese ( e1) 
+  | ValRef e1          -> print_string "!"; print_parenthese ( e1)
+  | RefNew (e1,e2)     -> affiche_expr e1; print_string " := "; print_parenthese ( e2)
+  | Exn e1             -> print_string "E "; print_parenthese ( e1)
+  | Raise e1           -> print_string "raise "; print_parenthese ( e1) 
+  | TryWith (e1,l)     -> print_string "try " ; affiche_expr e1 ; print_string " with\n"; List.iter (fun (motif,expr) -> print_string ("| "^(get_var motif)^" -> "); affiche_expr expr; print_newline ()) l
+  | InDecr (e1,b)      -> print_string (if b then "incr " else "decr "); print_parenthese ( e1)  
+  | EmptyList          -> print_string "[]"
+  | Cons (e1,e2)       -> print_parenthese ( e1); print_string " :: "; print_parenthese ( e2)
+  | MatchWith (e1,l)   -> print_string "match " ; affiche_expr e1 ; print_string " with\n"; List.iter (fun (motif,expr) -> print_string ("| "^(get_var motif)^" -> "); affiche_expr expr; print_newline ()) l
   | CoupleExpr (e1,e2) -> print_string "("; print_parenthese e1; print_string ", "; print_parenthese e2; print_string ")"
 
 let affiche_expr_final e = print_string "exception E of int;;\nlet prInt x = print_int x; print_newline ();x;;\n"; affiche_expr e
@@ -211,55 +210,61 @@ let print_env env = print_newline (); print_string "Environnement -> " ; display
 
 
 let print_debug e = print_string ("Je suis dans " ^ (match e with
-  | Const i     -> "Const " ^ (string_of_int i)
-  | BConst _    -> "BConst"
-  | Var s       -> "Var " ^ get_var s
-  | Unit        -> "Unit"
-  | ArithOp _   -> "ArithOp"
-  | CompOp _    -> "CompOp"
-  | BoolOp _    -> "BoolOp"
-  | If _        -> "If"
-  | PrInt _     -> "PrInt"
-  | Fun _       -> "Fun"
-  | App _       -> "App"
-  | Let _       -> "Let"
-  | Seq _       -> "Seq" 
-  | Ref _       -> "Ref"
-  | ValRef _    -> "ValRef"
-  | RefNew _    -> "RefNew"
-  | Exn _       -> "Exn"
-  | Raise _     -> "Raise"
-  | TryWith _   -> "TryWith"
-  | InDecr _    -> "Incr"
-  | _ -> "TO DO")
-  ^ (if not !Options.slow then "\n" else ""))
+  | Const i      -> "Const " ^ (string_of_int i)
+  | BConst _     -> "BConst"
+  | Var s        -> "Var " ^ get_var s
+  | Unit         -> "Unit"
+  | ArithOp _    -> "ArithOp"
+  | CompOp _     -> "CompOp"
+  | BoolOp _     -> "BoolOp"
+  | If _         -> "If"
+  | PrInt _      -> "PrInt"
+  | Fun _        -> "Fun"
+  | App _        -> "App"
+  | Let _        -> "Let"
+  | Seq _        -> "Seq" 
+  | Ref _        -> "Ref"
+  | ValRef _     -> "ValRef"
+  | RefNew _     -> "RefNew"
+  | Exn _        -> "Exn"
+  | Raise _      -> "Raise"
+  | TryWith _    -> "TryWith"
+  | InDecr _     -> "Incr"
+  | EmptyList    -> "EmptyList"
+  | Cons _       -> "Cons"
+  | MatchWith _  -> "MatchWith"
+  | CoupleExpr _ -> "CoupleExpr"
+  ^ (if not !Options.slow then "\n" else "")))
 
 
 
 let rec print_type = function
-  | Var (a,id,t,b) -> a ^ (if !Options.debug || !Options.showinf || !Options.resultinf then " ("^(string_of_int id)^")" else "")^ " : " ^ print_type t
-  | None -> "None"
-  | T c -> begin match c with
-    | TInt -> "int"
-    | TBool -> "bool"
+  | Var (a,id,t,b) -> a ^ (if !Options.showtypes then " ("^(string_of_int id)^")" else "")^ " : " ^ print_type t
+  | None           -> "'a"
+  | T c            -> begin match c with
+    | TInt             -> "int"
+    | TBool            -> "bool"
     | TFun (arg,corps) -> (print_type arg) ^ " -> " ^ (print_type corps)
-    | TUnit -> "unit"
-    | TRef r -> "ref : " ^ (print_type r)
-    | TTuple (a,b) -> (print_type a) ^ " * " ^ (print_type b) 
-    | TList _ -> "list" end
+    | TUnit            -> "unit"
+    | TRef r           -> print_type r ^ " ref"
+    | TTuple (a,b)     -> (print_type a) ^ " * " ^ (print_type b) 
+    | TList l          -> print_type l ^ " list"
+    | TExn             -> "exn"
+    end
 
 
 
 let rec print_prob = function
-| [] -> print_newline ()
-| (a,b):: l' -> print_string (print_type a);
-    print_string " ----- "; 
-    print_string (print_type b); print_string "\n"; print_prob l' 
+| []         -> print_newline ()
+| (a,b):: l' -> print_string (print_type a); print_string " ----- "; print_string (print_type b); print_string "\n"; print_prob l' 
 ;;
 
 
 let rec print_typage = function
-  | Var (a,id,t,b) :: l' -> if b || !Options.showinf || !Options.debug || !Options.resultinf then print_string (a ^ (if !Options.debug then string_of_int id else "")^ " : " ^ print_type t ^ "\n");
+  | Var (a,id,t,b) :: l' -> if b || !Options.showtypes then print_string (a ^ (if !Options.debug then string_of_int id else "")^ " : " ^ print_type t ^ "\n");
                             print_typage l'
   | _ :: l' -> print_typage l'
   | [] -> ()
+
+
+let affiche_compt c cmax = print_string ("Compteur : "^string_of_int c^" (max : "^string_of_int cmax^")\n")

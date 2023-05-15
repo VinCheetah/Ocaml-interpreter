@@ -1,90 +1,82 @@
 open Types
 open Options
-
-(*
-let rec (filtre_me : Types.problem) motif expr = match motif with
-| MNom nom -> [(Var nom, find_type expr)]
-| MCouple (m1,m2) -> (find_type expr, T)
-| MCons (m1,m2) ->
-| MEmptyList -> 
-| MUnit -> 
-| MExpr _ -> 
-| MExcp motif -> 
-| MNone -> let _ = *)
+open Affichage
 
 
 
+let rec actu_index func global = function
+    | MNom nom         -> index := func nom global !index
+    | MCouple (m1, m2) -> actu_index func global m1; actu_index func global m2
+    | MCons (m1, m2)   -> actu_index func global m1; actu_index func global m2
+    | _                -> () 
 
-let rec filtre_m2 func = function
-  | MNom s -> index := func s !index
-  | MCouple (m1, m2) -> filtre_m2 func m1; filtre_m2 func m2
-  | _ -> () 
 
 
-let rec filtre_m e m global = match m with
-  | MNom s -> add_inf (Var (MNom (var_name s !index), find_type e, global), None)
-  | MCouple (m1,m2) -> begin match e with CoupleExpr (e1, e2) ->  filtre_m e1 m1 global; filtre_m e2 m2 global | Var a -> add_inf (Var (tri_mnom m, Var (tri_mnom a,None,false), global), None) | _ -> add_inf (T TInt, T TBool) end
-  | MUnit -> add_inf (find_type e, T TUnit)
-  | MExpr e1 -> add_inf (find_type e, find_type e1)
-  | _ -> ()
+let rec filtre_motif_expr expr motif = add_inf (decompose_motif motif, find_type expr)
 
+and decompose_motif = function
+    | MNom m          -> identify_var m None !index
+    | MCouple (m1,m2) -> T (TTuple (decompose_motif m1, decompose_motif m2))
+    | MUnit           -> T TUnit
+    | MExpr expr1     -> find_type expr1 
+    | MCons (m1, MEmptyList) -> decompose_motif m1
+    | MCons   (m1,m2) -> let alpha = give_next_var () and t = decompose_motif m2 in add_inf (decompose_motif m1, alpha); add_inf (T (TList alpha), t); t
+    | MEmptyList      -> T (TList (None))
+    | _ -> None
 
 
 and find_type = function
-| Const _ -> T TInt
-| BConst _ -> T TBool
-| Var motif -> Var (tri_mnom motif, None, false)
-| Unit -> T TUnit
-| CoupleExpr (e1, e2) -> T (TTuple(find_type e1, find_type e2))
-| ArithOp _ -> T TInt
-| CompOp _ -> T TBool
-| BoolOp _ -> T TBool
-| If (_, e1, _) -> find_type e1
-| PrInt _ -> T TInt
-| Let (_,motif,_,_,e2) -> filtre_m2 new_var motif; let t = find_type e2 in filtre_m2 erase_var motif; t
-| Fun (motif,e1) -> filtre_m2 new_var motif; let t = T (TFun (Var (tri_mnom motif,None,false), find_type e1)) in filtre_m2 erase_var motif; t
-| App (e1,e2) -> begin match find_type e1 with 
-    | T TFun (_,t) -> t 
-    | Var (func, t1, b1) -> filtre_m2 new_var func; let alpha = give_next_var() in add_inf (Var (func,t1,b1), T (TFun (None, alpha))); filtre_m2 erase_var func; alpha 
-    | _ -> None end
-| Seq (e1,e2) -> find_type e2 
-| Ref e1 -> T (TRef (find_type e1)) 
-| ValRef e1 -> begin match find_type e1 with T (TRef t) -> t | _ -> None end
-| RefNew _ -> T TUnit
-| _ -> None
+    | Const _                   -> T TInt
+    | BConst _                  -> T TBool
+    | Var motif                 -> decompose_motif motif
+    | Unit                      -> T TUnit
+    | CoupleExpr (expr1, expr2) -> T (TTuple(find_type expr1, find_type expr2))
+    | ArithOp _                 -> T TInt
+    | CompOp _                  -> T TBool
+    | BoolOp _                  -> T TBool
+    | If (_, expr1, _)          -> find_type expr1
+    | PrInt _                   -> T TInt
+    | Let (_,motif,_,global,expr2)   -> actu_index new_var global motif; let t = find_type expr2 in actu_index erase_var global motif; t
+    | Fun (motif,expr1)         -> actu_index new_var false motif; let t = T (TFun (decompose_motif motif, find_type expr1)) in actu_index erase_var false motif; t
+    | App (expr1,expr2)         -> begin match find_type expr1 with 
+        | T TFun (_,t) -> t 
+        | Var (a,b,c,d)-> actu_index new_var false (MNom a); let alpha = give_next_var() in add_inf (Var (a,b,c,d), T (TFun (None, alpha))); actu_index erase_var false (MNom a); alpha 
+        | _            -> None 
+      end
+    | Seq (expr1,expr2)         -> find_type expr2 
+    | Ref expr1                 -> T (TRef (find_type expr1)) 
+    | ValRef expr1              -> begin match find_type expr1 with
+        | T (TRef t) -> t 
+        | Var (a,b,c,d)      -> let alpha = give_next_var () in add_inf (Var (a,b,c,d), T (TRef alpha)); alpha
+        | _ -> None end
+    | RefNew _                  -> T TUnit
+    | _                         -> None
 
 
 
 
-let rec inf e = if !Options.showinf then print_prob !inference; match e with
-| ArithOp (op,e1,e2) -> add_inf (find_type e1, T TInt); add_inf (find_type e2, T TInt); inf e1; inf e2
-| CompOp (op, e1, e2) -> add_inf (find_type e1, find_type e2); inf e1; inf e2
-| BoolOp (op, e1, e2) -> add_inf (find_type e1, T TBool); add_inf (find_type e2, T TBool); inf e1; inf e2
-| If (e1, e2, e3) -> add_inf (find_type e1, T TBool); add_inf (find_type e2, find_type e3); inf e1; inf e2; inf e3
-| PrInt e1 -> add_inf (find_type e1, T TInt); inf e1
-| Let (recursif,motif,e1,global,e2) -> filtre_m2 new_var motif; inf e1; filtre_m e1 motif global; inf e2; filtre_m2 erase_var motif
-| Fun (motif, e1) -> pre_cancelled := [] :: !pre_cancelled; filtre_m2 new_var motif; inf e1; filtre_m2 erase_var motif; cancellation ()
-| App (e1, e2) -> add_inf (find_type e1, T (TFun (None, None))); (match e1 with 
-  | Fun (motif, e3) -> pre_cancelled := [] :: !pre_cancelled; filtre_m2 new_var motif; filtre_m e1 motif false; filtre_m2 erase_var motif; cancellation ()
-  | Var func -> let alpha = give_next_var () in add_inf (Var (tri_mnom func, T (TFun (alpha, None)), false), None); add_inf (alpha, find_type e2)
-  | _  -> ()); inf e1; inf e2
-| Seq (e1, e2) -> add_inf (find_type e1, T TUnit); inf e1; inf e2
-| Ref e1 -> inf e1
-| ValRef e1 -> add_inf (find_type e1, T (TRef None)); inf e1
-| RefNew (e1, e2) -> add_inf (find_type e1, T (TRef None)); (match e1 with 
-  | Ref e3 -> add_inf (find_type e3, find_type e2)
-  | _ -> ()); inf e1; inf e2
-| _ -> ()
+let rec inf expr = 
+  if !Options.showinf then print_prob !inference; 
+  match expr with
+    | ArithOp (op,expr1,expr2)                -> add_inf (find_type expr1, T TInt); add_inf (find_type expr2, T TInt); inf expr1; inf expr2
+    | CompOp (op, expr1, expr2)               -> add_inf (find_type expr1, find_type expr2); inf expr1; inf expr2
+    | BoolOp (op, expr1, expr2)               -> add_inf (find_type expr1, T TBool); add_inf (find_type expr2, T TBool); inf expr1; inf expr2
+    | If (expr1, expr2, expr3)                -> add_inf (find_type expr1, T TBool); add_inf (find_type expr2, find_type expr3); inf expr1; inf expr2; inf expr3
+    | PrInt expr1                             -> add_inf (find_type expr1, T TInt); inf expr1
+    | Let (recursif,motif,expr1,global,expr2) -> actu_index new_var global motif; filtre_motif_expr expr1 motif; inf expr1; inf expr2; actu_index erase_var global motif
+    | Fun (motif, expr1)                      -> pre_cancelled := [] :: !pre_cancelled; actu_index new_var false motif; inf expr1; actu_index erase_var false motif; cancellation ()
+    | App (expr1, expr2)                      -> add_inf (find_type expr1, T (TFun (None, None))); begin match expr1 with 
+        | Fun (motif, expr3) -> pre_cancelled := [] :: !pre_cancelled; actu_index new_var false motif; filtre_motif_expr expr1 motif; actu_index erase_var false motif; cancellation ()
+        | Var func           -> let alpha = give_next_var () in add_inf (decompose_motif func, T (TFun (alpha, None))); add_inf (alpha, find_type expr2)
+        | _                  -> ()
+      end; inf expr1; inf expr2
+    | Seq (expr1, expr2)                      -> inf expr1; inf expr2
+    | Ref expr1                               -> inf expr1
+    | ValRef expr1                            -> add_inf (find_type expr1, T (TRef None)); inf expr1
+    | RefNew (expr1, expr2)                   -> add_inf (find_type expr1, T (TRef None)); begin match expr1 with 
+        | Ref expr3 -> add_inf (find_type expr2, find_type expr3)
+        | Var motif -> add_inf (T (TRef (find_type expr2)), decompose_motif motif) 
+        | _         -> ()
+      end; inf expr1; inf expr2
+    | _                                       -> ()
 
-
-
-
-
-
-(*
-print_prob (inf (ArithOp(Add,BConst false, Const 2)));
-print_newline ();
-print_prob (inf (If(CompOp (Eq, Ref (Const 3), Ref (Const 4)), ArithOp(Add,BConst false, Const 2), ArithOp(Add,Const 10, Const 2))));
-print_newline ();
-print_prob (inf (If(CompOp (Eq, Ref (Const 3), Ref (Const 4)), Let(false, MNom"x", Const 4, false, ArithOp(Add,Var (MNom "x"), Const 87)), ArithOp(Add,Const 10, Const 2))))
-*)

@@ -1,6 +1,7 @@
 open Types
 open Options
 open Affichage
+open Exceptions
 
 
 (* Ajoute une variable a un environnement en écrasant l'ancienne variable de meme nom si elle existe *)
@@ -13,7 +14,7 @@ let rec modifier_env cle valeur = function
 let rec trouver_env nom env = match env with
   | (cle,(VFun(arg,corps,fun_env,true) as f_rec)) :: _ when cle = nom -> VFun (arg,corps,modifier_env cle f_rec fun_env,true)
   | (cle,valeur) :: env' -> if nom = cle then valeur else  trouver_env nom env'
-  | [] -> failwith ("Trouver_env : Variable absente : " ^ nom) 
+  | [] -> raise (EvalError ("Variable inconnue : "^nom)) 
 
 
 (* Effectue la fusion de deux environnements, si une variable est commune au deux alors celle de l'environnement ancien est écrasée *)
@@ -132,81 +133,82 @@ and eval e env =
   | ArithOp (op,e1,e2) -> begin 
       match eval e2 env, eval e1 env with
         | VInt y, VInt x -> VInt (arith_op_eval op x y)
-        | _ -> failwith "Eval : Arith error (mismatch type)"
+        | _ -> raise (EvalError "Operation arithmetique (mismatch types)")
       end
   | CompOp (op,e1,e2)  -> begin
       match eval e2 env, eval e1 env with
         | VInt y, VInt x -> VBool (comp_op_eval op x y) 
         | VBool b, VBool a -> VBool (comp_op_eval op a b)
-        | _ -> failwith "Eval : Comp error (mismatch type)"
+        | _ -> raise (EvalError  "Comparaison error (uncomparable types)")
       end
   | BoolOp (op,e1,e2)  -> begin
       match eval e2 env, eval e1 env with
         | VBool b, VBool a -> VBool (bool_op_eval op a b)
-        | _ -> failwith "Eval : BoolOp (mismatch type)"
+        | _ -> raise (EvalError "Operation booleenne (mismatch types)")
       end
   | If (c,e1,e2)       -> begin (* Traitement des expressions if expr then expr else expr*)
       match eval c env with 
         | VBool b -> if b then eval e1 env else eval e2 env
-        | _ -> failwith "Eval : If error (condition type)" 
+        | _ -> raise (EvalError "Condition error (type should be bool)") 
       end
   | PrInt e1           -> begin
       match eval e1 env with
         | VInt x -> print_int x ; print_newline () ; VInt x
-        | _ -> failwith "Eval : PrInt error (arg type)"
+        | _ -> raise (EvalError "PrInt error (type should be int)")
       end 
-  | Let (recursif,var,e1,global,e2) -> if not global then Options.in_dscolon := true; if global && !Options.in_dscolon then failwith "Eval : Let error (in_dscolon)" else 
+  | Let (recursif,var,e1,global,e2) -> if not global then Options.in_dscolon := true;
+                                       if global && !Options.in_dscolon then raise (EvalError "Declaration error (global in non-global declaration)");
                                        eval e2 (filtre e1 recursif env var) 
   | Fun (arg,e1)       -> VFun (arg,e1,env,false)
   | App (e1,e2) -> let arg = eval e2 env in  begin match eval e1 env with (* Traitement de l'application d'une expressions à une autre*)
         | VFun (motif,corps,fun_env,recursif) -> eval corps (filtre_val fun_env arg motif)
-        | _ -> failwith "Eval : App error (fun type)"
+        | _ -> raise (EvalError "Application error (type should be fun)")
       end
   | Seq (e1,e2)        -> begin match eval e1 env with (* Evaluation des séquences d'expressions*)
         | VUnit -> ()
-        | _ -> if !Options.warnings then print_string "[WARNING] : Seq (first expression should have type unit)" end; eval e2 env
+        | _ -> if !Options.warnings then print_string "[WARNING] Sequence (first expression should have type unit)" end; eval e2 env
   | Ref e1             -> incr next_ref ; let my_ref = !next_ref in (* Traitement des références *)
                           if my_ref < max_ref 
                             then (ref_memory.(my_ref) <- eval e1 env; VRef my_ref)
-                            else failwith "Eval : Ref error (max limit of ref)"
+                            else raise (EvalError "Reference error (limite nombre reference atteinte)")
   | ValRef e1          -> begin match eval e1 env with
         | VRef k -> ref_memory.(k)
-        | _ -> failwith "Eval : ValRef error (arg should have type ref)"
+        | _ -> raise (EvalError "ValRef error (type should be ref)")
       end
   | RefNew (e1,e2)     -> begin match eval e1 env with
         | VRef k -> ref_memory.(k) <- eval e2 env; VUnit
-        | _ -> failwith "Eval : RefNew error (should have type var)"
+        | _ -> raise (EvalError "RefNew error (type should be ref)")
       end
   | Exn e1             -> begin match eval e1 env with
         | VInt k -> VExcep (k,false)
-        | _ -> failwith "Eval : Exn error (arg should have type int)"
+        | _ -> raise (EvalError "Exception error (type should be int)")
       end
   | Raise e1           -> begin match eval e1 env with  (* Evaluation des expressions de type Raise expr*)
         | VExcep (k,_) -> VExcep (k,true)
-        | _ -> failwith "Eval : Raise error (arg should have type exn)"
+        | _ -> raise (EvalError "Raise error (type should be exn)")
       end
   | TryWith (e1,l)     -> begin match eval e1 env with
         | VExcep (m,true) -> let rec aux = function
               | (MExcp (MExpr (Const n)),e2) :: l'  -> if n = m then eval e2 env else aux l' 
               | (MExcp motif,e2) :: l'-> let b,env' = is_matching (Const m) env motif in if b then eval e2 env' else aux l'
               | []                        -> VExcep (m,true)
-              | _ -> failwith "Eval : TryWith error (case do not match an exception)"
+              | _ -> raise (EvalError "TryWith error (case do not match an exception)")
             in aux l 
         | v -> v
       end
   | InDecr (e1,b)      -> begin match eval e1 env with (* Evaluation des expressions du type incr et decr sur des références*)
         | VRef k -> begin match ref_memory.(k) with
               | VInt n -> ref_memory.(k) <- VInt (n + if b then 1 else -1); VUnit
-              | _ -> failwith "Eval : Incr error (ref should have type int)" 
+              | _ -> raise (EvalError "Incr error (type should be int ref)") 
             end
-        | _ -> failwith "Eval : Incr error (arg should have type ref)"
+        | _ -> raise (EvalError "Incr error (type should be ref)")
       end
   | EmptyList          -> VList []
   | Cons (e1,e2)       -> begin match eval e2 env with (* Evaluations des expressions du type expr::expr au sein d'une liste*)
         | VList l -> VList (eval e1 env :: l)
-        | _ -> failwith "Eval : Cons error (second argument should be list)"
+        | _ -> raise (EvalError "Cons error (second argument should be list)")
       end
   | MatchWith (e1,l)   -> let rec aux = function (* Evaluation des expressions contennant un match with *)
         | (motif,e2) :: l' -> let b,env' = is_matching e1 env motif in if b then eval e2 env' else aux l'
-        | [] -> failwith "Eval : Match failure"
+        | [] -> raise (EvalError "Match failure")
       in aux l 

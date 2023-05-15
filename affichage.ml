@@ -233,3 +233,33 @@ let print_debug e = print_string ("Je suis dans " ^ (match e with
   | InDecr _    -> "Incr"
   | _ -> "TO DO")
   ^ (if not !Options.slow then "\n" else ""))
+
+
+
+let rec print_type = function
+  | Var (a,id,t,b) -> a ^ (if !Options.debug || !Options.showinf || !Options.resultinf then " ("^(string_of_int id)^")" else "")^ " : " ^ print_type t
+  | None -> "None"
+  | T c -> begin match c with
+    | TInt -> "int"
+    | TBool -> "bool"
+    | TFun (arg,corps) -> (print_type arg) ^ " -> " ^ (print_type corps)
+    | TUnit -> "unit"
+    | TRef r -> "ref : " ^ (print_type r)
+    | TTuple (a,b) -> (print_type a) ^ " * " ^ (print_type b) 
+    | TList _ -> "list" end
+
+
+
+let rec print_prob = function
+| [] -> print_newline ()
+| (a,b):: l' -> print_string (print_type a);
+    print_string " ----- "; 
+    print_string (print_type b); print_string "\n"; print_prob l' 
+;;
+
+
+let rec print_typage = function
+  | Var (a,id,t,b) :: l' -> if b || !Options.showinf || !Options.debug || !Options.resultinf then print_string (a ^ (if !Options.debug then string_of_int id else "")^ " : " ^ print_type t ^ "\n");
+                            print_typage l'
+  | _ :: l' -> print_typage l'
+  | [] -> ()

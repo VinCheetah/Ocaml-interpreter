@@ -2,6 +2,7 @@ open Types
 open Inference
 exception Not_unifyable (*à "raise" si le problème n'a pas de solution*)
 open Options
+open Affichage
 
 
 let ajout_inf = ref [];;
@@ -10,18 +11,18 @@ let ajout_inf = ref [];;
 
 
 (*Renvoie true si x apparaît dans term*)
-let rec appear motif t = 
+let rec appear motif n' t = 
   match t with
-  | Var (v,_,_) -> motif = v
-  | T (TFun (arg,corps)) -> appear motif arg || appear motif corps
-  | T (TRef r) -> appear motif r
-  | T (TTuple (a,b)) -> appear motif a || appear motif b
+  | Var (v,n,_,_) -> motif = v && n = n'
+  | T (TFun (arg,corps)) -> appear motif n' arg || appear motif n' corps
+  | T (TRef r) -> appear motif n' r
+  | T (TTuple (a,b)) -> appear motif n' a || appear motif n' b
   | _ -> false
       
 (*Effectue la substitution sigma(term) = term[new_x/x] *)
 let rec replace (x, new_x) term =
   match term with
-  | Var (v,t1,b1) -> if v = x then (ajout_inf := (t1, new_x) :: !ajout_inf; new_x) else Var (v,replace (x,new_x) t1,b1)
+  | Var (v,n,t1,b1) -> if (v, n) = x then (ajout_inf := (t1, new_x) :: !ajout_inf; new_x) else Var (v,n,replace (x,new_x) t1,b1)
   | T (TFun (arg, corps)) -> T (TFun ((replace (x, new_x) arg), replace (x, new_x) corps))
   | T (TRef r) -> T (TRef (replace (x, new_x) r))
   | T (TTuple (a,b)) -> T (TTuple (replace (x, new_x) a, replace (x, new_x) b))  
@@ -36,25 +37,25 @@ let rec type_fixed = function
   | T TRef t -> type_fixed t
   | T (TFun (a,b)) 
   | T (TTuple (a,b))-> type_fixed a && type_fixed b
-  | Var (_,t,_) -> type_fixed t
+  | Var (_,_,t,_) -> type_fixed t
   | _ -> false
 
 
-let rec find_var v' = function
-  | Var (v,t,b) when v = v' -> Var (v,t,b)
-  | T TFun(a,_) when appear v' a -> find_var v' a
-  | T TFun(_,a) when appear v' a -> find_var v' a
-  | T TRef a when appear v' a -> find_var v' a
-  | T (TTuple (a,_)) when appear v' a -> find_var v' a
-  | T (TTuple (_,a)) when appear v' a -> find_var v' a
+let rec find_var v n = function
+  | Var (v',n',t,b) when v = v' && n = n' -> Var (v,n,t,b)
+  | T TFun(a,_) when appear v n a -> find_var v n a
+  | T TFun(_,a) when appear v n a -> find_var v n a
+  | T TRef a when appear v n a -> find_var v n  a
+  | T (TTuple (a,_)) when appear v n a -> find_var v n a
+  | T (TTuple (_,a)) when appear v n a -> find_var v n a
   | _ -> None
 
 
-let rec find_var_list v = function
+let rec find_var_list v n = function
   | [] -> None
-  | (a, _) :: _ when appear v a -> find_var v a
-  | (_, a) :: _ when appear v a -> find_var v a
-  | _ :: pb' -> find_var_list v pb'
+  | (a, _) :: _ when appear v n a -> find_var v n a
+  | (_, a) :: _ when appear v n a -> find_var v n a
+  | _ :: pb' -> find_var_list v n pb'
 
 
 let rec fusion_type t1 t2 = 
@@ -78,18 +79,19 @@ let rec unify pb =
   | [] -> []
   | x :: pb' -> begin
     match x with
-    | Var (v, t, b), _ when type_fixed t || !compt >= 5000 -> if appear v t then raise Not_unifyable else (unify (List.map (fun (t1,t2) -> (replace (v, t) t1), replace (v, t) t2) pb')) @ (if true then [(Var (v,None,false), t)] else [])
-    | _, Var (v, t, b) when type_fixed t || !compt >= 5000 -> if appear v t then raise Not_unifyable else (unify (List.map (fun (t1,t2) -> (replace (v, t) t1), replace (v, t) t2) pb')) @ (if true then [(Var (v,None,false), t)] else [])
-    | T (TTuple (a,b)), T (TTuple (c,d)) -> unify ((a,c)::(b,d)::pb') 
-    | T (TFun (a,b)), T (TFun (c,d)) -> unify ((a,c)::(b,d)::pb')
-    | T (TRef a), T (TRef b) -> unify ((a,b)::pb')
+    | Var (v, n, t, b), _ when type_fixed t || !compt >= compt_max -> if appear v n t then raise Not_unifyable else Var (v, n, t, b) :: (unify (List.map (fun (t1,t2) -> (replace ((v,n), t) t1), replace ((v,n), t) t2) pb')) 
+    | _, Var (v, n, t, b) when type_fixed t || !compt >= compt_max -> if appear v n t then raise Not_unifyable else Var (v, n, t, b) :: (unify (List.map (fun (t1,t2) -> (replace ((v,n), t) t1), replace ((v,n), t) t2) pb'))
+    | T (TTuple (a,b)), T (TTuple (c,d)) -> unify ((a,c) :: (b,d) :: pb') 
+    | T (TFun (a,b)), T (TFun (c,d)) -> unify ((a,c) :: (b,d) :: pb')
+    | T (TRef a), T (TRef b) -> unify ((a,b) :: pb')
     | T a, T b when a != b-> raise Not_unifyable
     | T a, T b -> unify pb'
-    | Var (v,t1,b1), Var (v2,t2,b2) when v = v2-> let t,l = fusion_type t1 t2 in unify (pb' @ l @ [(Var(v, t, b1 || b2), None)])
-    | Var (v,t1,b1), Var (v2,t2,b2) -> unify (pb' @ [(Var(v, Var (v2,t2,b2), b1 || b2), None); Var (v2, Var (v,t1,b1), b1 || b2), None])
-    | Var (v,t,b), None -> unify (pb'  @ (if true then [(Var (v,t,b), find_var_list v pb')] else []))
-    | t, Var (v,t1,b1)
-    | Var (v,t1,b1), t -> let t2, l = fusion_type t1 t in unify ((Var (v, t2, b1), None) :: pb' @ l)
+    | Var (v1,n1,t1,b1), Var (v2,n2,t2,b2) when v1 = v2 && n1 = n2 -> let t,l = fusion_type t1 t2 in unify (pb' @ l @ [(Var(v1, n1, t, b1 || b2), None)])
+    | Var (v1,n1,t1,b1), Var (v2,n2,t2,b2) -> unify (pb' @ [(Var(v1,n1, Var (v2,n2,t2,b2), b1 || b2), None); Var (v2, n2, Var (v1,n1,t1,b1), b1 || b2), None])
+    | None, Var (v,n,t,b)
+    | Var (v,n,t,b), None -> unify (pb'  @ ([(Var (v,n,t,b), find_var_list v n pb')]))
+    | t, Var (v,n,t1,b1)
+    | Var (v,n,t1,b1), t -> let t2, l = fusion_type t1 t in unify ((Var (v, n, t2, b1), None) :: pb' @ l)
     | _, None -> unify pb'
     | None, _ -> unify pb'
   end)

@@ -101,6 +101,7 @@ type types =
 and t =
   | Var of string * int * t * bool
   | T of types 
+  | Prime of int
   | None
 
 type problem = (t * t) list
@@ -112,9 +113,9 @@ type problem = (t * t) list
 
 
 
+let prime_indice = ref 0;;
 
-
-let index : (string * int ref * bool) list ref  = ref [];;
+let index : (string * int ref * bool * t) list ref  = ref [];;
 
 let inference : (t * t) list ref = ref [];;
 
@@ -123,6 +124,10 @@ let add_inf x = inference := !inference @ [x]
 let pre_cancelled : (string * int) list list ref = ref [];; 
 
 let cancelled : (string * int) list ref = ref [];;
+
+let occ_prime = Array.make max_ref 0
+
+let give_next_prime () = incr prime_indice; occ_prime.(!prime_indice) <- 1; Prime !prime_indice
 
 let rec add x = function
   | [] -> [x]
@@ -139,9 +144,9 @@ let cancellation () = if !pre_cancelled = [] then print_string "suspicious\n"
                       if !Options.showinf then print_cancelled !cancelled
 
 let rec new_var x global = function
-  | [] -> if List.mem (x, 1) !cancelled then new_var x global [(x, ref 1, global)] 
+  | [] -> if List.mem (x, 1) !cancelled then new_var x global [(x, ref 1, global, give_next_prime ())] 
           else (if !pre_cancelled <> [] then pre_cancelled := add (x, 1) (List.hd !pre_cancelled) :: (List.tl !pre_cancelled); [(x, ref 1, global)])
-  | (a, r, g) :: l' when a = x -> incr r; 
+  | (a, r, g, t) :: l' when a = x -> incr r; 
                                   if List.mem (x, !r) !cancelled then (if !Options.showinf then print_string "found cancelled\n"; new_var x global ((a,r,g)::l')) 
                                   else (if !Options.showinf then (print_string ("not cancelled : "^a^" -- "); print_int !r; print_newline ());
                                         if !pre_cancelled <> [] then pre_cancelled := add (x, !r) (List.hd !pre_cancelled) :: (List.tl !pre_cancelled);
@@ -162,6 +167,6 @@ let rec identify_var x t = function
 
 
 
-let give_next_var () = incr next_var; Var ("aux", !next_var, None, false)
+let give_next_var () = incr next_var; Var ("aux", !next_var, give_next_prime (), false)
 
 let compt_max = 300;;

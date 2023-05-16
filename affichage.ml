@@ -251,6 +251,7 @@ let rec print_type = function
     | TList l          -> print_type l ^ " list"
     | TExn             -> "exn"
     end
+  | Prime a        -> "'"^Char.escaped (Char.chr (a+96)) 
 
 
 

@@ -21,14 +21,26 @@ let rec appear v n t =
   | _ -> false
       
 (*Effectue la substitution sigma(term) = term[new_x/x] *)
-let rec replace (x, new_x) term =
-  match term with
+let rec replace (x, new_x) = function 
   | Var (v,n,t1,b1)       -> if (v, n) = x then (ajout_inf := (t1, new_x) :: !ajout_inf; new_x) else Var (v,n,replace (x,new_x) t1,b1)
   | T (TFun (arg, corps)) -> T (TFun ((replace (x, new_x) arg), replace (x, new_x) corps))
   | T (TRef r)            -> T (TRef (replace (x, new_x) r))
   | T (TTuple (a,b))      -> T (TTuple (replace (x, new_x) a, replace (x, new_x) b))  
   | T TList l             -> T (TList (replace (x,new_x) l))
   | a                     -> a
+
+
+
+let rec replace_prime ((maxi, mini) : (int * t)) = function
+    | Prime c when c = maxi -> mini
+    | Var (v,n,t1,b1)       -> Var (v,n,replace_prime (maxi,mini) t1,b1)
+    | T (TFun (arg, corps)) -> T (TFun ((replace_prime (maxi, mini) arg), replace_prime (maxi, mini) corps))
+    | T (TRef r)            -> T (TRef (replace_prime (maxi, mini) r))
+    | T (TTuple (a,b))      -> T (TTuple (replace_prime (maxi, mini) a, replace_prime (maxi, mini) b))  
+    | T TList l             -> T (TList (replace_prime (maxi,mini) l))
+    | a                     -> a
+
+
 
 let compt = ref 0;;
 
@@ -42,6 +54,7 @@ let rec type_fixed = function
   | T (TTuple (a,b)) -> type_fixed a && type_fixed b
   | T TList t        -> type_fixed t 
   | Var (_,_,t,_)    -> type_fixed t
+  | Prime a          -> if occ_prime.(a) = 0 then print_string "0 prime"; occ_prime.(a) <= -1
   | _                -> false
 
 
@@ -67,6 +80,8 @@ let rec fusion_type t1 t2 =
   match t1, t2 with
   | t, None
   | None, t                                -> t, []
+  | t, Prime a
+  | Prime a, t                             -> t, [Prime a, t]
   | T (TFun (a1, b1)), T (TFun (a2,b2))    -> let t1,l1 = fusion_type a1 a2 and t2, l2 = fusion_type b1 b2 in T (TFun(t1, t2)), l1 @ l2
   | T (TTuple(a1, b1)), T (TTuple (a2,b2)) -> let t1,l1 = fusion_type a1 a2 and t2, l2 = fusion_type b1 b2 in T (TTuple(t1, t2)), l1 @ l2
   | T (TList t1), T (TList t2)             -> let t, l = fusion_type t1 t2 in T (TList t), l
@@ -87,6 +102,10 @@ let rec unify pb =
     match x with
     | Var (v, n, t, b), _ when type_fixed t || !compt >= compt_max -> if appear v n t then raise Not_unifyable else Var (v, n, t, b) :: (unify (List.map (fun (t1,t2) -> (replace ((v,n), t) t1), replace ((v,n), t) t2) pb')) 
     | _, Var (v, n, t, b) when type_fixed t || !compt >= compt_max -> if appear v n t then raise Not_unifyable else Var (v, n, t, b) :: (unify (List.map (fun (t1,t2) -> (replace ((v,n), t) t1), replace ((v,n), t) t2) pb'))
+    | Prime a, Prime b -> occ_prime.(min a b) <- occ_prime.(min a b) + occ_prime.(max a b); occ_prime.(max a b) <- 0;
+                          unify (List.map (fun (t1,t2) -> (replace_prime (max a b, Prime (min a b)) t1), replace_prime (max a b, Prime (min a b)) t2) pb')
+    | t, Prime a
+    | Prime a, t -> occ_prime.(a) <- 0; unify (List.map (fun (t1,t2) -> (replace_prime (a, t) t1, replace_prime (a, t) t2)) pb')
     | T (TTuple (a,b)), T (TTuple (c,d)) -> unify ((a,c) :: (b,d) :: pb') 
     | T (TFun (a,b)), T (TFun (c,d)) -> unify ((a,c) :: (b,d) :: pb')
     | T (TRef a), T (TRef b) -> unify ((a,b) :: pb')

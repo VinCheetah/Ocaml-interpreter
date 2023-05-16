@@ -1,7 +1,15 @@
 open Types
 open Options
 open Affichage
+open Exceptions
 
+
+
+(*
+let identifie_variables = function
+  | Var motif -> begin match motif with
+    | MNom m -> index
+  | e -> e *)
 
 
 let rec actu_index func global = function
@@ -15,13 +23,13 @@ let rec actu_index func global = function
 let rec filtre_motif_expr expr motif = add_inf (decompose_motif motif, find_type expr)
 
 and decompose_motif = function
-    | MNom m          -> identify_var m None !index
+    | MNom m          -> identify_var m (give_next_prime ()) !index
     | MCouple (m1,m2) -> T (TTuple (decompose_motif m1, decompose_motif m2))
     | MUnit           -> T TUnit
     | MExpr expr1     -> find_type expr1 
     | MCons (m1, MEmptyList) -> decompose_motif m1
     | MCons   (m1,m2) -> let alpha = give_next_var () and t = decompose_motif m2 in add_inf (decompose_motif m1, alpha); add_inf (T (TList alpha), t); t
-    | MEmptyList      -> T (TList (None))
+    | MEmptyList      -> T (TList (give_next_prime ()))
     | _ -> None
 
 
@@ -40,8 +48,8 @@ and find_type = function
     | Fun (motif,expr1)         -> actu_index new_var false motif; let t = T (TFun (decompose_motif motif, find_type expr1)) in actu_index erase_var false motif; t
     | App (expr1,expr2)         -> begin match find_type expr1 with 
         | T TFun (_,t) -> t 
-        | Var (a,b,c,d)-> actu_index new_var false (MNom a); let alpha = give_next_var() in add_inf (Var (a,b,c,d), T (TFun (None, alpha))); actu_index erase_var false (MNom a); alpha 
-        | _            -> None 
+        | Var (a,b,c,d)-> actu_index new_var false (MNom a); let alpha = give_next_var() in add_inf (Var (a,b,c,d), T (TFun (give_next_prime (), alpha))); actu_index erase_var false (MNom a); alpha 
+        | _            -> raise (TypeError (T (TFun (None,None)), None)) 
       end
     | Seq (expr1,expr2)         -> find_type expr2 
     | Ref expr1                 -> T (TRef (find_type expr1)) 
@@ -51,7 +59,7 @@ and find_type = function
         | _ -> None end
     | RefNew _                  -> T TUnit
     | Cons (expr1,expr2)        -> T (TList (find_type expr1))
-    | EmptyList                 -> T (TList None)
+    | EmptyList                 -> T (TList (give_next_prime ()))
     | InDecr _                  -> T TUnit
     | _                         -> None
 
@@ -68,15 +76,15 @@ let rec inf expr =
     | PrInt expr1                             -> add_inf (find_type expr1, T TInt); inf expr1
     | Let (recursif,motif,expr1,global,expr2) -> actu_index new_var global motif; filtre_motif_expr expr1 motif; inf expr1; inf expr2; actu_index erase_var global motif
     | Fun (motif, expr1)                      -> pre_cancelled := [] :: !pre_cancelled; actu_index new_var false motif; inf expr1; actu_index erase_var false motif; cancellation ()
-    | App (expr1, expr2)                      -> add_inf (find_type expr1, T (TFun (None, None))); begin match expr1 with 
+    | App (expr1, expr2)                      -> add_inf (find_type expr1, T (TFun (give_next_prime (), give_next_prime ()))); begin match expr1 with 
         | Fun (motif, expr3) -> pre_cancelled := [] :: !pre_cancelled; actu_index new_var false motif; filtre_motif_expr expr1 motif; actu_index erase_var false motif; cancellation ()
-        | Var func           -> let alpha = give_next_var () in add_inf (decompose_motif func, T (TFun (alpha, None))); add_inf (alpha, find_type expr2)
+        | Var func           -> let alpha = give_next_var () in add_inf (decompose_motif func, T (TFun (alpha, give_next_prime ()))); add_inf (alpha, find_type expr2)
         | _                  -> ()
       end; inf expr1; inf expr2
     | Seq (expr1, expr2)                      -> inf expr1; inf expr2
     | Ref expr1                               -> inf expr1
-    | ValRef expr1                            -> add_inf (find_type expr1, T (TRef None)); inf expr1
-    | RefNew (expr1, expr2)                   -> add_inf (find_type expr1, T (TRef None)); begin match expr1 with 
+    | ValRef expr1                            -> add_inf (find_type expr1, T (TRef (give_next_prime ()))); inf expr1
+    | RefNew (expr1, expr2)                   -> add_inf (find_type expr1, T (TRef (give_next_prime ()))); begin match expr1 with 
         | Ref expr3 -> add_inf (find_type expr2, find_type expr3)
         | Var motif -> add_inf (T (TRef (find_type expr2)), decompose_motif motif) 
         | _         -> ()

@@ -136,6 +136,7 @@ motif :
   | UNDERSCORE                                         { MNone }
   | UNIT                                               { MUnit }
   | motif CONS motif                                   { MCons ($1,$3) }
+  | LLIST motif_list RLIST                                  { $2 }
   | EMPTYLIST                                          { MEmptyList }
   | E motif                                            { MExcp ($2) }
   | INT                                                { MExpr (Const $1)}
@@ -177,6 +178,10 @@ groupe_decla:
 liste: /* règles de grammaire pour les listes */  
   | expression SCOLON liste                            { Cons ($1,$3) }
   | expression                                         { Cons ($1,EmptyList) }
+
+motif_list:
+  | motif SCOLON motif_list                            { MCons ($1, $3) }
+  | motif                                              { MCons ($1, MEmptyList) }
 
 
 pattern: /* règles de grammaire pour les pattern matching */

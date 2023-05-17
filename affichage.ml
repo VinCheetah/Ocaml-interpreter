@@ -239,7 +239,7 @@ let print_debug e = print_string ("Je suis dans " ^ (match e with
 
 
 let rec print_type = function
-  | Var (a,id,t,b) -> a ^ (if !Options.showtypes then " ("^(string_of_int id)^")" else "")^ " : " ^ print_type t
+  | Var (a,t,b) -> a ^ " : " ^ print_type t
   | None           -> "'a"
   | T c            -> begin match c with
     | TInt             -> "int"
@@ -262,7 +262,7 @@ let rec print_prob = function
 
 
 let rec print_typage = function
-  | Var (a,id,t,b) :: l' -> if b || !Options.showtypes then print_string (a ^ (if !Options.debug then string_of_int id else "")^ " : " ^ print_type t ^ "\n");
+  | Var (a,t,b) :: l' -> if b || !Options.showtypes then print_string (a ^ " : " ^ print_type t ^ "\n");
                             print_typage l'
   | _ :: l' -> print_typage l'
   | [] -> ()

@@ -36,9 +36,10 @@ let _ = Stdlib.Parsing.set_trace !trace
 (* le traitement d'une expression en entr�e *)   
 let execute e =
   begin 
+    let e = identifie_variables e in
     let _ = inf e in 
     if !Options.showinf then (print_prob !inference);
-    if not !Options.notypes then (add_inf (Var("-",0, find_type e, true), None); print_typage (unify !inference); if !Options.showinf then affiche_compt !compt compt_max);
+    if not !Options.notypes then (add_inf (Var("-", find_type e, true), None); print_typage (unify !inference); if !Options.showinf then affiche_compt !compt compt_max);
     if !Options.tree then (affiche_expr_tree e; print_newline ());
     if !Options.showsrc then (affiche_expr_final e; print_string ";;\n");
     let v = Expr.eval e Types.empty_env in if !Options.output then (print_string "\nout : "; affiche_val v; print_newline ()) 

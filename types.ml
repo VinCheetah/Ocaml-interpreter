@@ -99,7 +99,7 @@ type types =
   | TExn
 
 and t =
-  | Var of string * int * t * bool
+  | Var of string * t * bool
   | T of types 
   | Prime of int
   | None
@@ -115,7 +115,9 @@ type problem = (t * t) list
 
 let prime_indice = ref 0;;
 
-let index : (string * int ref * bool * t) list ref  = ref [];;
+let index : (string * int ref * bool) list ref  = ref [];;
+
+let correspondance : (string * t * bool) list ref = ref [];;
 
 let inference : (t * t) list ref = ref [];;
 
@@ -144,12 +146,12 @@ let cancellation () = if !pre_cancelled = [] then print_string "suspicious\n"
                       if !Options.showinf then print_cancelled !cancelled
 
 let rec new_var x global = function
-  | [] -> if List.mem (x, 1) !cancelled then new_var x global [(x, ref 1, global, give_next_prime ())] 
-          else (if !pre_cancelled <> [] then pre_cancelled := add (x, 1) (List.hd !pre_cancelled) :: (List.tl !pre_cancelled); [(x, ref 1, global)])
-  | (a, r, g, t) :: l' when a = x -> incr r; 
+  | [] -> if List.mem (x, 1) !cancelled then new_var x global [(x, ref 1, global)] 
+          else (if !pre_cancelled <> [] then pre_cancelled := add (x, 1) (List.hd !pre_cancelled) :: (List.tl !pre_cancelled); correspondance := add (x, give_next_prime (), global) !correspondance; [(x, ref 1, global)])
+  | (a, (r : int ref), g) :: l' when a = x -> incr r; 
                                   if List.mem (x, !r) !cancelled then (if !Options.showinf then print_string "found cancelled\n"; new_var x global ((a,r,g)::l')) 
                                   else (if !Options.showinf then (print_string ("not cancelled : "^a^" -- "); print_int !r; print_newline ());
-                                        if !pre_cancelled <> [] then pre_cancelled := add (x, !r) (List.hd !pre_cancelled) :: (List.tl !pre_cancelled);
+                                        if !pre_cancelled <> [] then pre_cancelled := add (x, !r) (List.hd !pre_cancelled) :: (List.tl !pre_cancelled); correspondance := add (a, give_next_prime (), global) !correspondance;
                                         (a, r, global) :: l')
   | t :: l' -> t :: (new_var x global l')
 
@@ -160,13 +162,18 @@ let rec erase_var x global l = match l with
   | t :: l' -> t :: (erase_var x global l')
 
 
-let rec identify_var x t = function
-  | [] -> if !Options.showinf then print_string ("Unindexed : "^x^"\n"); Var (x, 0, t, false) 
-  | (a, r, g) :: l' when a = x -> Var (a, !r, t, g)
-  | _ :: l' -> identify_var x t l'
+let rec identify_var x = function
+  | [] -> if !Options.showinf then print_string ("Unindexed : "^x^"\n"); Var (x, None, false) 
+  | (a, p, g) :: l' when a = x -> Var (a, p, g)
+  | _ :: l' -> identify_var x l'
 
 
+let rec rename_var x = function
+  | [] -> if !Options.showinf then print_string ("Unindexed : "^x^"\n"); x
+  | (a, r, g) :: l' when a = x -> string_of_int !r ^ a
+  | _ :: l' -> rename_var x l'
 
-let give_next_var () = incr next_var; Var ("aux", !next_var, give_next_prime (), false)
+
+let give_next_var () = incr next_var; Var (string_of_int !next_var ^ "aux", give_next_prime (), false)
 
 let compt_max = 300;;

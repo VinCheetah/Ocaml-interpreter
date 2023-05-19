@@ -158,9 +158,9 @@ and eval e env =
       end 
   | Let (recursif,var,e1,global,e2) -> if not global then Options.in_dscolon := true;
                                        if global && !Options.in_dscolon then raise (EvalError "Declaration error (global in non-global declaration)");
-                                       eval e2 (filtre e1 recursif env var) 
+                                       eval e2 (filtre e1 recursif env var)
   | Fun (arg,e1)       -> VFun (arg,e1,env,false)
-  | App (e1,e2) -> let arg = eval e2 env in  begin match eval e1 env with (* Traitement de l'application d'une expressions à une autre*)
+  | App (e1,e2)        -> let arg = eval e2 env in  begin match eval e1 env with (* Traitement de l'application d'une expressions à une autre*)
         | VFun (motif,corps,fun_env,recursif) -> eval corps (filtre_val fun_env arg motif)
         | _ -> raise (EvalError "Application error (type should be fun)")
       end

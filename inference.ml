@@ -88,6 +88,8 @@ and find_type = function
     | Cons (expr1,expr2)        -> T (TList (find_type expr1))
     | EmptyList                 -> T (TList (give_next_prime ()))
     | InDecr _                  -> T TUnit
+    | Exn _                     -> T TExn
+    | Raise _                   -> T TExn
     | _                         -> None
 
 

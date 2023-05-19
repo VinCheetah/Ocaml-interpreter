@@ -15,8 +15,8 @@ let rec appear v t =
   match t with
   | Var (v',_,_)   -> v = v'
   | T (TTuple (a,b))
-  | T (TFun (a,b)) -> appear v a || appear v corps
-  | T (TRef r)
+  | T (TFun (a,b)) -> appear v a || appear v b
+  | T TRef l
   | T TList l      -> appear v l
   | _              -> false
       
@@ -54,7 +54,7 @@ let rec type_fixed = function
   | T TRef t 
   | T TList t 
   | Var (_,t,_)      -> type_fixed t
-  | Prime a          -> if occ_prime.(a) = 0 then print_string ("0 prime : '"^Char.escaped (Char.chr (a+96))^"\n"); occ_prime.(a) <= -1
+  | Prime a          -> !compt > compt_max
   | _                -> false
 
 
@@ -84,24 +84,35 @@ let rec fusion_type t1 t2 =
   | Prime a, t                             -> t, [Prime a, t]
   | T (TFun (a1, b1)), T (TFun (a2,b2))    -> let t1,l1 = fusion_type a1 a2 and t2, l2 = fusion_type b1 b2 in T (TFun(t1, t2)), l1 @ l2
   | T (TTuple(a1, b1)), T (TTuple (a2,b2)) -> let t1,l1 = fusion_type a1 a2 and t2, l2 = fusion_type b1 b2 in T (TTuple(t1, t2)), l1 @ l2
+  | T (TRef t1), T (TRef t2)               -> let t, l = fusion_type t1 t2 in T (TRef t), l
   | T (TList t1), T (TList t2)             -> let t, l = fusion_type t1 t2 in T (TList t), l
   | t1, t2                                 -> t1, [(t1,t2)]
 
 
-
+let rec no_var = function
+  | Var (_,t,_) -> no_var t
+  | T (TFun (a,b)) -> T (TFun (no_var a, no_var b))
+  | T (TTuple (a,b)) -> T (TTuple (no_var a, no_var b))
+  | T (TRef a) -> T (TRef (no_var a))
+  | T (TList a) -> T (TList (no_var a))
+  | a -> a
 
 
 
 (*Implémente l'unification de deux termes*)
-let rec unify pb =
+let rec unify pb = if !Options.showinf && !compt > compt_max then print_string "out of compt\n"; 
   let update_inf pb = if !Options.showinf then (print_string "AJOUT : ";print_prob !ajout_inf); let pb' = !ajout_inf @ pb in ajout_inf := []; unify pb' in
   if !ajout_inf <> [] then update_inf pb else (incr compt; if !Options.showinf then print_prob pb;
   match pb with
   | [] -> []
   | x :: pb' -> begin
     match x with
-    | Var (v, t, b), _ when type_fixed t || !compt >= compt_max -> Var (v, t, b) :: (unify (List.map (fun (t1,t2) -> replace_prime (prime_var v !correspondance, t) (replace (v, t) t1), replace_prime (prime_var v !correspondance, t) (replace (v, t) t2)) pb')) 
-    | _, Var (v, t, b) when type_fixed t || !compt >= compt_max -> Var (v, t, b) :: (unify (List.map (fun (t1,t2) -> (replace (v, t) t1), replace (v, t) t2) pb'))
+    | Var (v, t, b), _ when type_fixed t || !compt >= compt_max -> Var (v, no_var t, b) :: (unify (List.map (fun (t1,t2) -> replace_prime (prime_var v !correspondance, t) (replace (v, t) t1), replace_prime (prime_var v !correspondance, t) (replace (v, t) t2)) pb')) 
+    | _, Var (v, t, b) when type_fixed t || !compt >= compt_max -> Var (v, no_var t, b) :: (unify (List.map (fun (t1,t2) -> (replace (v, t) t1), replace (v, t) t2) pb'))
+    | None, Var (v,t,b)
+    | Var (v,t,b), None -> unify (pb'  @ ([(Var (v,t,b), find_var_list v pb')]))
+    | _, None -> unify pb'
+    | None, _ -> unify pb'
     | Prime a, Prime b -> occ_prime.(min a b) <- occ_prime.(min a b) + occ_prime.(max a b); occ_prime.(max a b) <- 0;
                           unify (List.map (fun (t1,t2) -> (replace_prime (max a b, Prime (min a b)) t1), replace_prime (max a b, Prime (min a b)) t2) pb')
     | Var (_,t,_), Prime a
@@ -116,12 +127,8 @@ let rec unify pb =
     | T a, T b -> unify pb'
     | Var (v1,t1,b1), Var (v2,t2,b2) when v1 = v2 -> let t,l = fusion_type t1 t2 in unify (pb' @ l @ [(Var(v1, t, b1 || b2), None)])
     | Var (v1,t1,b1), Var (v2,t2,b2) -> unify (pb' @ [(Var(v1, Var (v2,t2,b2), b1 || b2), None); Var (v2, Var (v1,t1,b1), b1 || b2), None])
-    | None, Var (v,t,b)
-    | Var (v,t,b), None -> unify (pb'  @ ([(Var (v,t,b), find_var_list v pb')]))
     | t, Var (v,t1,b1)
     | Var (v,t1,b1), t -> let t2, l = fusion_type t1 t in unify ((Var (v, t2, b1), None) :: pb' @ l)
-    | _, None -> unify pb'
-    | None, _ -> unify pb'
   end)
 
 

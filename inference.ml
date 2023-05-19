@@ -26,7 +26,7 @@ let rec identifie_variables (e : expr) : expr = match e with
   | BoolOp (op,e1,e2)  -> let e1' = identifie_variables e1 and e2' = identifie_variables e2 in BoolOp (op, e1', e2')
   | If (c1,e1,e2)      -> let c1' = identifie_variables c1 and e1' = identifie_variables e1 and e2' = identifie_variables e2 in If (c1', e1', e2')
   | PrInt e1           -> let e1' = identifie_variables e1 in PrInt (e1')
-  | Let (recursif,var,e1,global,e2) -> (if recursif then actu_index new_var global var); let e1' = identifie_variables e1 in (if not recursif then actu_index new_var global var); let var' = rename_motif var and e2' = identifie_variables e2 in Let (recursif, var', e1', global, e2')
+  | Let (recursif,var,e1,global,e2) -> (if recursif then actu_index new_var global var); let e1' = identifie_variables e1 in (if not recursif then actu_index new_var global var); let var' = rename_motif var and e2' = identifie_variables e2 in actu_index erase_var false var; Let (recursif, var', e1', global, e2')
   | Fun (arg,e1)       -> pre_cancelled := [] :: !pre_cancelled; actu_index new_var false arg; let arg' = rename_motif arg and e1' = identifie_variables e1 in actu_index erase_var false arg; cancellation (); Fun(arg', e1')
   | App (e1,e2)        -> let e1' = identifie_variables e1 and e2' = identifie_variables e2 in App (e1', e2') 
   | Seq (e1,e2)        -> let e1' = identifie_variables e1 and e2' = identifie_variables e2 in Seq (e1', e2')
@@ -103,19 +103,11 @@ let rec inf expr =
     | PrInt expr1                             -> add_inf (find_type expr1, T TInt); inf expr1
     | Let (recursif,motif,expr1,global,expr2) -> filtre_motif_expr expr1 motif; inf expr1; inf expr2;
     | Fun (motif, expr1)                      -> inf expr1
-    | App (expr1, expr2)                      -> add_inf (find_type expr1, T (TFun (give_next_prime (), give_next_prime ()))); begin match expr1 with 
-        | Fun (motif, expr3) -> filtre_motif_expr expr1 motif
-        | Var func           -> let alpha = give_next_var () in add_inf (decompose_motif func, T (TFun (alpha, give_next_prime ()))); add_inf (alpha, find_type expr2)
-        | _                  -> ()
-      end; inf expr1; inf expr2
+    | App (expr1, expr2)                      -> add_inf (find_type expr1, T (TFun (find_type expr2, give_next_prime ()))); inf expr1; inf expr2
     | Seq (expr1, expr2)                      -> inf expr1; inf expr2
     | Ref expr1                               -> inf expr1
     | ValRef expr1                            -> add_inf (find_type expr1, T (TRef (give_next_prime ()))); inf expr1
-    | RefNew (expr1, expr2)                   -> add_inf (find_type expr1, T (TRef (give_next_prime ()))); begin match expr1 with 
-        | Ref expr3 -> add_inf (find_type expr2, find_type expr3)
-        | Var motif -> add_inf (T (TRef (find_type expr2)), decompose_motif motif) 
-        | _         -> ()
-      end; inf expr1; inf expr2
+    | RefNew (expr1, expr2)                   -> add_inf (find_type expr1, T (TRef (find_type expr2))); inf expr1; inf expr2
     | Cons (expr1, expr2)                     -> let alpha = give_next_var () in add_inf (find_type expr1, alpha); add_inf (T (TList alpha), find_type expr2); inf expr1; inf expr2;
     | InDecr (expr1,_)                        -> add_inf (find_type expr1, T (TRef (T TInt)))
     | Exn expr1                               -> add_inf (find_type expr1, T TInt)
@@ -123,4 +115,8 @@ let rec inf expr =
     | TryWith (expr1, liste)                  -> ()
     | MatchWith (expr1, liste)                -> ()
     | _                                       -> ()
+
+
+
+
 

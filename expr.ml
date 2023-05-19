@@ -107,7 +107,7 @@ and filtre expr recursif env motif = fusion_env env (match motif with
       end
   | MExpr _ -> filtre_val env (eval expr env) motif
   | MExcp motif -> begin match eval expr env with
-        | VExcep (m,false) -> filtre_val env (VInt m) motif
+        | VExcep (m,_) -> filtre_val env (VInt m) motif
         | _ -> raise (EvalError "Filtre : excep problem")
       end
   | MNone -> let _ = eval expr env in [])

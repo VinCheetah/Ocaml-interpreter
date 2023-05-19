@@ -60,11 +60,11 @@ let rec type_fixed = function
 
 let rec find_var v = function
   | Var (v',t,b)  when v = v' -> Var (v,t,b)
-  | T TFun(a,_)      when appear v a -> find_var v a
-  | T TFun(_,a)      when appear v a -> find_var v a
-  | T TRef a         when appear v a -> find_var v a
-  | T (TTuple (a,_)) when appear v a -> find_var v a
-  | T (TTuple (_,a)) when appear v a -> find_var v a
+  | T TFun(a,_)      when appear v a
+  | T TFun(_,a)      when appear v a
+  | T TRef a         when appear v a
+  | T (TTuple (a,_)) when appear v a
+  | T (TTuple (_,a)) when appear v a
   | T TList a        when appear v a -> find_var v a
   | _ -> None
 

@@ -237,6 +237,7 @@ let print_debug e = print_string ("Je suis dans " ^ (match e with
   ^ (if not !Options.slow then "\n" else "")))
 
 
+let init_name_var s = match String.split_on_char '~' s with _ :: s' :: _ | s' :: _ -> s' | [] -> "strange" 
 
 let rec print_type t =
   let tri_paren t = match t with
@@ -244,7 +245,7 @@ let rec print_type t =
     | T (TTuple _) -> "(" ^ print_type t ^ ")" 
     | _ -> print_type t
 in match t with
-  | Var (a,t,b) -> a ^ " : " ^ print_type t
+  | Var (a,t,b) -> init_name_var a ^ " : " ^ print_type t
   | None           -> "none"
   | T c            -> begin match c with
     | TInt             -> "int"
@@ -265,12 +266,29 @@ let rec print_prob = function
 | (a,b):: l' -> print_string (print_type a); print_string " ----- "; print_string (print_type b); print_string "\n"; print_prob l' 
 ;;
 
+let rec prime_update a = function
+  | (b, c) :: l' when a = b -> c, (b,c)::l'
+  | b :: l' -> let c, l = prime_update a l' in c, b :: l
+  | [] -> incr final_prime_indice; !final_prime_indice, [a, !final_prime_indice]
+
+let rec remake_primes = function
+  | Prime a -> let new_a, primes_corresp' = prime_update a !primes_corresp in primes_corresp := primes_corresp'; Prime (new_a)
+  | Var (s,t,b) -> Var (s, remake_primes t, b)
+  | T (TFun (a,b)) -> let r1 = remake_primes a and r2 = remake_primes b in T (TFun (r1, r2))
+  | T (TTuple (a,b)) -> let r1 = remake_primes a and r2 = remake_primes b in T (TTuple (r1, r2))
+  | T (TRef a) -> T (TRef (remake_primes a))
+  | T (TList a) -> T (TList (remake_primes a))
+  | a -> a
 
 let rec print_typage = function
-  | Var (a,t,b) :: l' -> if b || !Options.showtypes then print_string (a ^ " : " ^ print_type t ^ "\n");
+  | (a,t,b) :: l' -> if b || !Options.showtypes then print_string (init_name_var a ^ " : " ^ print_type (remake_primes t) ^ "\n");
                             print_typage l'
-  | _ :: l' -> print_typage l'
   | [] -> ()
 
 
 let affiche_compt c cmax = print_string ("Compteur : "^string_of_int c^" (max : "^string_of_int cmax^")\n")
+
+
+
+
+

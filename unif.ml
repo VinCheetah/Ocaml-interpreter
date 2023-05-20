@@ -98,24 +98,44 @@ let rec no_var = function
   | a -> a
 
 
+let rec occ_in t1 = function
+  | t when t = t1 -> true
+  | T (TTuple (a,b))
+  | T (TFun (a,b)) -> occ_in t1 a || occ_in t1 b
+  | T (TRef a)
+  | T (TList a) -> occ_in t1 a
+  | _ -> false
+
+let rec occurs_in t1 = function
+  | Var (_,t,_) -> occurs_in t1 t
+  | T (TTuple (a,b))
+  | T (TFun (a,b)) -> occ_in t1 a || occ_in t1 b
+  | T (TRef a)
+  | T (TList a) -> occ_in t1 a
+  | _ -> false
+
+
 
 (*Implémente l'unification de deux termes*)
 let rec unify pb = if !Options.showinf && !compt > compt_max then print_string "out of compt\n"; 
   let update_inf pb = if !Options.showinf then (print_string "AJOUT : ";print_prob !ajout_inf); let pb' = !ajout_inf @ pb in ajout_inf := []; unify pb' in
   if !ajout_inf <> [] then update_inf pb else (incr compt; if !Options.showinf then print_prob pb;
   match pb with
-  | [] -> []
+  | [] -> ()
   | x :: pb' -> begin
     match x with
-    | Var (v, t, b), _ when type_fixed t || !compt >= compt_max -> Var (v, no_var t, b) :: (unify (List.map (fun (t1,t2) -> replace_prime (prime_var v !correspondance, t) (replace (v, t) t1), replace_prime (prime_var v !correspondance, t) (replace (v, t) t2)) pb')) 
-    | _, Var (v, t, b) when type_fixed t || !compt >= compt_max -> Var (v, no_var t, b) :: (unify (List.map (fun (t1,t2) -> (replace (v, t) t1), replace (v, t) t2) pb'))
+
+    | Var (v, t, b), _ when type_fixed t || !compt >= compt_max -> retype v (no_var t); (unify (List.map (fun (t1,t2) -> replace_prime (prime_var v !correspondance, t) (replace (v, t) t1), replace_prime (prime_var v !correspondance, t) (replace (v, t) t2)) pb')) 
+    | _, Var (v, t, b) when type_fixed t || !compt >= compt_max -> retype v (no_var t); (unify (List.map (fun (t1,t2) -> (replace (v, t) t1), replace (v, t) t2) pb'))
     | None, Var (v,t,b)
     | Var (v,t,b), None -> unify (pb'  @ ([(Var (v,t,b), find_var_list v pb')]))
     | _, None -> unify pb'
     | None, _ -> unify pb'
     | Prime a, Prime b -> occ_prime.(min a b) <- occ_prime.(min a b) + occ_prime.(max a b); occ_prime.(max a b) <- 0;
                           unify (List.map (fun (t1,t2) -> (replace_prime (max a b, Prime (min a b)) t1), replace_prime (max a b, Prime (min a b)) t2) pb')
-    | Var (_,t,_), Prime a
+    | t, Prime a when occurs_in (Prime a) t -> raise (Impossible_occ (Prime a, no_var t))
+    | Prime a, t when occurs_in (Prime a) t -> raise (Impossible_occ (Prime a, no_var t))
+    | Var (_,t,_), Prime a  
     | Prime a, Var (_,t,_)
     | t, Prime a
     | Prime a, t -> occ_prime.(a) <- 0; unify (List.map (fun (t1,t2) -> (replace_prime (a, t) t1, replace_prime (a, t) t2)) pb')

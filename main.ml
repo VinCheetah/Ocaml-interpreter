@@ -37,9 +37,9 @@ let _ = Stdlib.Parsing.set_trace !trace
 let execute e =
   begin 
     let e = identifie_variables e in
-    let _ = inf e in 
+    let _ = inf e in correspondance := add (("-"), Prime 0, true) !correspondance;
     if !Options.showinf then (print_prob !inference);
-    if not !Options.notypes then (add_inf (Var("-", find_type e, true), None); print_typage (unify !inference); if !Options.showinf then affiche_compt !compt compt_max);
+    if not !Options.notypes then (add_inf (Var("-", find_type e, true), None); unify !inference; print_typage !correspondance; if !Options.showinf then affiche_compt !compt compt_max);
     if !Options.tree then (affiche_expr_tree e; print_newline ());
     if !Options.showsrc then (affiche_expr_final e; print_string ";;\n");
     let v = Expr.eval e Types.empty_env in if !Options.output then (print_string "\nout : "; affiche_val v; print_newline ()) 
@@ -57,4 +57,5 @@ let _ = try calc() with
 | Stdlib.Parsing.Parse_error -> print_string "Error : problème de saisie\n"
 | TypeError (t1, t2) -> print_string ("Type Error : "^print_type t1^" - "^print_type t2^"\n")
 | EvalError commentaire -> print_string ("Error : l'évaluation a échouée avec le commentaire suivant : \n"^commentaire^"\n")
+| Impossible_occ (t1, t2) -> print_string ("Unification Error : \n Le type "^print_type t1^" apparaît dans le type "^print_type t2^"\n")
 | Not_unifyable -> print_string ("Problème d'unification\n")

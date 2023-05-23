@@ -22,7 +22,7 @@ let rec appear v t =
       
 (*Effectue la substitution sigma(term) = term[new_x/x] *)
 let rec replace (x, new_x) = function 
-  | Var (v,t1,b1)         -> if v = x then (ajout_inf := (t1, new_x) :: !ajout_inf; new_x) else Var (v,replace (x,new_x) t1,b1)
+  | Var (v,t1,b1)         -> if v = x then (if t1 <> new_x then ajout_inf := (t1, new_x) :: !ajout_inf; new_x) else Var (v,replace (x,new_x) t1,b1)
   | T (TFun (arg, corps)) -> T (TFun ((replace (x, new_x) arg), replace (x, new_x) corps))
   | T (TRef r)            -> T (TRef (replace (x, new_x) r))
   | T (TTuple (a,b))      -> T (TTuple (replace (x, new_x) a, replace (x, new_x) b))  
@@ -131,8 +131,9 @@ let rec unify pb = if !Options.showinf && !compt > compt_max then print_string "
   | [] -> ()
   | x :: pb' -> begin
     match x with
+    | T a, T b when a = b -> unify pb'
     | Var (v, t, b), _ when type_fixed t || !compt >= compt_max -> retype v (no_var t); (unify (List.map (fun (t1,t2) -> replace_prime (prime_var v !correspondance, t) (replace (v, t) t1), replace_prime (prime_var v !correspondance, t) (replace (v, t) t2)) pb')) 
-    | _, Var (v, t, b) when type_fixed t || !compt >= compt_max -> retype v (no_var t); (unify (List.map (fun (t1,t2) -> (replace (v, t) t1), replace (v, t) t2) pb'))
+    | _, Var (v, t, b) when type_fixed t || !compt >= compt_max -> retype v (no_var t); (unify (List.map (fun (t1,t2) -> replace_prime (prime_var v !correspondance, t) (replace (v, t) t1), replace_prime (prime_var v !correspondance, t) (replace (v, t) t2)) pb'))
     | None, Var (v,t,b)
     | Var (v,t,b), None -> unify (pb'  @ ([(Var (v,t,b), find_var_list v pb')]))
     | _, None -> unify pb'
@@ -149,8 +150,7 @@ let rec unify pb = if !Options.showinf && !compt > compt_max then print_string "
     | T (TFun (a,b)), T (TFun (c,d)) -> unify ((a,c) :: (b,d) :: pb')
     | T (TRef a), T (TRef b) -> unify ((a,b) :: pb')
     | T (TList a), T (TList b) -> unify ((a,b) :: pb')
-    | T a, T b when a != b-> raise (TypeError (T a, T b))
-    | T a, T b -> unify pb'
+    | T a, T b -> raise (TypeError (T a, T b))
     | Var (v1,t1,b1), Var (v2,t2,b2) when v1 = v2 -> let t,l = fusion_type t1 t2 in unify (pb' @ l @ [(Var(v1, t, b1 || b2), None)])
     | Var (v1,t1,b1), Var (v2,t2,b2) -> unify (pb' @ [(Var(v1, Var (v2,t2,b2), b1 || b2), None); Var (v2, Var (v1,t1,b1), b1 || b2), None])
     | t, Var (v,t1,b1)

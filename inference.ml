@@ -91,7 +91,8 @@ and find_type = function
     | InDecr _                  -> T TUnit
     | Exn e                     -> T (TExn (find_type e))
     | Raise e                   -> find_type e
-    | MatchWith (_,((_,a)::_))        -> find_type a
+    | MatchWith (_,((_,a)::(_,b)::_)) -> let alpha = give_next_var () in add_inf (alpha,find_type a); add_inf (alpha, find_type b); alpha
+    | MatchWith (_,((_,a)::_))  -> find_type a
     | _                         -> None
 
 
@@ -112,7 +113,7 @@ let rec inf expr =
     | Ref expr1                               -> inf expr1
     | ValRef expr1                            -> add_inf (find_type expr1, T (TRef (give_next_prime ()))); inf expr1
     | RefNew (expr1, expr2)                   -> add_inf (find_type expr1, T (TRef (find_type expr2))); inf expr1; inf expr2
-    | Cons (expr1, expr2)                     -> let alpha = give_next_var () in add_inf (find_type expr1, alpha); add_inf (T (TList alpha), find_type expr2); inf expr1; inf expr2;
+    | Cons (expr1, expr2)                     -> add_inf (T (TList (find_type expr1)), find_type expr2); inf expr1; inf expr2;
     | InDecr (expr1,_)                        -> add_inf (find_type expr1, T (TRef (T TInt)))
     | Exn expr1                               -> add_inf (find_type expr1, T TInt)
     | Raise expr1                             -> inf expr1

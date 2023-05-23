@@ -192,4 +192,4 @@ let rec retype x t =
 
 let give_next_var () = incr next_var; Var (string_of_int !next_var ^ "aux", give_next_prime (), false)
 
-let compt_max = 1000;;
+let compt_max = 300;;

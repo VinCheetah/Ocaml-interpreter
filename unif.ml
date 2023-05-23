@@ -5,10 +5,8 @@ open Options
 open Affichage
 
 
+(* Cette list ref permet de stocker des couples d'inférence qu'il est nécessaire d'ajouter au cours de l'unification *)
 let ajout_inf = ref [];;
-
-
-
 
 (*Renvoie true si x apparaît dans term*)
 let rec appear v t = 
@@ -20,7 +18,7 @@ let rec appear v t =
   | T TList l      -> appear v l
   | _              -> false
       
-(*Effectue la substitution sigma(term) = term[new_x/x] *)
+(* Effectue la substitution sigma(term) = term[new_x/x] *)
 let rec replace (x, new_x) = function 
   | Var (v,t1,b1)         -> if v = x then (if t1 <> new_x then ajout_inf := (t1, new_x) :: !ajout_inf; new_x) else Var (v,replace (x,new_x) t1,b1)
   | T (TFun (arg, corps)) -> T (TFun ((replace (x, new_x) arg), replace (x, new_x) corps))
@@ -31,7 +29,7 @@ let rec replace (x, new_x) = function
   | a                     -> a
 
 
-
+(* Effectue la substitution sigma(term) = term[new_x/x] pour le type Prime *)
 let rec replace_prime (maxi, mini) = function
     | Prime c when c = maxi -> mini
     | Var (v,t1,b1)         -> Var (v,replace_prime (maxi,mini) t1,b1)
@@ -43,9 +41,11 @@ let rec replace_prime (maxi, mini) = function
     | a                     -> a
 
 
-
+(* Le compteur permet de s'assurer que les couples de la liste d'inférence ont tous été vus avant que les types Prime puissent être considéré comme fixé, ou pour que l'inférence s'arrête lorsque l'unification ne trouve pas de fin *)
 let compt = ref 0;;
 
+
+(* Détermine si un type contient des types encore inconnu comme des variables ou des Prime indéterminés *)
 let rec type_fixed = function
   | T TInt
   | T TBool
@@ -60,6 +60,7 @@ let rec type_fixed = function
   | _                -> false
 
 
+(* Renvoie une variable (et son type associé) dans un type donné *)
 let rec find_var v = function
   | Var (v',t,b)     when v = v' -> Var (v,t,b)
   | T TFun(a,_)      when appear v a -> find_var v a
@@ -72,6 +73,7 @@ let rec find_var v = function
   | _ -> None
 
 
+(* Renvoie une occurence d'une variable dan sla liste d'inférence *)
 let rec find_var_list v = function
   | [] -> None
   | (a, _) :: _ when appear v a -> find_var v a

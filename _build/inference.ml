@@ -4,6 +4,7 @@ open Affichage
 open Exceptions
 
 
+(* Cette fonction prend un motif et applique la fonction rename_var sur tout les MNom pour remplacer toutes les variables par un nom unique *)
 let rec rename_motif = function
     | MNom m          -> MNom (rename_var m !index)
     | MCouple (m1,m2) -> MCouple (rename_motif m1, rename_motif m2)
@@ -11,6 +12,7 @@ let rec rename_motif = function
     | MCons   (m1,m2) -> MCons (rename_motif m1, rename_motif m2)
     | m -> m 
 
+(* Cette fonction prend une fonction (new_var / erase_var) puis l'applique sur les MNom d'un motif *)
 let rec actu_index func global = function
     | MNom nom         -> index := func nom global !index
     | MCouple (m1, m2) -> actu_index func global m1; actu_index func global m2
@@ -18,6 +20,8 @@ let rec actu_index func global = function
     | _                -> () 
 
 
+(* Cette fonction parcourt l'arbre de l'expression en renommant toutes les variables par une string (unique) grâce à un entier *)
+(* Pour cela on tient à jour une list ref appellée index qui contient l'entier auquel doit être lié chaque variable, un peu comme un environnement *)
 let rec identifie_variables (e : expr) : expr = match e with
   | Var motif -> Var (rename_motif motif)
   | CoupleExpr (e1,e2) -> let e1' = identifie_variables e1 and e2' = identifie_variables e2 in CoupleExpr (e1', e2')
@@ -42,13 +46,11 @@ let rec identifie_variables (e : expr) : expr = match e with
   | _ -> e
 
 
-
+(* Ajoute une contrainte pour lier un motif et une expression dans la liste d'inférence *)
 let rec filtre_motif_expr expr motif = add_inf (decompose_motif motif, find_type expr)
 
 
-
-
-
+(* Permet de transformer un motif en un type imbriqué *)
 and decompose_motif = function
     | MNom m          -> identify_var m !correspondance
     | MCouple (m1,m2) -> T (TTuple (decompose_motif m1, decompose_motif m2))
@@ -61,6 +63,8 @@ and decompose_motif = function
     | _ -> None
 
 
+(* Prend une expression et retourne son type en effectuant le moins de récursions possible *)
+(* C'est à dire qu'elle s'arrête dés qu'elle est sûr du type à renvoyer *)
 and find_type = function
     | Const _                   -> T TInt
     | BConst _                  -> T TBool
@@ -97,7 +101,7 @@ and find_type = function
 
 
 
-
+(* Fonction principale de l'inférence, parcourt l'arbre de l'expression donnée et ajoute les contraintes d'inférence nécessaires *)
 let rec inf expr = 
   if !Options.showinf then print_prob !inference; 
   match expr with
@@ -117,8 +121,8 @@ let rec inf expr =
     | InDecr (expr1,_)                        -> add_inf (find_type expr1, T (TRef (T TInt)))
     | Exn expr1                               -> add_inf (find_type expr1, T TInt)
     | Raise expr1                             -> inf expr1
-    | TryWith (expr1, liste)                  -> let alpha = find_type (snd (List.hd liste)) in List.iter (fun (motif, expr2) -> add_inf (decompose_motif motif, T (TExn None)); add_inf (alpha, find_type expr2)) liste
-    | MatchWith (expr1, liste)                -> let alpha = find_type (snd (List.hd liste)) in List.iter (fun (motif, expr2) -> filtre_motif_expr expr1 motif; add_inf (alpha, find_type expr2)) liste
+    | TryWith (expr1, liste)                  -> let alpha = find_type (snd (List.hd liste)) in List.iter (fun (motif, expr2) -> add_inf (decompose_motif motif, T (TExn None)); add_inf (alpha, find_type expr2); inf expr2) liste
+    | MatchWith (expr1, liste)                -> let alpha = find_type (snd (List.hd liste)) in List.iter (fun (motif, expr2) -> filtre_motif_expr expr1 motif; add_inf (alpha, find_type expr2); inf expr2) liste
     | _                                       -> ()
 
 

@@ -1,3 +1,5 @@
+(* Définition des options de notre fouine *)
+
 let debug = ref false
 and showsrc = ref false
 and slow = ref false
@@ -11,7 +13,7 @@ and showtypes = ref false
 and showinf = ref false
 
 
-
+(* Installe une certaine dépendance entre les options *)
 let actu_options () =
   if !debug then (showsrc := true; tree := true; trace := true; warnings := true; output := true; showinf := true)
   else if !showinf then showtypes := true;

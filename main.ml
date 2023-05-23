@@ -52,7 +52,8 @@ let calc () =
     execute saisie; flush stdout
   with e -> raise e
 
-
+(* On effectue la gestion des erreurs *)
+(* Qui ont été remplacé depuis le premier rendu (avant on utilisait des failwith) *)
 let _ = try calc() with
 | Stdlib.Parsing.Parse_error -> print_string "Error : problème de saisie\n"
 | TypeError (t1, t2) -> print_string ("Type Error : "^print_type t1^" - "^print_type t2^"\n")

@@ -73,7 +73,7 @@ let rec find_var v = function
   | _ -> None
 
 
-(* Renvoie une occurence d'une variable dan sla liste d'inférence *)
+(* Renvoie une occurence d'une variable dans la liste d'inférence *)
 let rec find_var_list v = function
   | [] -> None
   | (a, _) :: _ when appear v a -> find_var v a
@@ -81,6 +81,7 @@ let rec find_var_list v = function
   | _ :: pb' -> find_var_list v pb'
 
 
+(* Prend deux types et les fusionne dans le sens ou elle renvoit un unique type, ainsi qu'une liste de nouvelles contraintes nécessaires à la fusion des types *)
 let rec fusion_type t1 t2 = 
   match t1, t2 with
   | t, None
@@ -95,6 +96,7 @@ let rec fusion_type t1 t2 =
   | t1, t2                                 -> t1, [(t1,t2)]
 
 
+(* Renvoi un type sans aucunes variables, celles ci sont remplacées par leur type associé *)
 let rec no_var = function
   | Var (_,t,_) -> no_var t
   | T (TFun (a,b)) -> T (TFun (no_var a, no_var b))
@@ -105,6 +107,7 @@ let rec no_var = function
   | a -> a
 
 
+(* Détermine si un type apparait STRICTEMENT à l'intérieur de lui, pour relever une erreur dans le cas d'un Prime *)
 let rec occ_in t1 = function
   | t when t = t1 -> true
   | T (TTuple (a,b))
@@ -114,6 +117,7 @@ let rec occ_in t1 = function
   | T (TList a) -> occ_in t1 a
   | _ -> false
 
+(* Fonction complémentaire de la fonction précédente *)
 let rec occurs_in t1 = function
   | Var (_,t,_) -> occurs_in t1 t
   | T (TTuple (a,b))
@@ -125,7 +129,7 @@ let rec occurs_in t1 = function
 
 
 
-(*Implémente l'unification de deux termes*)
+(*Implémente l'unification de la liste d'inférence jusqu'a son épuisement *)
 let rec unify pb = if !Options.showinf && !compt > compt_max then print_string "out of compt\n"; 
   let update_inf pb = if !Options.showinf then (print_string "AJOUT : ";print_prob !ajout_inf); let pb' = !ajout_inf @ pb in ajout_inf := []; unify pb' in
   if !ajout_inf <> [] then update_inf pb else (incr compt; if !Options.showinf then print_prob pb;

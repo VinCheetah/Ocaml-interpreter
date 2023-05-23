@@ -1,0 +1,1 @@
+fun a b c -> if b then (a:= !a+1;1) else !a   
